@@ -176,6 +176,68 @@ Three objections, and they are the point of the section.
 
 \textbf{They do not characterise.} Hermite asks for periodicity \emph{if and only if} cubic. The proposition above shows every cubic has such a form, but says nothing about a procedure that would produce it from the number alone, nor that the procedure would fail to terminate on a quartic.
 
+\section{Richer digits: continued fractions over $\mathbb{Z}[\omega]$}
+
+The zeros of $x^3-1$ are $1, \omega, \omega^2$. A natural thought is to let the expansion use them --- to run the algorithm with partial quotients in the Eisenstein integers $\mathbb{Z}[\omega]$ rather than in $\mathbb{Z}$.
+
+This is a real construction. Hurwitz gave it for the Gaussian integers in 1887 and the same recipe works on the hexagonal lattice: round to the \emph{nearest} Eisenstein integer, subtract, invert, repeat,
+\[
+  z_{k+1} \;=\; \frac{1}{z_k - \lfloor z_k \rceil}, \qquad \lfloor\ \rceil : \mathbb{C}\to\mathbb{Z}[\omega].
+\]
+And Lagrange's theorem transplants: the expansion is eventually periodic precisely for the numbers that are \emph{quadratic over $\mathbb{Q}(\omega)$}.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+ & degree over $\mathbb{Q}(\omega)$ & period & first terms \\
+\midrule
+$\sqrt2$          & $2$ & $1$    & $(1,0),(2,0),(2,0),\ldots$ \\
+$(1+\sqrt5)/2$    & $2$ & $2$    & $(2,0),(-3,0),(3,0),\ldots$ \\
+$\sqrt{-7}$       & $2$ & $4$    & $(1,3),(2,0),(3,6),(-2,0),\ldots$ \\
+$\omega\sqrt2$    & $2$ & $2$    & $(0,1),(-2,-2),(0,2),\ldots$ \\
+$\sqrt[3]{2}$     & $3$ & none   & $(1,0),(4,0),(-7,0),(2,0),\ldots$ \\
+$\omega\sqrt[3]{2}$ & $3$ & none & $(0,1),(-4,-4),(0,-7),(-2,-2),\ldots$ \\
+$\sqrt[3]{5}$     & $3$ & none   & $(2,0),(-3,0),(-2,0),(-4,0),\ldots$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Pairs $(A,B)$ denote $A + B\omega$. Note that $\sqrt{-7}$ now has a period where over $\mathbb{Z}$ it had no continued fraction at all. But $[\,\mathbb{Q}(\omega,\sqrt[3]{n}):\mathbb{Q}(\omega)\,] = 3$, so cube roots are cubic over the new base as well, and they remain outside.
+
+\subsection*{What is genuinely gained}
+
+Something real does change, and it is exactly the defect identified in Section~3.
+
+Over $\mathbb{Q}$ the extension $\mathbb{Q}(\sqrt[3]{n})/\mathbb{Q}$ is \emph{not normal}: one root inside, two complex roots left out. That is what removed the conjugation the palindrome argument needed.
+
+Over $\mathbb{Q}(\omega)$ it becomes normal. The base now contains the cube roots of unity, so $\mathbb{Q}(\omega,\sqrt[3]{n})/\mathbb{Q}(\omega)$ is a Kummer extension --- cyclic of degree three, with $\sigma : \sqrt[3]{n}\mapsto\omega\sqrt[3]{n}$ an automorphism of order three. All three cube roots are conjugates inside one field and $x^3-n$ splits completely.
+
+The new symmetry is visible in the table. Multiplying by $\omega$ rotates the partial quotients, alternately by $\omega$ and $\omega^2$: $(1,0)\mapsto(0,1)$, then $4 \mapsto 4\omega^2 = (-4,-4)$, then $-7\mapsto-7\omega = (0,-7)$. The Galois action appears as a rotation of the digits, which is the structure that was missing over $\mathbb{Z}$.
+
+\subsection*{What is not gained, and why no choice of digits can help}
+
+Adjoining $\omega$ repairs the symmetry. It does not touch the degree, and it makes the object to be found larger. Count unit ranks by Dirichlet, $r_1 + r_2 - 1$:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+field & signature & unit rank \\
+\midrule
+$\mathbb{Q}(\sqrt n)$            & $2$ real, $0$ complex & $1$ \\
+$\mathbb{Q}(\sqrt[3]{n})$        & $1$ real, $1$ complex & $1$ \\
+$\mathbb{Q}(\omega,\sqrt[3]{n})$ & $0$ real, $3$ complex & $2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{tcolorbox}[colback=blue!6, colframe=blue!45!black, arc=2mm]
+Adjoining $\omega$ doubles the unit rank. And a continued fraction --- over $\mathbb{Z}$, over $\mathbb{Z}[i]$, over $\mathbb{Z}[\omega]$ alike --- is a one-dimensional device: one sequence of digits, one period, and it can express only a rank-one unit group. A rank-two group requires a period that is two-dimensional, a torus rather than a circle.
+
+So enriching the ring the digits live in cannot help, in principle. The digits were never the problem.
+\end{tcolorbox}
+
+This is the conclusion of Section~5 reached from the opposite direction. There the Jacobi--Perron period for $\sqrt[3]{2}$ turned out to encode the fundamental unit, and the period had moved up a dimension. Here one sees why it had to: Jacobi's answer needed to be two-dimensional rather than merely cleverer.
+
 \section{Summary}
 
 \begin{center}
@@ -189,6 +251,10 @@ continued fraction      & periodic, palindromic    & not periodic (Lagrange) \\
 unit rank               & $1$                      & $1$ \\
 Pell analogue           & $x^2-ny^2=1$             & the cubic norm form $=1$ \\
 algorithm finding it    & the continued fraction   & open (Hermite, 1839) \\
+\midrule
+over $\mathbb{Q}(\omega)$ & --- & normal, cyclic of degree $3$ \\
+unit rank there         & ---                      & $2$, so no $1$-dimensional \\
+                        &                          & algorithm can suffice \\
 \bottomrule
 \end{tabular}
 \end{center}
