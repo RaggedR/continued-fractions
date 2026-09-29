@@ -18,7 +18,9 @@ figures with the source kept.
 |---|---|
 | `period.py` | PQa recurrence: period L(n) and regulator R(n) for n < 10⁵. Validates R against three fundamental units known in closed form. |
 | `analyse.py` | The decomposition L/√n = (L/R)·(R/√n), hazard rate, parity, mean growth. |
-| `plots.py` | Redraws the comb histogram and the density. |
+| `plots.py` | Redraws the comb histogram, 2 pages and 8 panels. |
+| `band.py` | The n ∈ [300k, 400k) band: periods, exponential and Weibull fits, KS tests. |
+| `band_plot.py` / `period-distribution-A.pdf` | Panel A of `period-distribution.pdf`, redrawn. |
 | `method.tex` / `.pdf` | **Start here.** How it was computed, and what distribution L(n)/√n has. |
 | `musings.tex` / `.pdf` | Robin Langer, 14 September 2026. The companion piece this work extends — Archimedes → continued fractions → Pell → Sturmian. Also lives in `~/git/stream/`. |
 | `data/periods.npz` | n, L(n), R(n) for all 99,683 non-squares below 10⁵. |
@@ -59,6 +61,17 @@ Against `original/period-histogram.pdf` and its write-up:
 | max L(n)/√n | 2.493 | 2.4932 |
 | log-log slope (panel 6) | 0.431 | 0.4303 |
 | odd period AND a prime factor 3 mod 4 | 0 | 0 |
+
+Against `original/period-distribution.pdf`, on the band n ∈ [300,000, 400,000):
+
+| | September | recomputed |
+|---|---|---|
+| non-squares in band | 99,915 | 99,915 |
+| mean L(n)/√n | 0.334 | 0.3343 |
+| Weibull shape | 0.948 | 0.9480 |
+| KS distance, exponential | 0.0346 | 0.0346 |
+| KS distance, Weibull | 0.0210 | 0.0210 |
+| 5% critical value | 0.0043 | 0.0043 |
 
 The regulators are checked independently against the fundamental units of 2, 13
 and 61, agreeing to nine decimal places.
