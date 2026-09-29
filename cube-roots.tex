@@ -1,0 +1,198 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[most]{tcolorbox}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{problem}[theorem]{Problem}
+
+\title{Cube roots\\[0.4em]\large what survives, what does not, and Hermite's problem}
+\author{Robin Langer}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.5em}
+
+\section{The question}
+
+The continued fraction of $\sqrt n$ repeats, its block closes with $2a_0$, and the rest is a palindrome. All of that is proved in the companion note. Does any of it survive for $\sqrt[3]{n}$?
+
+\section{No, and one look at the data says so}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+ & first thirty partial quotients \\
+\midrule
+$\sqrt[3]{2}$ & $1,3,1,5,1,1,4,1,1,8,1,14,1,10,2,1,4,12,2,3,2,1,3,4,1,1,2,14,3,12$ \\
+$\sqrt[3]{3}$ & $1,2,3,1,4,1,5,1,1,6,2,5,8,3,3,4,2,6,4,4,1,3,2,3,4,1,4,9,1,8$ \\
+$\sqrt[3]{5}$ & $1,1,2,2,4,3,3,1,5,1,1,4,10,17,1,14,1,1,\mathbf{3052},1,1,1,1,1,1,2,2,1,3,2$ \\
+$\sqrt[3]{7}$ & $1,1,10,2,16,2,1,4,2,1,21,1,3,5,1,2,1,1,2,11,5,1,3,1,2,27,4,1,\mathbf{282},8$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Against $\sqrt 2 = [1;\overline{2}]$ and $\sqrt 7 = [2;\overline{1,1,1,4}]$. Nothing closes, and the occasional enormous term --- $3052$, $282$ --- is the heavy tail of the Gauss--Kuzmin law, the signature of a number with no arithmetic structure visible to this algorithm.
+
+This is not an accident of small cases. Lagrange proved that a continued fraction is eventually periodic if and only if its value is a \emph{quadratic} irrational. Degree three is excluded outright.
+
+\section{Exactly where the proof breaks}
+
+It is worth locating the failure precisely, because it says what a replacement would have to supply.
+
+The proof for $\sqrt n$ turns on one finiteness lemma: a reduced surd $\alpha = (P+\sqrt n)/Q$ has
+\[
+  0 < P < \sqrt n, \qquad 0 < Q < 2\sqrt n ,
+\]
+so only finitely many occur and the expansion must repeat. Every one of those inequalities is extracted from the definition of \emph{reduced}, namely
+\[
+  \alpha > 1 \qquad\text{and}\qquad -1 < \bar\alpha < 0 ,
+\]
+and the second is an inequality about a \emph{real} number.
+
+For $\sqrt[3]{n}$ the other two conjugates are $\omega\sqrt[3]{n}$ and $\omega^2\sqrt[3]{n}$ with $\omega$ a primitive cube root of unity. They are complex. There is no ordering on them, so there is no interval to confine them to, so there is no finiteness, so nothing repeats.
+
+\begin{tcolorbox}[colback=blue!6, colframe=blue!45!black, arc=2mm]
+The obstruction is visible in the factorisation itself. $x^2-n$ has two real roots and the passage between them is an order-preserving involution. $x^3-n = (x-\sqrt[3]{n})(x^2 + \sqrt[3]{n}\,x + \sqrt[3]{n^2})$ has one real root and a quadratic factor with no real roots at all. One real conjugate can be squeezed into $(-1,0)$; a pair of complex ones cannot be squeezed into anything.
+\end{tcolorbox}
+
+\section{The arithmetic survives even though the algorithm does not}
+
+This is worth stressing, because it locates the problem in the method rather than in the numbers.
+
+By Dirichlet's unit theorem the unit group of $\mathbb{Q}(\sqrt[3]{n})$ has rank $r_1 + r_2 - 1 = 1 + 1 - 1 = 1$ --- the \emph{same rank} as a real quadratic field. So there is still a fundamental unit, and the cubic analogue of the Pell equation,
+\[
+  N(x + y\sqrt[3]{n} + z\sqrt[3]{n^2}) \;=\; x^3 + n y^3 + n^2 z^3 - 3n\,xyz \;=\; 1,
+\]
+still has infinitely many solutions.
+
+\begin{center}
+\begin{tabular}{rll}
+\toprule
+$n$ & smallest solution & as an element \\
+\midrule
+$2$ & $(-1,1,0)$ & $\sqrt[3]{2}-1$ \\
+$2$ & $(1,1,1)$  & $1+\sqrt[3]{2}+\sqrt[3]{4}$ \\
+$3$ & $(-2,0,1)$ & $\sqrt[3]{9}-2$ \\
+$7$ & $(2,-1,0)$ & $2-\sqrt[3]{7}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Two remarks. First, the two solutions listed for $n=2$ are inverses of one another, and the identity that says so is
+\[
+  (x-1)(1+x+x^2) = x^3-1 , \qquad x = \sqrt[3]{2},
+\]
+giving $(\sqrt[3]{2}-1)(1+\sqrt[3]{2}+\sqrt[3]{4}) = 1$ exactly. The elementary factorisation of $x^3-1$ \emph{is} the fundamental unit of $\mathbb{Z}[\sqrt[3]{2}]$.
+
+Second, note $2 = 1^3+1$, $7 = 2^3-1$, $9 = 2^3+1$. Integers just off a cube have tiny units, precisely as integers just off a square have period-one square roots.
+
+\section{Hermite's problem}
+
+The natural response is that the algorithm, not the arithmetic, is at fault: a continued fraction approximates one real number by rationals, whereas a cubic irrational $\theta$ really requires approximating the \emph{pair} $(\theta, \theta^2)$ simultaneously, which is a two-dimensional problem wanting $3\times3$ matrices.
+
+\begin{problem}
+Is there an algorithm which, applied to a real number, produces an expansion that is eventually periodic if and only if the number is a cubic irrational?
+\end{problem}
+
+Hermite put this to Jacobi in 1839. Jacobi's response was to invent what is now called the Jacobi--Perron algorithm: from a pair $(\alpha,\beta)$ take $a = \lfloor\alpha\rfloor$, $b = \lfloor\beta\rfloor$ and pass to
+\[
+  (\alpha,\beta) \;\longmapsto\; \left( \frac{\beta-b}{\alpha-a},\ \frac{1}{\alpha-a} \right).
+\]
+Started at $(\sqrt[3]{n}, \sqrt[3]{n^2})$ it does, in the cases computed here, become periodic.
+
+\begin{center}
+\begin{tabular}{rll}
+\toprule
+$n$ & first integer pairs & period \\
+\midrule
+$2$ & $(1,1),(2,3),(3,3),(3,3),(3,3),\ldots$        & $1$ \\
+$3$ & $(1,2),(0,2),(1,5),(1,2),(1,5),\ldots$        & $2$ \\
+$7$ & $(1,3),(0,1),(0,1),(2,7),(0,1),(0,1),(3,6),\ldots$ & $3$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The case $n=2$ can be settled exactly rather than numerically, and it is worth doing because of what falls out. A fixed point with integer parts $(3,3)$ satisfies $\beta = 1/(\alpha-3)$ and $\alpha = (\beta-3)/(\alpha-3)$, which eliminate to
+\[
+  \beta^3 - 3\beta^2 - 3\beta - 1 = 0 .
+\]
+Put $\gamma = 1 + \sqrt[3]{2} + \sqrt[3]{4}$ and write $t = \sqrt[3]{2}$, $t^3 = 2$. Then $\gamma^2 = 5 + 4t + 3t^2$ and $\gamma^3 = 19 + 15t + 12t^2$, so
+\[
+  \gamma^3 - 3\gamma^2 - 3\gamma - 1
+  = (19-15-3-1) + (15-12-3)t + (12-9-3)t^2 = 0 .
+\]
+
+\begin{tcolorbox}[colback=green!5, colframe=green!40!black, arc=2mm]
+So the Jacobi--Perron periodic point for $\sqrt[3]{2}$ \emph{is} the fundamental unit $1+\sqrt[3]{2}+\sqrt[3]{4}$ --- which is the second factor of $x^3-1=(x-1)(1+x+x^2)$. That is the exact structural analogue of the quadratic case, where the continued fraction period delivers the fundamental solution of Pell. The period did not disappear. It moved up a dimension.
+\end{tcolorbox}
+
+What is \emph{not} known is whether Jacobi--Perron, or any algorithm, is periodic for every cubic irrational and for nothing else. Hermite's problem has been open since 1839. There has been recent work claiming progress on it; the state of that literature sits beyond what this note can vouch for and should be checked directly.
+
+\section{Allowing square roots as well}
+
+A different relaxation: let the expansion use square roots alongside the usual steps. This changes the reachable degree, and by exactly one.
+
+\begin{proposition}
+Let $\alpha$ satisfy $\alpha = \sqrt{\dfrac{a\alpha+b}{c\alpha+d}}$ with $a,b,c,d$ rational and $c \neq 0$. Then
+\[
+  c\,\alpha^3 + d\,\alpha^2 - a\,\alpha - b \;=\; 0 .
+\]
+Conversely every cubic arises this way.
+\end{proposition}
+
+\begin{proof}
+Square and clear denominators: $\alpha^2(c\alpha+d) = a\alpha+b$. Conversely, read the coefficients of a given cubic off as $c,d,-a,-b$.
+\end{proof}
+
+So a single square root inside the loop moves the reach from degree two to degree three precisely. Two specialisations:
+\[
+  \sqrt[3]{n} \;=\; \sqrt{\frac{n}{\sqrt[3]{n}}}
+  \qquad\text{and}\qquad
+  \alpha^3 - m\alpha - 1 = 0 \iff \alpha = \sqrt{m + \frac1\alpha}\, .
+\]
+Unrolled, these are honest periodic expansions:
+\[
+  \sqrt[3]{n} \;=\; \sqrt{\frac{n}{\sqrt{\dfrac{n}{\sqrt{\dfrac{n}{\ddots}}}}}},
+  \qquad
+  \alpha \;=\; \sqrt{m + \cfrac{1}{\sqrt{m + \cfrac{1}{\sqrt{m+\ddots}}}}}\, .
+\]
+The second at $m=1$ is the plastic number, the real root of $x^3 = x+1$; at $m=2$ it is the real root of $x^3 = 2x+1$. Both were checked to fifty decimal places, as was the first for $n = 2, 3, 10$ to sixty.
+
+\subsection*{Why this does not answer Hermite}
+
+Three objections, and they are the point of the section.
+
+\textbf{These are identities, not algorithms.} A continued fraction is \emph{greedy and canonical}: take the floor, invert, repeat, and the expansion is forced and unique. Nothing here is greedy. To write $\sqrt[3]{n} = \sqrt{n/\sqrt[3]{n}}$ you must already know the answer; the expansion is a rearrangement of the equation you started from, not a discovery.
+
+\textbf{They converge slowly.} The map $x \mapsto \sqrt{n/x}$ has derivative $-\tfrac12$ at its fixed point, so it gains $\log_{10} 2 = 0.3010$ digits per step: $10$ steps for $3$ digits, $200$ for $60$. A continued fraction gains digits at a rate growing with the size of the partial quotients, and gains them exponentially in the number of terms. Linear convergence is a different and much worse thing.
+
+\textbf{They do not characterise.} Hermite asks for periodicity \emph{if and only if} cubic. The proposition above shows every cubic has such a form, but says nothing about a procedure that would produce it from the number alone, nor that the procedure would fail to terminate on a quartic.
+
+\section{Summary}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+ & $\sqrt n$ & $\sqrt[3]{n}$ \\
+\midrule
+conjugates              & two real                 & one real, two complex \\
+reduced surds           & finitely many            & no such notion \\
+continued fraction      & periodic, palindromic    & not periodic (Lagrange) \\
+unit rank               & $1$                      & $1$ \\
+Pell analogue           & $x^2-ny^2=1$             & the cubic norm form $=1$ \\
+algorithm finding it    & the continued fraction   & open (Hermite, 1839) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The last row is the whole difficulty. Everything on the arithmetic side transfers; only the machine that finds it does not.
+
+\end{document}
