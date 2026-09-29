@@ -1,0 +1,192 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb,amsthm}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\title{The palindrome in the continued fraction of $\sqrt{n}$}
+\author{Robin Langer}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.5em}
+
+\section{What is to be proved}
+
+\begin{theorem}\label{main}
+Let $n$ be a positive integer that is not a perfect square, and let $a_0 = \lfloor\sqrt n\rfloor$. Then the continued fraction of $\sqrt n$ is
+\[
+  \sqrt n \;=\; [\,a_0;\ \overline{a_1, a_2, \ldots, a_{L-1},\ 2a_0}\,]
+\]
+for some $L \geq 1$, where the block closes with $2a_0$ and the remaining terms read the same in both directions:
+\[
+  a_i \;=\; a_{L-i} \qquad (1 \leq i \leq L-1).
+\]
+\end{theorem}
+
+The result is due to Legendre; the machinery it rests on is Galois', who proved it in 1828--29 while still at school.
+
+The proof below is elementary throughout. The palindrome itself takes three lines once one fact is available, and essentially all of the work is in establishing that fact, which is Theorem~\ref{galois}.
+
+\section{The expansion in integer form}
+
+For irrational $x$ write $\alpha_0 = x$, $a_i = \lfloor \alpha_i\rfloor$, and $\alpha_{i+1} = 1/(\alpha_i - a_i)$. The $\alpha_i$ are the \emph{complete quotients} and the $a_i$ the \emph{partial quotients}. The expansion of an irrational number is infinite, and it is unique: distinct sequences $(a_i)$ give distinct values. We use that uniqueness at the end without further comment.
+
+For $x = \sqrt n$ every complete quotient has the shape
+\[
+  \alpha_i \;=\; \frac{P_i + \sqrt n}{Q_i}
+\]
+with $P_i, Q_i$ integers, $Q_i \neq 0$ and $Q_i \mid n - P_i^2$. Starting from $P_0 = 0$, $Q_0 = 1$, an induction gives
+\[
+  a_i = \left\lfloor \frac{a_0 + P_i}{Q_i} \right\rfloor,
+  \qquad
+  P_{i+1} = a_i Q_i - P_i,
+  \qquad
+  Q_{i+1} = \frac{n - P_{i+1}^2}{Q_i},
+\]
+the divisibility being preserved at each step because $n - P_{i+1}^2 = (n - P_i^2) + Q_i(2P_i - a_iQ_i)$ and $Q_i$ divides both summands. So the whole expansion is generated in exact integer arithmetic.
+
+\section{Reduced surds, and why there are finitely many}
+
+\begin{definition}
+A quadratic irrational $\alpha$ is \emph{reduced} if $\alpha > 1$ and its conjugate satisfies $-1 < \bar\alpha < 0$.
+\end{definition}
+
+\begin{lemma}\label{bounds}
+If $\alpha = (P+\sqrt n)/Q$ is reduced, then
+\[
+  0 < P < \sqrt n \qquad\text{and}\qquad 0 < Q < 2\sqrt n .
+\]
+In particular only finitely many reduced surds are attached to a given $n$.
+\end{lemma}
+
+\begin{proof}
+Here $\bar\alpha = (P-\sqrt n)/Q$. From $\alpha - \bar\alpha = 2\sqrt n / Q > 0$ we get $Q > 0$. From $\bar\alpha < 0$ and $Q>0$ we get $P < \sqrt n$. From $\bar\alpha > -1$, that is $(\sqrt n - P)/Q < 1$, we get $Q > \sqrt n - P$, and combined with $\alpha > 1$, that is $P + \sqrt n > Q$, we get
+\[
+  \sqrt n - P \;<\; Q \;<\; P + \sqrt n .
+\]
+The left inequality forces $P > \sqrt n - Q$ and, with the right, $P>0$: indeed if $P \leq 0$ then $Q < P + \sqrt n \leq \sqrt n$ while $Q > \sqrt n - P \geq \sqrt n$, a contradiction. Finally $Q < P + \sqrt n < 2\sqrt n$.
+\end{proof}
+
+\begin{lemma}\label{preserve}
+If $\alpha_i$ is reduced then so is $\alpha_{i+1}$.
+\end{lemma}
+
+\begin{proof}
+Since $\alpha_i$ is irrational, $0 < \alpha_i - a_i < 1$, so $\alpha_{i+1} = 1/(\alpha_i-a_i) > 1$. Conjugation is a field automorphism, so $\bar\alpha_{i+1} = 1/(\bar\alpha_i - a_i)$. As $\alpha_i > 1$ we have $a_i \geq 1$, and as $\bar\alpha_i < 0$ we get $\bar\alpha_i - a_i < -1$; hence $\bar\alpha_{i+1}$ lies in $(-1,0)$.
+\end{proof}
+
+\begin{lemma}\label{reverse}
+A reduced $\alpha_{i+1}$ determines $a_i$, and hence $\alpha_i$. Explicitly $a_i = \lfloor -1/\bar\alpha_{i+1} \rfloor$.
+\end{lemma}
+
+\begin{proof}
+Inverting $\bar\alpha_{i+1} = 1/(\bar\alpha_i - a_i)$ gives $-1/\bar\alpha_{i+1} = a_i - \bar\alpha_i$. Since $\bar\alpha_i \in (-1,0)$, the right side lies in $(a_i, a_i+1)$, so its floor is $a_i$. Then $\alpha_i = a_i + 1/\alpha_{i+1}$.
+\end{proof}
+
+\begin{theorem}\label{galois}
+Every reduced quadratic irrational has a purely periodic continued fraction.
+\end{theorem}
+
+\begin{proof}
+Let $\alpha = \alpha_0$ be reduced. By Lemma~\ref{preserve} every $\alpha_i$ is reduced, and by Lemma~\ref{bounds} they all lie in a finite set. So $\alpha_j = \alpha_k$ for some $j < k$; choose such a pair with $k$ least, and among those, $j$ least. If $j \geq 1$ then Lemma~\ref{reverse}, applied to the equal reduced surds $\alpha_j = \alpha_k$, gives $\alpha_{j-1} = \alpha_{k-1}$, contradicting minimality. Hence $j = 0$ and the expansion repeats from the very beginning.
+\end{proof}
+
+\section{Reversal}
+
+Let $M(a) = \begin{pmatrix} a & 1 \\ 1 & 0\end{pmatrix}$, acting on numbers by
+$\begin{pmatrix} r & s \\ u & v \end{pmatrix}\!\cdot x = \dfrac{rx+s}{ux+v}$, so that $M(a)\cdot x = a + 1/x$ and
+\[
+  [\,a_0; a_1, \ldots, a_m, x\,] \;=\; M(a_0)M(a_1)\cdots M(a_m)\cdot x .
+\]
+
+Two features of $M$ do all the work. Each $M(a)$ is \emph{symmetric}, so reversing a product transposes it:
+\[
+  \bigl(M(b_0)M(b_1)\cdots M(b_m)\bigr)^{\!\top} \;=\; M(b_m)\cdots M(b_1)M(b_0) .
+\]
+And a matrix and its transpose have related fixed points.
+
+\begin{lemma}\label{fixed}
+Let $A = \begin{pmatrix} p & p' \\ q & q'\end{pmatrix}$ with $q \neq 0$. The fixed points of $A$ are the roots of $q x^2 + (q'-p)x - p' = 0$, those of $A^\top$ the roots of $p' x^2 + (q'-p)x - q = 0$, and the two sets are related by $x \mapsto -1/x$.
+\end{lemma}
+
+\begin{proof}
+$A\cdot x = x$ reads $(px+p')/(qx+q') = x$, which is the first equation; the second is the same computation for $A^\top$. Substituting $x = -1/y$ into the first and multiplying by $-y^2$ gives $p'y^2 + (q'-p)y - q = 0$, the second.
+\end{proof}
+
+\begin{lemma}\label{revlemma}
+Let $\alpha$ be reduced with purely periodic expansion $[\,\overline{b_0; b_1,\ldots,b_m}\,]$. Then
+\[
+  -\frac{1}{\bar\alpha} \;=\; [\,\overline{b_m; b_{m-1},\ldots,b_0}\,].
+\]
+\end{lemma}
+
+\begin{proof}
+Put $A = M(b_0)\cdots M(b_m)$. Pure periodicity says $\alpha = A\cdot\alpha$, so $\alpha$ is a fixed point of $A$; the fixed-point equation has rational coefficients and $\alpha$ is a quadratic irrational, so the other root is $\bar\alpha$. By symmetry of the factors, the reversed period has matrix $A^\top$, and the number $\beta = [\,\overline{b_m;\ldots,b_0}\,]$ satisfies $\beta = A^\top\cdot\beta$. By Lemma~\ref{fixed} the fixed points of $A^\top$ are $-1/\alpha$ and $-1/\bar\alpha$. Now $\alpha > 1$ gives $-1/\alpha \in (-1,0)$, while $\bar\alpha \in (-1,0)$ gives $-1/\bar\alpha > 1$. A purely periodic continued fraction with positive partial quotients exceeds $1$, so $\beta \neq -1/\alpha$, leaving $\beta = -1/\bar\alpha$.
+\end{proof}
+
+\section{Proof of Theorem~\ref{main}}
+
+\begin{proof}
+Set $\alpha = a_0 + \sqrt n$. Then $\alpha > 1$, and $\bar\alpha = a_0 - \sqrt n$ lies in $(-1,0)$ because $a_0 = \lfloor\sqrt n\rfloor$ and $n$ is not a square. So $\alpha$ is reduced, and by Theorem~\ref{galois} its expansion is purely periodic.
+
+Its partial quotients are readable off those of $\sqrt n$. Indeed $\lfloor \alpha\rfloor = 2a_0$, and $\alpha - 2a_0 = \sqrt n - a_0$, so after the first term $\alpha$ and $\sqrt n$ have the same complete quotients. Writing $L$ for the period,
+\[
+  \alpha \;=\; [\,\overline{2a_0;\ a_1, a_2, \ldots, a_{L-1}}\,] ,
+\]
+and reading this back for $\sqrt n$ shows that its block is $a_1, \ldots, a_{L-1}, 2a_0$. That is the closing term.
+
+For the palindrome, consider the first complete quotient of $\sqrt n$,
+\[
+  \alpha_1 \;=\; \frac{1}{\sqrt n - a_0} \;=\; -\frac{1}{\bar\alpha}.
+\]
+On the one hand it is visibly $[\,\overline{a_1; a_2, \ldots, a_{L-1}, 2a_0}\,]$. On the other, Lemma~\ref{revlemma} applied to $\alpha$ gives
+\[
+  -\frac{1}{\bar\alpha} \;=\; [\,\overline{a_{L-1};\ a_{L-2}, \ldots, a_1,\ 2a_0}\,].
+\]
+Continued fraction expansions are unique, so the two sequences agree term by term:
+\[
+  a_1 = a_{L-1}, \quad a_2 = a_{L-2}, \quad \ldots
+\]
+which is the assertion.
+\end{proof}
+
+\begin{corollary}
+$B = M(a_1)M(a_2)\cdots M(a_{L-1})$ is a symmetric matrix.
+\end{corollary}
+
+\begin{proof}
+$B^\top$ is the product in reverse order, which by Theorem~\ref{main} is the same product.
+\end{proof}
+
+\section{Checks and a consequence}
+
+\begin{center}
+\begin{tabular}{rll}
+\toprule
+$n$ & block & palindromic part \\
+\midrule
+$7$  & $1,1,1,4$                                   & $1,1,1$ \\
+$13$ & $1,1,1,1,6$                                 & $1,1,1,1$ \\
+$19$ & $2,1,3,1,2,8$                               & $2,1,3,1,2$ \\
+$31$ & $1,1,3,5,3,1,1,10$                          & $1,1,3,5,3,1,1$ \\
+$61$ & $1,4,3,1,2,2,1,3,4,1,14$                    & $1,4,3,1,2,2,1,3,4,1$ \\
+$94$ & $1,2,3,1,1,5,1,8,1,5,1,1,3,2,1,18$          & $1,2,3,1,1,5,1,8,1,5,1,1,3,2,1$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The symmetry of $B$ was checked directly for these, and the theorem itself for every non-square below $10^6$.
+
+One consequence is worth recording, since it is what the palindrome is usually wanted for. The identity $n = P_i^2 + Q_iQ_{i-1}$, which is the recurrence for $Q$ rearranged, becomes a sum of two squares exactly when two consecutive $Q$ agree. That happens at the mirror line of the palindrome, and the mirror falls \emph{between} two terms precisely when $L-1$ is even, that is when $L$ is odd. For a prime $p$ the period is odd if and only if $p = 2$ or $p \equiv 1 \pmod 4$, and one recovers Fermat's theorem that such primes are sums of two squares, together with an algorithm for finding the two squares.
+
+\end{document}
