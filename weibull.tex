@@ -196,13 +196,23 @@ $1{,}000{,}000$ & $999{,}000$ & $0.3348$ & $0.9489$ & $0.0190$ & $0.0014$ \\
 \end{center}
 
 \begin{tcolorbox}[colback=blue!6, colframe=blue!45!black, arc=2mm]
+$k(M)$ falls monotonically and \emph{decelerates}. Over any single decade a
+straight line in $\log M$ describes it well; over three decades it does not.
 \[
-  k(M) \;\approx\; 1.5517 \;-\; 0.04527\,\log M ,
-  \qquad k=1 \text{ at } M \approx 196{,}000 .
+  \text{slope } \frac{dk}{d\log M}:\quad
+  -0.0927 \ \ [10^3,10^4], \qquad
+  -0.0493 \ \ [10^4,10^5], \qquad
+  -0.0298 \ \ [10^5,10^6],
 \]
-It falls linearly in $\log M$ across the whole range, monotonically, with no
-sign of settling.
+shrinking by a factor of about $0.57$ per decade. It passes $k=1$ somewhere
+near $M \approx 1.6$--$2.0 \times 10^5$.
 \end{tcolorbox}
+
+Fitting a straight line over the whole range gives $k = 1.6466-0.05339\log M$
+with residual rms $0.0244$, against a total variation in $k$ of only $0.38$.
+That is a poor description, and it is worth being explicit that an earlier
+draft of this section claimed the dependence was linear. It is not; the
+appearance of linearity came from fitting a range one decade narrower.
 
 \textbf{It is not the same line as the band-wise one.} Against $k = 1.3197 - 0.02897\log n$ from the previous section:
 
@@ -212,7 +222,7 @@ sign of settling.
  & band-wise & cumulative \\
 \midrule
 slope in $\log$ & $-0.02897$ & $-0.04527$ \\
-crosses $k=1$ at & $n \approx 61{,}900$ & $M \approx 196{,}000$ \\
+crosses $k=1$ at & $n \approx 61{,}900$ & $M \approx 1.6$--$2.0\times10^5$ \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -241,13 +251,46 @@ KS $/$ critical value & $1.2\times$ & $1.7\times$ & $4.8\times$ & $14.0\times$ \
 
 So the Weibull is not getting worse as $M$ grows. It is exactly as wrong at $10^6$ as at $10^3$, and the discrepancy was always there; what grows, like $\sqrt M$, is the power to see it. At $M=3{,}000$ the fit is marginal and a less demanding test would pass it. At $M=10^6$ it fails by a factor of fourteen.
 
-There is therefore no $M$ at which the Weibull becomes correct, and no limiting $k$ anywhere in this range. A shape that drifts is a shape that does not exist.
+There is therefore no $M$ at which the Weibull becomes correct. That conclusion rests on the test and is firm. Whether $k$ itself approaches a limit is a separate question, and the next section is about how badly the data fails to answer it.
 
 \begin{center}
 \includegraphics[width=\textwidth]{cumulative-figure.pdf}
 \end{center}
 
-One caution on the formula. Linear-in-$\log M$ cannot hold indefinitely, since $k>0$ always and the line reaches zero near $M \sim 10^{15}$. It is a description of the range measured, $10^{3.5}$ to $10^6$, and not a law.
+\subsection*{Does $k$ have a limit? The data will not say.}
+
+Since the slope decays geometrically, $k$ may well converge. Four models were
+fitted to forty values of $M$ between $10^3$ and $10^6$.
+
+\begin{center}
+\begin{tabular}{lrl}
+\toprule
+model & rms & implied limit \\
+\midrule
+$a + b\log M$                        & $0.02441$ & none, $\to -\infty$ \\
+$A + B/\log M$                       & $0.00477$ & $0.556$ \\
+$A + B\,M^{-\beta}$, $\beta=0.244$   & $0.00333$ & $0.863$ \\
+$A + B/\log M + C/\log^2 M$          & $0.00305$ & $0.652$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Every curved form beats the straight line by a factor of five to eight. None
+of them can be preferred over the others: their residuals differ by less than
+$0.002$, which is the scale of the fitting noise. And they imply limits of
+$0.556$, $0.652$ and $0.863$ --- a spread wider than the entire movement of
+$k$ observed so far.
+
+\begin{center}
+\includegraphics[width=\textwidth]{k-vs-M.pdf}
+\end{center}
+
+So the honest statement is in two halves. \textbf{That $k$ decelerates is
+measured}: the per-decade slope shrinks by a factor near $0.57$, consistently,
+across three decades. \textbf{Where it is heading is not measured}: three
+models agreeing on the data to within noise put the limit anywhere between
+$0.56$ and $0.86$. Separating them needs $M$ at $10^8$ or beyond, which is
+about $10^{11}$ recurrence steps and wants the inner loop in C.
 
 \subsection*{An aside, now that the periods reach $10^6$}
 
@@ -260,6 +303,8 @@ python3 weibull_sweep.py     # periods, fits, KS, hazards for all seven bands
 python3 weibull_plots.py     # the four band panels
 python3 cumulative.py        # periods to 10^6, k(M) for 21 values of M
 python3 cumulative_plot.py   # the three cumulative panels
+python3 four_M.py            # the density at four ceilings M
+python3 k_vs_M.py            # k against M, with the competing extrapolations
 tectonic weibull.tex
 \end{verbatim}
 
