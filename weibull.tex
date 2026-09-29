@@ -170,13 +170,103 @@ The rising arm must therefore be the edge. There is a ceiling, $L(n)=O(\sqrt n\l
 
 A single-parameter family is being asked to represent two mechanisms pulling in opposite directions, and the balance between them moves with $n$ because the edge moves with $n$. That is why $k$ drifts, and why the drift has no limit in this data.
 
+\section{How $k$ depends on $M$, the largest $n$ included}
+
+The fits above are on disjoint bands. A different and more natural question is
+what happens if you simply expand every square root up to some ceiling $M$ and
+fit the lot --- the cumulative sample $\{L(n)/\sqrt n : 2\le n<M\}$.
+
+Periods were computed for every non-square below $10^6$ (25 seconds; $999{,}000$
+values, mean period $219.46$) and the Weibull refitted at each of twenty-one
+values of $M$.
+
+\begin{center}
+\begin{tabular}{rrrrrr}
+\toprule
+$M$ & $N$ & mean $t$ & $k$ & KS & $5\%$ cut \\
+\midrule
+$3{,}162$    & $3{,}105$   & $0.4770$ & $1.2185$ & $0.0293$ & $0.0244$ \\
+$10{,}000$   & $9{,}900$   & $0.4365$ & $1.1308$ & $0.0237$ & $0.0136$ \\
+$31{,}622$   & $31{,}444$  & $0.4052$ & $1.0697$ & $0.0214$ & $0.0077$ \\
+$100{,}000$  & $99{,}683$  & $0.3771$ & $1.0183$ & $0.0207$ & $0.0043$ \\
+$316{,}227$  & $315{,}664$ & $0.3539$ & $0.9800$ & $0.0199$ & $0.0024$ \\
+$1{,}000{,}000$ & $999{,}000$ & $0.3348$ & $0.9489$ & $0.0190$ & $0.0014$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{tcolorbox}[colback=blue!6, colframe=blue!45!black, arc=2mm]
+\[
+  k(M) \;\approx\; 1.5517 \;-\; 0.04527\,\log M ,
+  \qquad k=1 \text{ at } M \approx 196{,}000 .
+\]
+It falls linearly in $\log M$ across the whole range, monotonically, with no
+sign of settling.
+\end{tcolorbox}
+
+\textbf{It is not the same line as the band-wise one.} Against $k = 1.3197 - 0.02897\log n$ from the previous section:
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+ & band-wise & cumulative \\
+\midrule
+slope in $\log$ & $-0.02897$ & $-0.04527$ \\
+crosses $k=1$ at & $n \approx 61{,}900$ & $M \approx 196{,}000$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Two effects, pulling opposite ways, and both are visible here.
+
+\emph{The cumulative $k$ is higher than the band $k$ at the same scale} --- at $10^6$, $0.9489$ against $0.9194$. Including every smaller $n$ blends in bands with larger $k$, and that raises the average. It is why the crossing is postponed from $62{,}000$ to $196{,}000$.
+
+\emph{But the cumulative slope is steeper}, $1.56$ times so. Mixing bands of different scale adds dispersion, and added dispersion lowers a Weibull shape. The mean falls with $M$ while the spread of means inside the sample stays roughly fixed in absolute terms, so the relative dispersion contributed by mixing grows, and $k$ is pushed down harder than the band-wise drift alone would push it.
+
+\subsection*{The misfit is constant. Only the test improves.}
+
+The last two columns of the table are the important ones, and they move in opposite directions.
+
+The KS distance barely changes: $0.0293$ at $M=3{,}162$, $0.0190$ at $M=10^6$. If anything it slightly improves. The critical value collapses, because it goes like $1/\sqrt N$: from $0.0244$ down to $0.0014$.
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+$M$ & $3{,}162$ & $10^4$ & $10^5$ & $10^6$ \\
+\midrule
+KS $/$ critical value & $1.2\times$ & $1.7\times$ & $4.8\times$ & $14.0\times$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+So the Weibull is not getting worse as $M$ grows. It is exactly as wrong at $10^6$ as at $10^3$, and the discrepancy was always there; what grows, like $\sqrt M$, is the power to see it. At $M=3{,}000$ the fit is marginal and a less demanding test would pass it. At $M=10^6$ it fails by a factor of fourteen.
+
+There is therefore no $M$ at which the Weibull becomes correct, and no limiting $k$ anywhere in this range. A shape that drifts is a shape that does not exist.
+
+\begin{center}
+\includegraphics[width=\textwidth]{cumulative-figure.pdf}
+\end{center}
+
+One caution on the formula. Linear-in-$\log M$ cannot hold indefinitely, since $k>0$ always and the line reaches zero near $M \sim 10^{15}$. It is a description of the range measured, $10^{3.5}$ to $10^6$, and not a law.
+
+\subsection*{An aside, now that the periods reach $10^6$}
+
+The mean period at $M=10^6$ is $219.46$, so $\text{mean}/\sqrt M = 0.2195$. Multiplying by $\log M$ gives $3.032$, still rising; by $\sqrt{\log M}$ gives $0.8158$, still falling. The growth of the mean remains bracketed strictly between $\sqrt M/\log M$ and $\sqrt M/\sqrt{\log M}$ at $10^6$, as it was at $10^5$. Another decade does not separate them.
+
 \section{Reproducing}
 
 \begin{verbatim}
-python3 weibull_sweep.py    # periods, fits, KS, hazards for all seven bands
-python3 weibull_plots.py    # the four panels
+python3 weibull_sweep.py     # periods, fits, KS, hazards for all seven bands
+python3 weibull_plots.py     # the four band panels
+python3 cumulative.py        # periods to 10^6, k(M) for 21 values of M
+python3 cumulative_plot.py   # the three cumulative panels
 tectonic weibull.tex
 \end{verbatim}
+
+The Weibull maximum likelihood is written out directly rather than called from
+\texttt{scipy}, since the cumulative samples reach $10^6$ points; it agrees with
+\texttt{scipy.stats.weibull\_min.fit} to five decimal places on a test band
+($k = 0.948014$ against $0.948032$).
 
 The periods are recomputed from scratch in every band. As a check, the band $[3\times10^5,4\times10^5)$ reproduces $99{,}915$ non-squares, mean $0.3343$, shape $0.9480$ and KS distances $0.0346$ and $0.0210$, matching the September figures to four decimal places.
 
