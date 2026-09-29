@@ -22,6 +22,9 @@ figures with the source kept.
 | `method.tex` / `.pdf` | **Start here.** How it was computed, and what distribution L(n)/√n has. |
 | `musings.tex` / `.pdf` | Robin Langer, 14 September 2026. The companion piece this work extends — Archimedes → continued fractions → Pell → Sturmian. Also lives in `~/git/stream/`. |
 | `data/periods.npz` | n, L(n), R(n) for all 99,683 non-squares below 10⁵. |
+| `period-histogram.pdf` | The recomputed figure — 2 pages, 8 panels. |
+| `distribution.pdf` | Two disjoint bands of n plotted together, showing the law drifts. |
+| `original/` | The 14 September originals, for comparison: `period-histogram.pdf`, `period-distribution.pdf`, and the `period-histogram.txt` write-up. Kept unmodified. |
 
 ## Reproducing
 
@@ -43,6 +46,19 @@ between bands.
 
 ## Validation
 
-The recomputed histogram reproduces the September figures exactly: 99,683
-non-squares, shortest period 1, longest 750, mean 77.84, median 48, and 54,889
-with L > 40.
+Against `original/period-histogram.pdf` and its write-up:
+
+| | September | recomputed |
+|---|---|---|
+| non-squares | 99,683 | 99,683 |
+| shortest / longest period | 1 / 750 | 1 / 750 |
+| mean / median | 77.84 / 48 | 77.84 / 48 |
+| L > 40 | 54,889 | 54,889 |
+| all 40 individual bars | — | identical |
+| odd period | 11.52% | 11.52% |
+| max L(n)/√n | 2.493 | 2.4932 |
+| log-log slope (panel 6) | 0.431 | 0.4303 |
+| odd period AND a prime factor 3 mod 4 | 0 | 0 |
+
+The regulators are checked independently against the fundamental units of 2, 13
+and 61, agreeing to nine decimal places.

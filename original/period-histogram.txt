@@ -1,0 +1,122 @@
+PERIOD LENGTH OF THE CONTINUED FRACTION OF sqrt(n)
+
+n from 2 to 99999.  99683 non-squares.
+shortest 1   longest 750   mean 77.84   median 48
+
+
+1. RAW HISTOGRAM, period length 1 to 40
+
+    1 |####### 316
+    2 |###################################################### 2601
+    3 |## 99
+    4 |########################################################## 2789
+    5 |######## 392
+    6 |################################################## 2419
+    7 |#### 212
+    8 |######################################################## 2703
+    9 |#### 186
+   10 |####################################################### 2622
+   11 |##### 251
+   12 |################################################ 2289
+   13 |#### 201
+   14 |############################################### 2251
+   15 |#### 200
+   16 |############################################ 2093
+   17 |#### 211
+   18 |############################################ 2103
+   19 |#### 201
+   20 |######################################## 1912
+   21 |#### 198
+   22 |######################################## 1937
+   23 |#### 199
+   24 |####################################### 1888
+   25 |##### 217
+   26 |####################################### 1892
+   27 |#### 195
+   28 |###################################### 1811
+   29 |#### 174
+   30 |#################################### 1749
+   31 |#### 206
+   32 |################################## 1622
+   33 |#### 172
+   34 |################################### 1676
+   35 |### 165
+   36 |############################## 1449
+   37 |#### 175
+   38 |############################## 1431
+   39 |#### 190
+   40 |############################# 1397
+  40+ |########################################################## 54889   (all lengths above 40, combined)
+
+The comb is the whole story of this picture. Even lengths are common and
+odd lengths are rare. Nothing about the algorithm suggests that.
+
+
+2. WHY THE COMB
+
+  odd period    11486   11.5%
+  even period   88197   88.5%
+
+An odd period means the first pass lands on -1, so x*x - n*y*y = -1 has a
+solution, so -1 is a norm from the field. If any prime factor of n is 3 mod 4
+that is impossible.
+
+  CLAIM   L(n) is odd  =>  no prime factor of n is 3 mod 4
+  checked for every non-square below 200000, no violations
+
+Roughly three quarters of all numbers have a prime factor 3 mod 4, and that
+proportion creeps up. So the odd column keeps thinning.
+
+         M   odd periods among n < M
+      1000   15.70%
+     10000   13.35%
+    100000   11.52%
+
+
+3. THE SAME DATA DIVIDED BY sqrt(n)
+
+  0.00-0.13 |######################################################## 29207
+  0.13-0.26 |########################################## 21788
+  0.26-0.39 |############################ 14624
+  0.39-0.52 |################### 9786
+  0.52-0.65 |############# 6631
+  0.65-0.78 |######### 4807
+  0.78-0.91 |####### 3517
+  0.91-1.04 |##### 2511
+  1.04-1.17 |### 1774
+  1.17-1.30 |## 1123
+  1.30-1.43 |## 952
+  1.43-1.56 |## 811
+  1.56-1.69 |# 653
+  1.69-1.82 |# 561
+  1.82-1.95 |# 388
+  1.95-2.08 |# 261
+  2.08-2.21 | 169
+  2.21-2.34 | 83
+  2.34-2.47 | 33
+  2.47-2.60 | 4
+
+  largest value of L(n)/sqrt(n) seen: 2.493
+
+Dividing by sqrt(n) removes the comb and leaves a smooth decay with a hard
+looking right hand edge. The edge is not hard. It drifts.
+
+         M   largest L(n)/sqrt(n) for n < M
+      1000   1.9792
+     10000   2.2245
+    100000   2.4932
+
+That slow drift is the log factor in the known bound L(n) = O(sqrt(n) log n).
+
+
+4. HOW THE MEAN GROWS
+
+         M     mean L     exponent
+      3000      17.06             
+     10000      28.38        0.422
+     30000      45.94        0.439
+    100000      77.84        0.438
+
+The exponent settles near 0.44, not 0.5. The mean period grows a little
+slower than the square root. The gap is the class number, which divides the
+regulator and is usually bigger than one.
