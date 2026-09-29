@@ -1,0 +1,376 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{xcolor}
+\definecolor{cA}{HTML}{1F4E8C}
+\definecolor{cB}{HTML}{B3261E}
+\definecolor{cC}{HTML}{1B7A3D}
+\definecolor{cD}{HTML}{B36B00}
+\newcommand{\blk}[2]{\texttt{\textbf{\textcolor{#1}{#2}}}}
+\newcommand{\slide}[4]{\texttt{\textcolor{black!25}{#1}\textbf{\textcolor{#4}{#2}}\textcolor{black!25}{#3}}}
+\usepackage{parskip}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{example}[definition]{Example}
+\theoremstyle{plain}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+
+\title{Musings}
+\author{Robin Langer}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2em}
+
+\section{The area of a circle}
+
+I know that number theory is strictly forbidden. People have wasted their whole
+lives on the subject.
+
+I realised that I never once, in my whole university career, calculated the area
+of a circle. So I got Claude to do it.
+
+The method is Archimedes. Inscribe a polygon in the circle. Double the number of
+sides. Each doubling halves the angle, and the half angle formula turns a square
+root into a nested square root. Starting from the octagon and doubling three
+times gives the area of the polygon with sixty four sides.
+\[
+A_{64} = 64 \times \sqrt{\dfrac{1 + \sqrt{\dfrac{1 + \sqrt{\dfrac{1 + \sqrt{\dfrac{1 + \dfrac{\sqrt{2}}{2}}{2}}}{2}}}{2}}}{2}} \times \sqrt{\dfrac{1 - \sqrt{\dfrac{1 + \sqrt{\dfrac{1 + \sqrt{\dfrac{1 + \dfrac{\sqrt{2}}{2}}{2}}}{2}}}{2}}}{2}}
+\]
+That is $3.136548$, against $\pi = 3.141593$. Keep doubling and it converges.
+
+And this raised a whole number of questions.
+
+\section{Is there a pattern}
+
+The formula is built out of nothing but square roots of whole numbers. So I
+wanted to know what a square root actually looks like. The honest answer is its
+continued fraction.
+
+Every square root of a non square whole number repeats forever.
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+$\sqrt{2}$  & $[\,1;\ \overline{2}\,]$ \\
+$\sqrt{3}$  & $[\,1;\ \overline{1,2}\,]$ \\
+$\sqrt{5}$  & $[\,2;\ \overline{4}\,]$ \\
+$\sqrt{6}$  & $[\,2;\ \overline{2,4}\,]$ \\
+$\sqrt{7}$  & $[\,2;\ \overline{1,1,1,4}\,]$ \\
+$\sqrt{13}$ & $[\,3;\ \overline{1,1,1,1,6}\,]$ \\
+$\sqrt{19}$ & $[\,4;\ \overline{2,1,3,1,2,8}\,]$ \\
+$\sqrt{31}$ & $[\,5;\ \overline{1,1,3,5,3,1,1,10}\,]$ \\
+$\sqrt{94}$ & $[\,9;\ \overline{1,2,3,1,1,5,1,8,1,5,1,1,3,2,1,18}\,]$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The notation $[a; b, c, d, \ldots]$ means the tower
+\[
+  a + \cfrac{1}{b + \cfrac{1}{c + \cfrac{1}{d + \cdots}}}
+\]
+and the bar marks the part that repeats.
+
+Turns out there is a pattern. There are two of them.
+
+\subsection{Every block is a palindrome followed by twice the first term}
+
+Take the repeating block and drop its last term. What is left reads the same
+backwards as forwards. The term you dropped is always twice the leading term.
+\[
+  \sqrt{19} = [\,4;\ \overline{\underbrace{2,1,3,1,2}_{\text{palindrome}},\ 8}\,]
+  \qquad
+  \sqrt{31} = [\,5;\ \overline{\underbrace{1,1,3,5,3,1,1}_{\text{palindrome}},\ 10}\,]
+\]
+I had Claude check this for every non square below two thousand. There are no
+exceptions. It is a theorem of Galois and Legendre.
+
+\subsection{Numbers near a square have exact formulas}
+
+Five families. In each one $k$ is the whole part of the root. The last two
+need $k \geq 2$.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+$n$ & expansion & examples \\
+\midrule
+$k^2+1$    & $[\,k;\ \overline{2k}\,]$                & $2, 5, 10, 17, 26, 37, 50, 65$ \\
+$k^2+2$    & $[\,k;\ \overline{k, 2k}\,]$             & $3, 6, 11, 18, 27, 38, 51$ \\
+$k^2+2k$   & $[\,k;\ \overline{1, 2k}\,]$             & $3, 8, 15, 24, 35, 48, 63$ \\
+$k^2+k$    & $[\,k;\ \overline{2, 2k}\,]$             & $6, 12, 20, 30, 42, 56, 72$ \\
+$k^2+2k-1$ & $[\,k;\ \overline{1, k-1, 1, 2k}\,]$     & $7, 14, 23, 34, 47, 62, 79$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+So $\sqrt{50}$ is $[\,7; \overline{14}\,]$ with no calculation at all, because
+fifty is seven squared plus one.
+
+\subsection{Where the pattern stops}
+
+The length of the repeating block is not predictable.
+
+\begin{center}
+\begin{tabular}{lrrrrrrrrrrr}
+\toprule
+$n$      & $43$ & $44$ & $45$ & $46$ & $47$ & $48$ & $50$ & $58$ & $61$ & $65$ & $67$ \\
+period   & $10$ & $8$  & $6$  & $12$ & $4$  & $2$  & $1$  & $7$  & $11$ & $1$  & $10$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+$\sqrt{61}$ needs eleven terms. $\sqrt{65}$ needs one. No formula gives that row.
+
+This is not noise. It is a harder question wearing a disguise.
+
+Cut the tower off after $i$ steps and you get an ordinary fraction $h/k$. Now
+compute $h^2 - n k^2$ and watch it as $i$ grows. Here is $\sqrt{13}$.
+
+\begin{center}
+\begin{tabular}{rrrrl}
+\toprule
+$i$ & $a_i$ & $h/k$ & $h^2 - 13k^2$ & \\
+\midrule
+$0$ & $3$ & $3/1$     & $-4$ & \\
+$1$ & $1$ & $4/1$     & $3$  & \\
+$2$ & $1$ & $7/2$     & $-3$ & \\
+$3$ & $1$ & $11/3$    & $4$  & \\
+$4$ & $1$ & $18/5$    & $-1$ & end of the first block \\
+$5$ & $6$ & $119/33$  & $4$  & \\
+$6$ & $1$ & $137/38$  & $-3$ & \\
+$7$ & $1$ & $256/71$  & $3$  & \\
+$8$ & $1$ & $393/109$ & $-4$ & \\
+$9$ & $1$ & $649/180$ & $1$  & end of the second block \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The column hits $\pm 1$ at the end of a block and nowhere else. I had Claude
+check that for every non square below three thousand and there are no
+exceptions. So the repeating block is precisely the stretch you have to walk to
+get from one of these to the next.
+
+A block of even length lands on $+1$ at the end of the first block. A block of
+odd length lands on $-1$ there, so you must walk a second block to reach $+1$.
+\[
+  \text{steps to the smallest solution of } x^2 - ny^2 = 1
+  \;=\;
+  \begin{cases}
+    L - 1  & L \text{ even} \\
+    2L - 1 & L \text{ odd}
+  \end{cases}
+\]
+
+So the period tells you how many steps you must take. It does not tell you how
+big the answer is. That comes from the terms you walk past, because each step
+multiplies the numerator by roughly $a_i$.
+
+\begin{center}
+\begin{tabular}{rrl}
+\toprule
+$n$ & period & smallest $x, y$ \\
+\midrule
+$2$   & $1$  & $3,\ 2$ \\
+$13$  & $5$  & $649,\ 180$ \\
+$29$  & $5$  & $9801,\ 1820$ \\
+$61$  & $11$ & $1766319049,\ 226153980$ \\
+$109$ & $15$ & $158070671986249,\ 15140424455100$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Fermat set $n = 61$ as a challenge to the English in 1657. He picked it because
+the block is long and the answer is enormous. Bhaskara the Second had solved it
+five hundred years earlier.
+
+Thirteen and twenty nine both have period five, so both need nine steps. The
+terms along the way differ, so the answers differ by a factor of fifteen. The
+length says how far. The terms say how big.
+
+Greater minds than myself have pondered these questions. But now with Claude a
+mediocre mathematician such as myself can consider them.
+
+\section{Sturmian sequences}
+
+Here is the second question. An irrational number is an infinite object. What
+does it look like as a sequence of symbols.
+
+Take an infinite sequence of $0$s and $1$s.
+\[
+  \ell \;=\; 0\,1\,0\,0\,1\,0\,1\,0\,0\,1\,0\,0\,1\,0\,1\,0 \cdots
+\]
+Slide a window $m$ letters wide along it and write down every distinct block you
+see through it. Let $F(m)$ be how many distinct blocks there are.
+
+Do it. Take $m = 3$ and walk the window along the sixteen letters above.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+position & window & block & \\ \midrule
+$0$ & \slide{}{010}{0101001001010}{cA} & \blk{cA}{010} & new \\
+$1$ & \slide{0}{100}{101001001010}{cB} & \blk{cB}{100} & new \\
+$2$ & \slide{01}{001}{01001001010}{cC} & \blk{cC}{001} & new \\
+$3$ & \slide{010}{010}{1001001010}{cA} & \blk{cA}{010} & seen \\
+$4$ & \slide{0100}{101}{001001010}{cD} & \blk{cD}{101} & new \\
+$5$ & \slide{01001}{010}{01001010}{cA} & \blk{cA}{010} & seen \\
+$6$ & \slide{010010}{100}{1001010}{cB} & \blk{cB}{100} & seen \\
+$7$ & \slide{0100101}{001}{001010}{cC} & \blk{cC}{001} & seen \\
+$8$ & \slide{01001010}{010}{01010}{cA} & \blk{cA}{010} & seen \\
+\multicolumn{4}{c}{$\cdots$ and nothing new appears after that $\cdots$} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Four distinct blocks, so $F(3) = 4$. Four of the eight possible three letter
+blocks never appear at all. This sequence is far from arbitrary.
+
+Now widen the window by one letter. For each of the four blocks, collect every
+letter seen following it anywhere in the sequence.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+block & occurs at & followed by & becomes \\ \midrule
+\blk{cA}{010} & $0,3,5,8,11,13$ & $0$ at $0$, \textbf{1} at $3$ & \blk{cA}{0100} \emph{and} \blk{cA}{0101} \\
+\blk{cB}{100} & $1,6,9$         & $1$, every time              & \blk{cB}{1001} \\
+\blk{cC}{001} & $2,7,10$        & $0$, every time              & \blk{cC}{0010} \\
+\blk{cD}{101} & $4,12$          & $0$, every time              & \blk{cD}{1010} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Three of the four pass through unchanged. One does not. \blk{cA}{010} is
+followed by a $0$ at position $0$ and by a $1$ at position $3$, so it becomes
+two blocks. Say that it \emph{splits}. So $F(4) = 5$.
+
+Here is why the count is worth having. Suppose you are reading $\ell$ one letter
+at a time, trying to call the next letter, and you can remember only the last
+$m$. Two occurrences of the same block are then indistinguishable to you. If
+that block splits, the next letter genuinely differs between the two
+occurrences, so you are wrong at one of them. Not through bad judgement. The
+letters you can see do not contain the answer.
+
+\begin{definition}
+A sequence is \emph{Sturmian} when exactly one block of each length splits.
+\[
+  F(m) = m + 1 \qquad \text{for every } m \geq 1 .
+\]
+\end{definition}
+
+So a Sturmian sequence is one where, at every width, there is precisely one
+situation your memory cannot resolve. More memory does not remove it. It only
+makes it rarer.
+
+\section{One sequence for each irrational}
+
+\begin{theorem}[Morse and Hedlund]
+A sequence $\ell$ is Sturmian if and only if there are an irrational
+$\alpha \in (0,1)$ and a $\rho \in [0,1)$ with
+\[
+  \ell_k \;=\; \lfloor (k+1)\alpha + \rho \rfloor - \lfloor k\alpha + \rho \rfloor
+  \qquad \text{for all } k \geq 0 .
+\]
+\end{theorem}
+
+We do not prove this. The slope $\alpha$ is the density of $1$s and is
+determined by $\ell$. The intercept $\rho$ only says where you started reading.
+
+So there is exactly one Sturmian sequence for each irrational number, up to a
+shift. The sequence above has slope $1/\varphi^2$ and is the Fibonacci sequence,
+the fixed point of $0 \mapsto 01$ and $1 \mapsto 0$.
+
+That is a bijection between two things I did not expect to meet. On one side the
+irrational numbers. On the other side the symbol sequences that are minimally
+unpredictable.
+
+\section{Now take the irrational to be a square root}
+
+This is the question I actually wanted to ask.
+
+The theorem hands me a sequence for every irrational. Section 2 tells me that
+square roots are the irrationals whose continued fractions repeat. So what is
+special about the sequence when $\alpha = \sqrt{n} - \lfloor \sqrt{n} \rfloor$.
+
+There is a renormalisation here. Take a Sturmian sequence and pass to its
+derived sequence, the one recorded only at the sites where the shorter window
+could not decide. The derived sequence is Sturmian again, and its slope is
+\[
+  G(\alpha) \;=\; \left\{ \tfrac{1}{\alpha} \right\} .
+\]
+This is the Gauss map. On a continued fraction it does exactly one thing. It
+deletes the first term.
+\[
+  [0;\,a_1,a_2,a_3,\ldots] \;\longmapsto\; [0;\,a_2,a_3,a_4,\ldots]
+\]
+So the tower of derived sequences is the continued fraction, read one term at a
+time. For a generic irrational that list never repeats.
+
+For a square root it does.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+slope & orbit under the Gauss map & cycle \\
+\midrule
+$\sqrt{2}-1$ & $0.414214 \to 0.414214 \to \cdots$ & $1$ \\
+$\sqrt{3}-1$ & $0.732051 \to 0.366025 \to 0.732051 \to \cdots$ & $2$ \\
+$\sqrt{5}-2$ & $0.236068 \to 0.236068 \to \cdots$ & $1$ \\
+$\sqrt{6}-2$ & $0.449490 \to 0.224745 \to 0.449490 \to \cdots$ & $2$ \\
+$\sqrt{7}-2$ & $0.645751 \to 0.548584 \to 0.822876 \to 0.215250 \to 0.645751$ & $4$ \\
+$\sqrt{8}-2$ & $0.828427 \to 0.207107 \to 0.828427 \to \cdots$ & $2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The cycle length is the period of the continued fraction. It is the column from
+Section 2, the one I said had no formula, now reappearing as the depth at which
+a sequence starts repeating itself.
+
+So the square root sequences are the self similar ones. The splitting never
+stops, so no finite table of remembered windows predicts them. But the
+renormalisation closes after finitely many levels, so a finite recursion does.
+
+That gap is a real place. A periodic sequence is solved by a table. A generic
+Sturmian sequence is solved by nothing finite. The square root sequences sit
+between the two, and the period of the continued fraction is how far in they
+sit.
+
+There is a theorem here which I state and do not prove. It is due to Crisp,
+Moran, Pollington and Shallit.
+
+\begin{theorem}
+A Sturmian sequence is the fixed point of a finite substitution if and only if
+its slope is a quadratic irrational.
+\end{theorem}
+
+Which says that the square root sequences are exactly the Sturmian sequences a
+finite machine can generate.
+
+\section{What I take from this}
+
+Three things, none of which I would have reached alone.
+
+The first is that the area of a circle is a question about square roots, and a
+square root is a repeating pattern with a palindrome in it.
+
+The second is that the length of that pattern is not a curiosity. It is the size
+of the smallest solution of a Pell equation, which is why nobody has a formula
+for it.
+
+The third is that the same number appears twice, in two settings that have no
+business being related. Once as the period of a continued fraction. Once as the
+depth at which a symbol sequence becomes self similar.
+
+I do not know whether any of this is new. It is almost certainly not. But I
+found it by asking, and the asking took an afternoon rather than a career, which
+is the part that seems worth reporting.
+
+\end{document}
