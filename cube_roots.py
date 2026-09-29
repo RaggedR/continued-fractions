@@ -56,7 +56,8 @@ if __name__ == "__main__":
     print("\n4. SQUARE-ROOT EXPANSIONS")
     for n in (2,3,10):
         t = cbrt(mpf(n)); x = mpf(1)
-        for _ in range(200): x = sqrt(n/x)
+        # 0.3010 digits per step, so 60 dp needs ~200 steps; take 250 for margin
+        for _ in range(250): x = sqrt(n/x)
         print(f"   sqrt(n/sqrt(n/...)) for n={n:>2}: agrees with cbrt to 60 dp: "
               f"{abs(x-t) < mpf(10)**-60}")
     for m in (1,2,3):
