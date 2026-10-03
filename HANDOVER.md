@@ -159,6 +159,18 @@ step list, and both are real work:
   risks the session's actual asset for a cosmetic gain. Measure before
   reopening this: `git rev-list --objects --all | git cat-file
   --batch-check='%(objecttype) %(objectname) %(objectsize) %(objectsize:disk) %(rest)'`.
+
+  **It is not invisible, and the decision is now irreversible.** The push of
+  3 October 2026 drew `remote: warning: File lean/PLAN.md is 92.84 MB; this is
+  larger than GitHub's recommended maximum file size of 50.00 MB` and `GH001:
+  Large files detected`. The push succeeded — GitHub's hard limit is 100MB —
+  but expect that warning again on any push that transmits the object, and
+  note it sits only 7MB under a hard failure. Part of the argument for keeping
+  it was that nobody would notice; that part was wrong. The commits are now
+  public, so removing it would mean rewriting *pushed* history, which the
+  global `CLAUDE.md` forbids outright rather than by default. Do not attempt
+  it. If the warning ever becomes a rejection, that is a conversation with
+  Robin, not a unilateral rewrite.
 * **The root `README.md` no longer restates Lean counts.** It duplicated the
   line counts and theorem total from `lean/README.md`, and the two drifted
   three commits apart during this session. The root file's table now carries
