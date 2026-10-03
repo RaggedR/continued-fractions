@@ -145,11 +145,13 @@ returns nothing. That gap is what this file fills.
 
 ## Building
 
-The Mathlib forks in `~/git/` have no build, and `mathlib4-fork-primitive` is a
-broken git worktree (parent `~/git/mathlib4-fork/.git` missing). Built against
-the Mathlib inside an unrelated project, same toolchain `v4.30.0-rc2`:
-
 ```bash
-cd ~/git/experiments/waarnar/loop-experiment/lean
-lake env lean ~/git/continued-fractions/lean/Palindrome.lean   # ~35s
+lean/build.sh            # all four files, ~3 min, prints the `#print axioms` report
 ```
+
+The Mathlib forks in `~/git/` have no build, and `mathlib4-fork-primitive` is a
+broken git worktree (parent `~/git/mathlib4-fork/.git` missing). The script
+therefore borrows the Mathlib inside an unrelated project on the same toolchain,
+`v4.30.0-rc2`; set `MATHLIB_PROJECT` to override. A lakefile of our own would
+need a 7.1GB Mathlib checkout and is not worth it for build convenience alone —
+see `PLAN.md`.

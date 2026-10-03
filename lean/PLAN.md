@@ -59,23 +59,23 @@ the paper.  It no longer does.
 
 ## Building
 
-`lake env lean` refuses files outside its root, so compile through `lake env sh`
-and put the `.olean`s on `LEAN_PATH`:
-
 ```bash
-W=~/git/experiments/waarnar/loop-experiment/lean
-OUT=/tmp/cf-oleans && mkdir -p $OUT
-for f in Palindrome Lagrange Sturmian; do
-  cd $W && lake env sh -c "cd ~/git/continued-fractions/lean && \
-    LEAN_PATH=\$LEAN_PATH:$OUT lean -o $OUT/$f.olean $f.lean"
-done
-cd $W && lake env sh -c "cd ~/git/continued-fractions/lean && \
-  LEAN_PATH=\$LEAN_PATH:$OUT lean SqrtN.lean"
+lean/build.sh            # builds all four files, ~3 min, prints the axiom report
 ```
 
+`lake env lean` refuses files outside its own root, so the script borrows the
+Mathlib of an unrelated project on the same toolchain (`v4.30.0-rc2`) and drives
+`lean` through `lake env sh`, putting our own `.olean`s on `LEAN_PATH`. Override
+with `MATHLIB_PROJECT=...` if that project moves.
+
 `Palindrome`, `Lagrange` and `Sturmian` are mutually independent; only
-`SqrtN.lean` imports all three.  A lakefile for `lean/` would replace the loop
-and is worth doing now that there are four files.
+`SqrtN.lean` imports all three.
+
+**A lakefile here is not worth it**, contrary to an earlier note in this file. It
+would need its own Mathlib checkout — measured at **7.1GB** — which is a real
+cost on a disk with ~36GB free, in exchange for build ergonomics the script
+already provides. Revisit only if this development becomes a standalone package
+that other projects import.
 
 ## Remaining
 

@@ -3,3 +3,10 @@ __pycache__/
 *.log
 *.out
 *.synctex.gz
+
+# papers/: the two full-volume scans are ~53MB together and would multiply the
+# repo sevenfold. The article-level index (papers/README.md), the four section
+# excerpts and the OCR text layers are tracked; re-download the full volumes if
+# you need to view a page that is not in an excerpt.
+papers/lagrange-oeuvres-t2.pdf
+papers/legendre-1798-essai.pdf

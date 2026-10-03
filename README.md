@@ -27,8 +27,37 @@ figures with the source kept.
 | `data/periods.npz` | n, L(n), R(n) for all 99,683 non-squares below 10⁵. |
 | `period-histogram.pdf` | The recomputed figure — 2 pages, 8 panels. |
 | `distribution.pdf` | Two disjoint bands of n plotted together, showing the law drifts. |
-| `lean/Palindrome.lean` | **Legendre's theorem, formalised in Lean 4.** 954 lines, no sorries, verified by `#print axioms`. Includes Lagrange periodicity, the palindrome, `a_L = 2a₀`, the matrix side, and the bridge to Mathlib's `GenContFract`. See `lean/README.md`. |
+| `lean/` | **The Lean 4 formalisation**, four files, 3,349 lines, no sorries, 45 theorems verified by `#print axioms`. See `lean/README.md` and `lean/PLAN.md`. |
+| `sturmian.tex` / `.pdf` | The Sturmian side: codings of an irrational rotation, derived sequences, and the tower of derivations of √n. Assertion-dense — written to be checked, and it was. |
+| `all-the-proofs.tex` / `.pdf` | Proofs of everything `sturmian.tex` asserts, plus the corrections it needed. This is what `lean/Sturmian.lean` and `lean/Lagrange.lean` formalise. |
+| `papers/` | Scans of Euler 1767, Lagrange 1770 and Legendre 1798, with an article-level index of where each theorem actually is. |
 | `original/` | The 14 September originals, for comparison: `period-histogram.pdf`, `period-distribution.pdf`, and the `period-histogram.txt` write-up. Kept unmodified. |
+
+## The Lean formalisation
+
+Four files in `lean/`, mutually independent except that `SqrtN.lean` imports
+the other three:
+
+| file | lines | contents |
+|---|---|---|
+| `Palindrome.lean` | 953 | Legendre's palindrome theorem for √n: Lagrange periodicity, the palindrome, `a_L = 2a₀`, the matrix side, and the bridge to Mathlib's `GenContFract`. |
+| `Sturmian.lean` | 2057 | `all-the-proofs.tex` §§1–8: codings, density, complexity, gaps, the derivation theorem, Morse–Hedlund, the tower, the substitution. |
+| `Lagrange.lean` | 212 | §9: Euler's half of Lagrange's theorem — eventually periodic ⟹ quadratic irrational. |
+| `SqrtN.lean` | 127 | The √n instances of the tower and of Euler, joining the files. |
+
+Two headline theorems beyond the classical ones:
+
+* `sqrt_tower_period` — for every non-square `n`, deriving the Sturmian
+  sequence of slope √n − ⌊√n⌋ exactly `L` times returns it with its first
+  letter removed, `L` the period of the continued fraction. `sturmian.tex`
+  observes this for `n = 2` and `n = 7`; here it holds for every `n`.
+* `fib_sturmian_not_code` — a **refutation**. `sturmian.tex` §2 asserts every
+  Sturmian sequence is a lower mechanical coding. The Fibonacci sequence with a
+  `1` prefixed is Sturmian and is a lower coding of nothing. Both halves are
+  proved in Lean.
+
+Mathlib has no Lagrange periodicity, no quadratic-irrational predicate and no
+factor complexity, so none of this was transcription.
 
 ## Reproducing
 
@@ -37,6 +66,7 @@ python3 period.py     # ~1 min, writes data/periods.npz
 python3 analyse.py
 python3 plots.py
 tectonic method.tex
+lean/build.sh         # ~3 min, checks all four Lean files and prints the axiom report
 ```
 
 Needs numpy, matplotlib, tectonic.
