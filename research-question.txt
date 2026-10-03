@@ -1,0 +1,108 @@
+WHEN IS THE SUPREMUM ATTAINED?
+A question left open by all-the-proofs.tex §7, 3 October 2026.
+
+
+THE OBSERVATION
+
+thm:step5 recovers the intercept as a formula,
+
+    x = sup_{N ≥ 0} D(N),    D(N) = S(N) − Nα,
+
+where S(N) counts the 1s in the first N letters. The theorem then splits into
+three cases, and the split is on whether that supremum is attained:
+
+    attained                 ℓ = C(α, x)
+    not attained, x < 1      ℓ = C⁺(α, x)
+    not attained, x = 1      ℓ = C⁺(α, 0)
+
+thm:counterex — the sequence 1c, which is Sturmian and is no lower coding —
+is exactly the third case. Its D(N) = 1 − {Nα} has supremum 1, approached and
+never reached. It is not a separate pathology; it is the extreme point of the
+same phenomenon.
+
+So attainment is not a technicality in the proof. It is the thing that decides
+which of the two codings a Sturmian sequence is, and it is why thm:mh has to
+offer both.
+
+
+THE QUESTION
+
+Characterise attainment in terms of the derivation tower.
+
+Concretely: lem:slope says the block parameters a₁, a₂, … and the complement
+flags ε₁, ε₂, … pin α and nothing else. They do not pin x — two sequences can
+share a tower of parameters and differ in intercept. What they omit is the
+initial block length k₀ at each level: step 3 writes ℓ = 0^{k₀} τ_a(ℓ'), and
+k₀ ≤ a is free.
+
+    Given the tower data (aⱼ, εⱼ) together with the sequence (k₀ⱼ) of initial
+    block lengths, when is sup_N D(N) attained?
+
+
+WHY IT LOOKS TRACTABLE
+
+1. The answer is already known to be a dichotomy, not a spectrum. By thm:step5
+   the supremum is attained exactly when ℓ is a lower coding. So the question
+   is equivalent to: which towers produce C and which produce C⁺? That is a
+   yes/no question about a sequence of integers, and the extreme case is
+   already in hand.
+
+2. (k₀ⱼ) is an Ostrowski-type representation of x. The previous handover
+   recorded "not Ostrowski" as a finding about step 5, and that was right —
+   §7 needs no such machinery. But the data that step 5 leaves undetermined is
+   precisely the Ostrowski digits, so the tool ruled out for the proof may be
+   the right tool for this question. Worth checking before anything else; the
+   digit conditions for x = 0 and for x in the orbit of 0 are classical.
+
+3. The tight case is identified. prop:bound's bound is tight — measured sup
+   |Δ| reaches 0.9948 over three million factors and the tightness traces to
+   α(a+β) = 1 being an identity rather than an estimate. Non-attainment is
+   what tightness looks like from the other side, so the two should have the
+   same proof.
+
+
+FIRST EXPERIMENTS
+
+step5_check.py already has the machinery: exact codings in ℤ[√n] (never a
+decimal truncation), the derivation, and admissible(), which brackets
+[sup D, 1 + inf D).
+
+  - For each (n, x) tested, compute (k₀ⱼ) over the first several levels and
+    record whether sup D is attained. Attainment is decidable numerically to
+    the width admissible() already reports (~10⁻⁴ by N = 4000); sharpen by
+    checking whether D ever equals its running maximum after the first few
+    hundred terms.
+  - 1c is the known non-attaining instance. Perturb it: which single change to
+    (k₀ⱼ) first makes the supremum attained?
+  - Intercept 0 is the other distinguished case — isLeast_code_zero puts the
+    first 1 at exactly a, so k₀ = a at level 0. That is also where the §7 gap
+    lived. Whether k₀ⱼ = aⱼ for all j characterises anything is the obvious
+    first conjecture to kill.
+
+
+WHAT THE LEAN GIVES
+
+Sturmian.lean now has, for an abstract Sturmian ℓ:
+
+    devPre, dev_lt_one      D(N), and |D(N) − D(M)| < 1
+    step5                   the three-case theorem, with x = sSup
+    exists_slopes           the tower pins α
+    slopes_unique           and pins nothing less
+    twr, nextFlag           the tower and its complement flags
+    exists_decomp           ℓ = 0^s τ_a(u') q, where k₀ enters
+
+A conjectured characterisation could be stated against these directly, and
+the numerics checked against the same definitions the theorem uses rather
+than against a reimplementation. That is the main reason to ask the question
+now rather than before the formalisation.
+
+
+WHAT IS NOT CLAIMED
+
+I do not know the answer, and I have not searched the literature for it. The
+equivalence "attained ⟺ lower coding" is immediate from thm:step5 and is not
+itself the content; the content would be a condition on (aⱼ, εⱼ, k₀ⱼ) that can
+be checked without first knowing α and x. It is possible this is standard and
+sits in Lothaire ch. 2 alongside everything else that chapter has been holding
+hostage — papers/sturmian/README.md records why that chapter could not be
+obtained. Check the literature before spending a session on it.
