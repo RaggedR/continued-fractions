@@ -583,6 +583,41 @@ three small.
   will not elaborate without the ascription `(… : Fin (m+1) → ℕ)`, and
   `rw [← h]` for `h : w (Fin.last m) = 1` abstracts the `1` in `m + 1` and
   fails on the motive.  Rewrite forwards into `Fin.snoc_init_self` instead.
+  A `show … ∈ _` is not enough either — the underscore leaves the motive open,
+  so the ascription has to be written out.
+
+### Step 2 — what is formalised, and what it still needs
+
+In `Sturmian.lean` §6.1, all clean:
+
+| | |
+|---|---|
+| `EventuallyPeriodic` | a preperiod `q` and a period `p` |
+| `exists_bound_of_eventuallyPeriodic` | **`lem:evper`** — bounded complexity |
+| `not_eventuallyPeriodic` | Sturmian ⟹ not eventually periodic |
+| `exists_one_ge` | infinitely many `1`s, the proof's first line |
+| `zeros`, `oneZeros`, `zerosOne`, `oneZerosOne` | `0^m`, `1 0^j`, `0^m 1`, `1 0^j 1` |
+| `rightSpecial_zeros_iff`, `rightSpecial_oneZeros_iff` | right-specialness as two named words |
+| `not_both_rightSpecial` | **the engine** — `0^{j+1}` and `1 0^j` cannot both be right-special |
+
+`prop:blocks` itself is not formalised.  What it needs next, in order:
+
+1. **Subword closure of `factors`.**  Every remaining step is of the form
+   *`1 0^s 1` is a factor and `s ≥ j+1`, so `1 0^{j+1}` and `0^{j+2}` and
+   `0^{j+1} 1` are factors.*  Each of those is a contiguous subword of a
+   factor.  One lemma — `factors` is closed under subwords, hence under
+   prefixes and suffixes — discharges all of them, and nothing else in step 2
+   is infrastructure.  **Do this first.**
+2. `blockLens ℓ = {j | oneZerosOne j ∈ factors ℓ (j+2)}`, the set `S`;
+   nonempty from `exists_one_ge` and a `Nat.find` for the next `1`;
+   `1 ≤ j` for `j ∈ S` from `11` absent.
+3. `S` bounded, from (1) and `not_both_rightSpecial`.  Then `a = max S`, and
+   `0^j` is a factor exactly for `j ≤ a`.
+4. The display `j ∈ S, j < max S ⟹ j ≥ a-1`, again from (1) and the engine.
+5. `max S = a` and `S = {a-1, a}`.  This is the one place needing something
+   new: **a single block length makes `ℓ` eventually periodic**, which then
+   meets `not_eventuallyPeriodic`.  Expect the sequence to be shown equal to
+   `(1 0^j)^∞` past its initial block.
 
 **Nothing here is open mathematics any more.**  Step 5 is `all-the-proofs.tex`
 §7, proved 3 October 2026 and checked over ≈3·10⁶ factors in exact arithmetic.

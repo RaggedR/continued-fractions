@@ -1757,6 +1757,146 @@ theorem fib_sturmian_not_code :
         cons1 (code ((Real.sqrt 5 - 1) / 2) ((Real.sqrt 5 - 1) / 2)) = code α' x :=
   sturmian_not_code irrational_invPhi invPhi_pos invPhi_lt_one
 
+/-! ## §6.1 The converse of Morse–Hedlund
+
+Every Sturmian sequence is a mechanical coding.  `../all-the-proofs.tex` §6
+proves it in five steps and `PLAN.md` Phase 9 tracks the formalisation; what is
+here is `lem:evper` and the pair of words step 2 is built on. -/
+
+section MorseHedlund
+
+variable {ℓ : ℕ → ℕ}
+
+/-! ### Eventual periodicity — `lem:evper` -/
+
+/-- A preperiod `q` and a period `p`. -/
+def EventuallyPeriodic (ℓ : ℕ → ℕ) : Prop :=
+  ∃ q p : ℕ, 0 < p ∧ ∀ k, q ≤ k → ℓ (k + p) = ℓ k
+
+/-- Every position reads the same as one below `q + p`. -/
+lemma exists_shift_lt {q p : ℕ} (hp : 0 < p)
+    (hper : ∀ k, q ≤ k → ℓ (k + p) = ℓ k) (k : ℕ) :
+    ∃ k' < q + p, ∀ j, ℓ (k' + j) = ℓ (k + j) := by
+  induction k using Nat.strong_induction_on with
+  | _ k ih =>
+    rcases lt_or_ge k (q + p) with h | h
+    · exact ⟨k, h, fun j => rfl⟩
+    · obtain ⟨k', hk', hval⟩ := ih (k - p) (by omega)
+      refine ⟨k', hk', fun j => ?_⟩
+      rw [hval j, ← hper (k - p + j) (by omega)]
+      congr 1
+      omega
+
+/-- **`lem:evper`.**  An eventually periodic sequence has bounded complexity. -/
+theorem exists_bound_of_eventuallyPeriodic (h : EventuallyPeriodic ℓ) :
+    ∃ B, ∀ n, (factors ℓ n).ncard ≤ B := by
+  obtain ⟨q, p, hp, hper⟩ := h
+  refine ⟨q + p, fun n => ?_⟩
+  have hsub : factors ℓ n
+      ⊆ (fun k => fun j : Fin n => ℓ (k + (j : ℕ))) '' Set.Iio (q + p) := by
+    rintro w ⟨k, rfl⟩
+    obtain ⟨k', hk', hval⟩ := exists_shift_lt hp hper k
+    exact ⟨k', hk', by funext j; exact hval j⟩
+  calc (factors ℓ n).ncard
+      ≤ ((fun k => fun j : Fin n => ℓ (k + (j : ℕ))) '' Set.Iio (q + p)).ncard :=
+        Set.ncard_le_ncard hsub ((Set.finite_Iio _).image _)
+    _ ≤ (Set.Iio (q + p)).ncard := Set.ncard_image_le (Set.finite_Iio _)
+    _ = q + p := by
+        rw [show (Set.Iio (q + p) : Set ℕ) = ↑(Finset.Iio (q + p)) by ext; simp,
+            Set.ncard_coe_finset, Nat.card_Iio]
+
+theorem not_eventuallyPeriodic (hS : IsSturmian ℓ) : ¬ EventuallyPeriodic ℓ := by
+  intro h
+  obtain ⟨B, hB⟩ := exists_bound_of_eventuallyPeriodic h
+  have h1 := hB (B + 1)
+  rw [hS (B + 1) (by omega)] at h1
+  omega
+
+/-- A Sturmian sequence over `{0,1}` has infinitely many `1`s: otherwise it ends
+in `0^∞`. -/
+theorem exists_one_ge (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (N : ℕ) :
+    ∃ k, N ≤ k ∧ ℓ k = 1 := by
+  by_contra hcon
+  push Not at hcon
+  refine not_eventuallyPeriodic hS ⟨N, 1, one_pos, fun k hk => ?_⟩
+  have h1 := hcon k hk
+  have h2 := hcon (k + 1) (by omega)
+  have h3 := hb k
+  have h4 := hb (k + 1)
+  omega
+
+/-! ### The four words of step 2
+
+`prop:blocks` runs on `0^{j+1}` and `1 0^j` and the two extensions of each. -/
+
+/-- `0^m`. -/
+def zeros (m : ℕ) : Fin m → ℕ := fun _ => 0
+
+/-- `1 0^j`. -/
+def oneZeros (j : ℕ) : Fin (j + 1) → ℕ := fun i => if (i : ℕ) = 0 then 1 else 0
+
+/-- `0^m 1`. -/
+def zerosOne (m : ℕ) : Fin (m + 1) → ℕ := Fin.snoc (zeros m) 1
+
+/-- `1 0^j 1`. -/
+def oneZerosOne (j : ℕ) : Fin (j + 2) → ℕ := Fin.snoc (oneZeros j) 1
+
+lemma snoc_zeros (m : ℕ) :
+    (Fin.snoc (zeros m) 0 : Fin (m + 1) → ℕ) = zeros (m + 1) := by
+  funext i
+  refine Fin.lastCases ?_ ?_ i
+  · simp [zeros]
+  · intro t; simp [zeros]
+
+lemma snoc_oneZeros (j : ℕ) :
+    (Fin.snoc (oneZeros j) 0 : Fin (j + 2) → ℕ) = oneZeros (j + 1) := by
+  funext i
+  refine Fin.lastCases ?_ ?_ i
+  · simp [oneZeros]
+  · intro t; simp [oneZeros]
+
+/-- They have the same length and differ in their first letter. -/
+lemma zeros_ne_oneZeros (j : ℕ) : zeros (j + 1) ≠ oneZeros j := by
+  intro h
+  have := congrFun h 0
+  simp [zeros, oneZeros] at this
+
+lemma rightSpecial_zeros_iff (j : ℕ) :
+    zeros (j + 1) ∈ rightSpecial ℓ (j + 1) ↔
+      zeros (j + 2) ∈ factors ℓ (j + 2) ∧ zerosOne (j + 1) ∈ factors ℓ (j + 2) := by
+  rw [rightSpecial, Set.mem_inter_iff]
+  constructor
+  · rintro ⟨hA, hB⟩
+    exact ⟨by rw [← snoc_zeros]; exact hA, hB⟩
+  · rintro ⟨hA, hB⟩
+    refine ⟨?_, hB⟩
+    show (Fin.snoc (zeros (j + 1)) 0 : Fin (j + 2) → ℕ) ∈ factors ℓ (j + 2)
+    rw [snoc_zeros]; exact hA
+
+lemma rightSpecial_oneZeros_iff (j : ℕ) :
+    oneZeros j ∈ rightSpecial ℓ (j + 1) ↔
+      oneZeros (j + 1) ∈ factors ℓ (j + 2) ∧ oneZerosOne j ∈ factors ℓ (j + 2) := by
+  rw [rightSpecial, Set.mem_inter_iff]
+  constructor
+  · rintro ⟨hA, hB⟩
+    exact ⟨by rw [← snoc_oneZeros]; exact hA, hB⟩
+  · rintro ⟨hA, hB⟩
+    refine ⟨?_, hB⟩
+    show (Fin.snoc (oneZeros j) 0 : Fin (j + 2) → ℕ) ∈ factors ℓ (j + 2)
+    rw [snoc_oneZeros]; exact hA
+
+/-- The pair that does the work: `0^{j+1}` and `1 0^j` cannot both be
+right-special. -/
+theorem not_both_rightSpecial (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (j : ℕ)
+    (h0 : zeros (j + 1) ∈ rightSpecial ℓ (j + 1))
+    (h1 : oneZeros j ∈ rightSpecial ℓ (j + 1)) : False := by
+  obtain ⟨u, hu⟩ :=
+    Set.ncard_eq_one.1 ((isSturmian_iff_ncard_rightSpecial hb).1 hS (j + 1))
+  rw [hu, Set.mem_singleton_iff] at h0 h1
+  exact zeros_ne_oneZeros j (h0.trans h1.symm)
+
+end MorseHedlund
+
 /-! ## §8 The tower
 
 The slope at level `j` is `α j` and the partial quotient is `a j`; the identity
@@ -2167,6 +2307,10 @@ end Substitution
 #print axioms Sturmian.ncard_factors_codeUp
 #print axioms Sturmian.ncard_factors_succ
 #print axioms Sturmian.isSturmian_iff_ncard_rightSpecial
+#print axioms Sturmian.exists_bound_of_eventuallyPeriodic
+#print axioms Sturmian.not_eventuallyPeriodic
+#print axioms Sturmian.exists_one_ge
+#print axioms Sturmian.not_both_rightSpecial
 #print axioms Sturmian.return_time
 #print axioms Sturmian.ones_succ_eq
 #print axioms Sturmian.derived_eq

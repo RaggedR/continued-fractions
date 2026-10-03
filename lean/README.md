@@ -9,7 +9,7 @@ Three further files formalise `../all-the-proofs.tex`; they are documented in
 | file | lines | contents |
 |---|---|---|
 | `Palindrome.lean` | 953 | Legendre's palindrome theorem, §§1–5 of `../palindrome.tex` |
-| `Sturmian.lean` | 2190 | `../all-the-proofs.tex` §§1–8: codings, density, complexity, right-special factors, gaps, derivation, Morse–Hedlund, the tower, the substitution |
+| `Sturmian.lean` | 2334 | `../all-the-proofs.tex` §§1–8: codings, density, complexity, right-special factors, gaps, derivation, Morse–Hedlund, the tower, the substitution |
 | `Lagrange.lean` | 212 | §9: Euler's half of Lagrange's theorem, for an abstract tail sequence |
 | `Quadratic.lean` | 544 | §9: **Lagrange's own half** — the continued fraction of every quadratic irrational is eventually periodic |
 | `SqrtN.lean` | 127 | `√n` instances of the tower (§8) and of Euler (§9), joining the files |
@@ -18,8 +18,9 @@ Three further files formalise `../all-the-proofs.tex`; they are documented in
 imports `Palindrome`, and `SqrtN` imports the other three. Together they
 formalise `../all-the-proofs.tex` apart from §§6–7, the converse of
 Morse–Hedlund.  That converse is proved in the paper; what is formalised of it
-so far is `lem:rs` and `cor:onesp` — complexity `m+1` is exactly one
-right-special factor of each length.  `PLAN.md` Phase 9 is the rest.
+so far is §6.1: `lem:rs` and `cor:onesp` (complexity `m+1` is exactly one
+right-special factor of each length), `lem:evper`, and the pair of words
+step 2 runs on.  `PLAN.md` Phase 9 is the rest.
 
 The two headlines of `Sturmian.lean` are `sqrt_tower_period` (for every
 non-square `n`, exactly `L` derivations return the sequence with its first
