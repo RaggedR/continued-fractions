@@ -43,6 +43,14 @@ lemma fract_orbit_succ (α x : ℝ) (k : ℕ) :
   push_cast
   ring
 
+lemma fract_orbit_add (α x : ℝ) (k t : ℕ) :
+    Int.fract (x + ((k + t : ℕ) : ℝ) * α)
+      = Int.fract (Int.fract (x + (k : ℝ) * α) + (t : ℝ) * α) := by
+  rw [← fract_add_left]
+  congr 1
+  push_cast
+  ring
+
 /-! ### Lemma 1.1 -/
 
 /-- One step of the floor function, for a step length in `(0,1)`. -/
@@ -357,6 +365,443 @@ theorem Icc_subset_closure_orbit (hα : Irrational α) (x : ℝ) :
   rw [Real.dist_eq, abs_lt]
   constructor <;> linarith
 
+/-! ## §3 Complexity -/
+
+section Complexity
+
+variable {t s : ℝ}
+
+/-- The `m` cut points `{-jα}`, `1 ≤ j ≤ m`, of Theorem 3.1. -/
+noncomputable def cuts (α : ℝ) (m : ℕ) : Finset ℝ :=
+  (Finset.Icc 1 m).image (fun j : ℕ => Int.fract (-((j : ℝ) * α)))
+
+/-- The cell of `t`: how many cut points lie at or below it. -/
+noncomputable def cell (α : ℝ) (m : ℕ) (t : ℝ) : ℕ :=
+  ((cuts α m).filter (fun p => p ≤ t)).card
+
+lemma mem_cuts_iff (α : ℝ) (m : ℕ) (p : ℝ) :
+    p ∈ cuts α m ↔ ∃ j : ℕ, 1 ≤ j ∧ j ≤ m ∧ Int.fract (-((j : ℝ) * α)) = p := by
+  simp only [cuts, Finset.mem_image, Finset.mem_Icc]
+  constructor
+  · rintro ⟨j, ⟨h1, h2⟩, h3⟩; exact ⟨j, h1, h2, h3⟩
+  · rintro ⟨j, h1, h2, h3⟩; exact ⟨j, ⟨h1, h2⟩, h3⟩
+
+lemma mem_cuts (hj1 : 1 ≤ j) (hj : j ≤ m) : Int.fract (-((j : ℝ) * α)) ∈ cuts α m :=
+  (mem_cuts_iff α m _).mpr ⟨j, hj1, hj, rfl⟩
+
+/-! ### The cut points are distinct and lie in `(0,1)` -/
+
+lemma fract_neg_nat_mul (hα : Irrational α) {j : ℕ} (hj : 1 ≤ j) :
+    Int.fract (-((j : ℝ) * α)) = 1 - Int.fract ((j : ℝ) * α) :=
+  Int.fract_neg (fract_nat_mul_ne_zero hα (by omega))
+
+lemma cut_ne_of_lt (hα : Irrational α) {i j : ℕ} (hlt : i < j) :
+    Int.fract (-((i : ℝ) * α)) ≠ Int.fract (-((j : ℝ) * α)) := by
+  intro h
+  obtain ⟨z, hz⟩ := Int.fract_eq_fract.mp h
+  have hcast : ((j - i : ℕ) : ℝ) = (j : ℝ) - (i : ℝ) := by
+    rw [Nat.cast_sub hlt.le]
+  have hd : ((j - i : ℕ) : ℝ) * α = (z : ℝ) := by
+    rw [hcast, sub_mul]; linarith
+  have hne := fract_nat_mul_ne_zero hα (q := j - i) (by omega)
+  rw [hd, Int.fract_intCast] at hne
+  exact hne rfl
+
+lemma cut_inj (hα : Irrational α) {i j : ℕ}
+    (h : Int.fract (-((i : ℝ) * α)) = Int.fract (-((j : ℝ) * α))) : i = j := by
+  rcases lt_trichotomy i j with hlt | heq | hgt
+  · exact absurd h (cut_ne_of_lt hα hlt)
+  · exact heq
+  · exact absurd h.symm (cut_ne_of_lt hα hgt)
+
+lemma cuts_pos (hα : Irrational α) {m : ℕ} {p : ℝ} (hp : p ∈ cuts α m) : 0 < p ∧ p < 1 := by
+  obtain ⟨j, hj1, _, rfl⟩ := (mem_cuts_iff α m p).mp hp
+  rw [fract_neg_nat_mul hα hj1]
+  have hne := fract_nat_mul_ne_zero hα (q := j) (by omega)
+  have h0 : 0 < Int.fract ((j : ℝ) * α) :=
+    lt_of_le_of_ne (Int.fract_nonneg _) (Ne.symm hne)
+  have h1 := Int.fract_lt_one ((j : ℝ) * α)
+  exact ⟨by linarith, by linarith⟩
+
+lemma card_cuts (hα : Irrational α) (m : ℕ) : (cuts α m).card = m := by
+  rw [cuts, Finset.card_image_of_injOn, Nat.card_Icc]
+  · omega
+  · intro i _ j _ h
+    exact cut_inj hα h
+
+/-! ### `cell` is monotone, and strictly monotone on the cut points -/
+
+lemma cuts_filter_subset {m : ℕ} (hts : t ≤ s) :
+    (cuts α m).filter (fun p => p ≤ t) ⊆ (cuts α m).filter (fun p => p ≤ s) := by
+  intro p hp
+  rw [Finset.mem_filter] at hp ⊢
+  exact ⟨hp.1, le_trans hp.2 hts⟩
+
+lemma cell_mono {m : ℕ} (hts : t ≤ s) : cell α m t ≤ cell α m s :=
+  Finset.card_le_card (cuts_filter_subset hts)
+
+lemma filter_eq_of_cell_eq {m : ℕ} (h : cell α m t = cell α m s) :
+    (cuts α m).filter (fun p => p ≤ t) = (cuts α m).filter (fun p => p ≤ s) := by
+  rcases le_total t s with hts | hst
+  · exact Finset.eq_of_subset_of_card_le (cuts_filter_subset hts) h.ge
+  · exact (Finset.eq_of_subset_of_card_le (cuts_filter_subset hst) h.le).symm
+
+lemma one_le_cell_of_mem {m : ℕ} {p : ℝ} (hp : p ∈ cuts α m) : 1 ≤ cell α m p :=
+  Finset.card_pos.mpr ⟨p, Finset.mem_filter.mpr ⟨hp, le_refl p⟩⟩
+
+lemma cell_le (hα : Irrational α) (m : ℕ) (t : ℝ) : cell α m t ≤ m := by
+  have h := Finset.card_filter_le (cuts α m) (fun p => p ≤ t)
+  rwa [card_cuts hα m] at h
+
+lemma cell_lt_cell {m : ℕ} {p q : ℝ} (hq : q ∈ cuts α m) (hpq : p < q) :
+    cell α m p < cell α m q := by
+  refine Finset.card_lt_card ((Finset.ssubset_iff_of_subset (cuts_filter_subset hpq.le)).mpr ?_)
+  refine ⟨q, Finset.mem_filter.mpr ⟨hq, le_refl q⟩, ?_⟩
+  intro hmem
+  exact absurd (Finset.mem_filter.mp hmem).2 (not_le.mpr hpq)
+
+lemma le_of_cell_le {m : ℕ} {p q : ℝ} (hp : p ∈ cuts α m)
+    (h : cell α m p ≤ cell α m q) : p ≤ q := by
+  by_contra hc
+  have := cell_lt_cell hp (not_le.mp hc)
+  omega
+
+lemma cell_injOn (α : ℝ) (m : ℕ) : Set.InjOn (cell α m) ↑(cuts α m) := by
+  intro p hp q hq h
+  rw [Finset.mem_coe] at hp hq
+  rcases lt_trichotomy p q with hlt | heq | hgt
+  · have := cell_lt_cell hq hlt; omega
+  · exact heq
+  · have := cell_lt_cell hp hgt; omega
+
+/-- `cell` maps the cut points bijectively onto `{1,…,m}`: every rank is attained. -/
+lemma exists_cut_cell (hα : Irrational α) {m r : ℕ} (hr1 : 1 ≤ r) (hr : r ≤ m) :
+    ∃ p ∈ cuts α m, cell α m p = r := by
+  have hsub : (cuts α m).image (cell α m) ⊆ Finset.Icc 1 m := by
+    intro r' hr'
+    obtain ⟨p, hp, rfl⟩ := Finset.mem_image.mp hr'
+    exact Finset.mem_Icc.mpr ⟨one_le_cell_of_mem hp, cell_le hα m p⟩
+  have hcard : (Finset.Icc 1 m).card ≤ ((cuts α m).image (cell α m)).card := by
+    rw [Finset.card_image_of_injOn (cell_injOn α m), card_cuts hα, Nat.card_Icc]
+    omega
+  have himg := Finset.eq_of_subset_of_card_le hsub hcard
+  have hmem : r ∈ (cuts α m).image (cell α m) := by
+    rw [himg]; exact Finset.mem_Icc.mpr ⟨hr1, hr⟩
+  exact Finset.mem_image.mp hmem
+
+/-! ### The floor formula -/
+
+lemma floor_nat_mul_add (hα : Irrational α) (ht0 : 0 ≤ t) (ht1 : t < 1) {j : ℕ} (hj : 1 ≤ j) :
+    ⌊(j : ℝ) * α + t⌋ = ⌊(j : ℝ) * α⌋ + if Int.fract (-((j : ℝ) * α)) ≤ t then 1 else 0 := by
+  rw [fract_neg_nat_mul hα hj]
+  have hf0 := Int.fract_nonneg ((j : ℝ) * α)
+  have hf1 := Int.fract_lt_one ((j : ℝ) * α)
+  have hsplit : (j : ℝ) * α + t = (Int.fract ((j : ℝ) * α) + t) + (⌊(j : ℝ) * α⌋ : ℝ) := by
+    have := Int.floor_add_fract ((j : ℝ) * α); linarith
+  rw [hsplit, Int.floor_add_intCast]
+  by_cases h : 1 - Int.fract ((j : ℝ) * α) ≤ t
+  · rw [if_pos h]
+    have hv : ⌊Int.fract ((j : ℝ) * α) + t⌋ = 1 := by
+      rw [Int.floor_eq_iff]; push_cast; constructor <;> linarith
+    omega
+  · rw [if_neg h]
+    have h' := not_le.mp h
+    have hv : ⌊Int.fract ((j : ℝ) * α) + t⌋ = 0 := by
+      rw [Int.floor_eq_iff]; push_cast; constructor <;> linarith
+    omega
+
+/-! ### A word of length `m` determines, and is determined by, the cell -/
+
+lemma code_eq_iff_cell_eq (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1)
+    (ht0 : 0 ≤ t) (ht1 : t < 1) (hs0 : 0 ≤ s) (hs1 : s < 1) (m : ℕ) :
+    (∀ i : ℕ, i < m → code α t i = code α s i) ↔ cell α m t = cell α m s := by
+  constructor
+  · intro hw
+    have hfl : ∀ j : ℕ, j ≤ m → ⌊(j : ℝ) * α + t⌋ = ⌊(j : ℝ) * α + s⌋ := by
+      intro j hj
+      rw [← sum_code hα0 hα1 ht0 ht1, ← sum_code hα0 hα1 hs0 hs1]
+      refine Finset.sum_congr rfl fun i hi => ?_
+      rw [hw i (lt_of_lt_of_le (Finset.mem_range.mp hi) hj)]
+    unfold cell
+    congr 1
+    ext p
+    rw [Finset.mem_filter, Finset.mem_filter]
+    refine and_congr_right fun hp => ?_
+    obtain ⟨j, hj1, hj, rfl⟩ := (mem_cuts_iff α m p).mp hp
+    have h3 := hfl j hj
+    rw [floor_nat_mul_add hα ht0 ht1 hj1, floor_nat_mul_add hα hs0 hs1 hj1] at h3
+    by_cases hp' : Int.fract (-((j : ℝ) * α)) ≤ t
+    · by_cases hq : Int.fract (-((j : ℝ) * α)) ≤ s
+      · exact iff_of_true hp' hq
+      · rw [if_pos hp', if_neg hq] at h3; omega
+    · by_cases hq : Int.fract (-((j : ℝ) * α)) ≤ s
+      · rw [if_neg hp', if_pos hq] at h3; omega
+      · exact iff_of_false hp' hq
+  · intro hc i hi
+    have hcmp : ∀ j : ℕ, 1 ≤ j → j ≤ m →
+        (Int.fract (-((j : ℝ) * α)) ≤ t ↔ Int.fract (-((j : ℝ) * α)) ≤ s) := by
+      intro j hj1 hj
+      have key := Finset.ext_iff.mp (filter_eq_of_cell_eq hc) (Int.fract (-((j : ℝ) * α)))
+      rw [Finset.mem_filter, Finset.mem_filter] at key
+      have hm := mem_cuts (α := α) (j := j) (m := m) hj1 hj
+      constructor
+      · intro h; exact (key.mp ⟨hm, h⟩).2
+      · intro h; exact (key.mpr ⟨hm, h⟩).2
+    have hfl : ∀ j : ℕ, j ≤ m → ⌊(j : ℝ) * α + t⌋ = ⌊(j : ℝ) * α + s⌋ := by
+      intro j hj
+      rcases Nat.eq_zero_or_pos j with rfl | hj1
+      · simp only [Nat.cast_zero, zero_mul, zero_add]
+        rw [Int.floor_eq_zero_iff.mpr (Set.mem_Ico.mpr ⟨ht0, ht1⟩),
+            Int.floor_eq_zero_iff.mpr (Set.mem_Ico.mpr ⟨hs0, hs1⟩)]
+      · rw [floor_nat_mul_add hα ht0 ht1 hj1, floor_nat_mul_add hα hs0 hs1 hj1,
+            if_congr (hcmp j hj1 hj) rfl rfl]
+    have e1 := code_eq_sub_floor (α := α) (x := t) hα0 hα1 i
+    have e2 := code_eq_sub_floor (α := α) (x := s) hα0 hα1 i
+    have f1 := hfl i hi.le
+    have f2 := hfl (i + 1) (by omega)
+    push_cast at f2
+    have key : (code α t i : ℤ) = (code α s i : ℤ) := by rw [e1, e2, f1, f2]
+    exact Nat.cast_injective key
+
+/-! ### The factors -/
+
+/-- The factor of length `m` at position `k`. -/
+noncomputable def factor (α x : ℝ) (m k : ℕ) : Fin m → ℕ := fun j => code α x (k + j)
+
+lemma factor_apply (α x : ℝ) (m k : ℕ) (j : Fin m) :
+    factor α x m k j = code α (Int.fract (x + (k : ℝ) * α)) (j : ℕ) := by
+  unfold factor code
+  rw [fract_orbit_add]
+
+lemma factor_eq_iff (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x : ℝ) (m k l : ℕ) :
+    factor α x m k = factor α x m l ↔
+      cell α m (Int.fract (x + (k : ℝ) * α)) = cell α m (Int.fract (x + (l : ℝ) * α)) := by
+  rw [← code_eq_iff_cell_eq hα hα0 hα1 (Int.fract_nonneg _) (Int.fract_lt_one _)
+        (Int.fract_nonneg _) (Int.fract_lt_one _) m]
+  constructor
+  · intro h i hi
+    have hj := congrFun h ⟨i, hi⟩
+    rwa [factor_apply, factor_apply] at hj
+  · intro h
+    funext j
+    rw [factor_apply, factor_apply]
+    exact h j j.isLt
+
+/-! ### Every cell is hit -/
+
+lemma exists_cell (hα : Irrational α) (x : ℝ) {m r : ℕ} (hr : r ≤ m) :
+    ∃ k : ℕ, cell α m (Int.fract (x + (k : ℝ) * α)) = r := by
+  obtain ⟨c, hcmem, hclow⟩ : ∃ c : ℝ, (c = 0 ∨ c ∈ cuts α m) ∧
+      ∀ p ∈ cuts α m, (p ≤ c ↔ cell α m p ≤ r) := by
+    rcases Nat.eq_zero_or_pos r with rfl | hr1
+    · refine ⟨0, Or.inl rfl, fun p hp => ?_⟩
+      refine iff_of_false (not_le.mpr (cuts_pos hα hp).1) ?_
+      have := one_le_cell_of_mem hp; omega
+    · obtain ⟨c, hcmem, hcell⟩ := exists_cut_cell hα hr1 hr
+      refine ⟨c, Or.inr hcmem, fun p hp => ?_⟩
+      constructor
+      · intro hle; have := cell_mono (α := α) (m := m) hle; omega
+      · intro hle; exact le_of_cell_le hp (by omega)
+  obtain ⟨d, hdmem, hdhigh⟩ : ∃ d : ℝ, (d = 1 ∨ d ∈ cuts α m) ∧
+      ∀ p ∈ cuts α m, (p < d ↔ cell α m p ≤ r) := by
+    rcases eq_or_lt_of_le hr with rfl | hrm
+    · exact ⟨1, Or.inl rfl, fun p hp => iff_of_true (cuts_pos hα hp).2 (cell_le hα _ p)⟩
+    · obtain ⟨d, hdmem, hcell⟩ := exists_cut_cell hα (by omega : 1 ≤ r + 1) (by omega : r + 1 ≤ m)
+      refine ⟨d, Or.inr hdmem, fun p hp => ?_⟩
+      constructor
+      · intro hlt; have := cell_lt_cell hdmem hlt; omega
+      · intro hle
+        rcases lt_trichotomy p d with h | h | h
+        · exact h
+        · rw [h] at hle; omega
+        · have := cell_lt_cell hp h; omega
+  have hc0 : 0 ≤ c := by
+    rcases hcmem with rfl | h
+    · exact le_refl 0
+    · exact (cuts_pos hα h).1.le
+  have hd1 : d ≤ 1 := by
+    rcases hdmem with rfl | h
+    · exact le_refl 1
+    · exact (cuts_pos hα h).2.le
+  have hcd : c < d := by
+    rcases hcmem with rfl | hc
+    · rcases hdmem with rfl | hd
+      · norm_num
+      · exact (cuts_pos hα hd).1
+    · rcases hdmem with rfl | hd
+      · exact (cuts_pos hα hc).2
+      · exact (hdhigh c hc).mpr ((hclow c hc).mp (le_refl c))
+  have hconst : ∀ u : ℝ, c ≤ u → u < d → cell α m u = r := by
+    intro u h1 h2
+    have hfilter : (cuts α m).filter (fun p => p ≤ u)
+        = (cuts α m).filter (fun p => cell α m p ≤ r) := by
+      ext p
+      rw [Finset.mem_filter, Finset.mem_filter]
+      refine and_congr_right fun hp => ?_
+      constructor
+      · intro hle; exact (hdhigh p hp).mp (lt_of_le_of_lt hle h2)
+      · intro hle; exact le_trans ((hclow p hp).mpr hle) h1
+    have himg : ((cuts α m).filter (fun p => cell α m p ≤ r)).image (cell α m)
+        = Finset.Icc 1 r := by
+      ext q
+      rw [Finset.mem_image, Finset.mem_Icc]
+      constructor
+      · rintro ⟨p, hp, rfl⟩
+        rw [Finset.mem_filter] at hp
+        exact ⟨one_le_cell_of_mem hp.1, hp.2⟩
+      · rintro ⟨hq1, hqr⟩
+        obtain ⟨p, hp, hcell⟩ := exists_cut_cell hα hq1 (le_trans hqr hr)
+        exact ⟨p, Finset.mem_filter.mpr ⟨hp, by omega⟩, hcell⟩
+    have hinj : Set.InjOn (cell α m) ↑((cuts α m).filter (fun p => cell α m p ≤ r)) := by
+      refine (cell_injOn α m).mono ?_
+      intro p hp
+      rw [Finset.mem_coe, Finset.mem_filter] at hp
+      exact Finset.mem_coe.mpr hp.1
+    calc cell α m u = ((cuts α m).filter (fun p => cell α m p ≤ r)).card := by
+          rw [cell, hfilter]
+      _ = (((cuts α m).filter (fun p => cell α m p ≤ r)).image (cell α m)).card :=
+          (Finset.card_image_of_injOn hinj).symm
+      _ = (Finset.Icc 1 r).card := by rw [himg]
+      _ = r := by rw [Nat.card_Icc]; omega
+  obtain ⟨k, -, h1, h2⟩ :=
+    exists_fract_mem_Ico hα x (c := c) (ε := d - c) hc0 (by linarith) (by linarith)
+  exact ⟨k, hconst _ h1 (by linarith)⟩
+
+/-! ### Theorem 3.1 -/
+
+/-- **Theorem 3.1.**  A lower coding of an irrational slope has exactly `m + 1`
+factors of length `m`: it is Sturmian. -/
+theorem complexity (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x : ℝ) (m : ℕ) :
+    {w : Fin m → ℕ | ∃ k : ℕ, w = factor α x m k}.ncard = m + 1 := by
+  have H : ∀ r : ℕ, r ≤ m → ∃ k : ℕ, cell α m (Int.fract (x + (k : ℝ) * α)) = r :=
+    fun r hr => exists_cell hα x hr
+  choose! K hK using H
+  have hinj : Set.InjOn (fun r => factor α x m (K r)) (Set.Iic m) := by
+    intro r hr r' hr' h
+    rw [factor_eq_iff hα hα0 hα1, hK r hr, hK r' hr'] at h
+    exact h
+  have hS : {w : Fin m → ℕ | ∃ k : ℕ, w = factor α x m k}
+      = (fun r => factor α x m (K r)) '' (Set.Iic m) := by
+    ext w
+    constructor
+    · rintro ⟨k, rfl⟩
+      refine ⟨cell α m (Int.fract (x + (k : ℝ) * α)), cell_le hα m _, ?_⟩
+      rw [factor_eq_iff hα hα0 hα1, hK _ (cell_le hα m _)]
+    · rintro ⟨r, hr, rfl⟩
+      exact ⟨K r, rfl⟩
+  rw [hS, Set.InjOn.ncard_image hinj,
+      show (Set.Iic m : Set ℕ) = ↑(Finset.Iic m) by ext; simp,
+      Set.ncard_coe_finset, Nat.card_Iic]
+
+/-! ### Corollary 3.2 — the upper coding
+
+The tex proves this by rerunning §3 with `⌈·⌉` for `⌊·⌋`.  That is unnecessary:
+`codeUp α x` is the *bitwise complement* of `code (1-α) (-x)`, and
+complementation is a bijection on words, so the count is inherited from
+Theorem 3.1.  The arc `(1-α,1) ∪ {0}` of the upper coding has complement
+`(0,1-α]` in `[0,1)`, and the reflection `v ↦ 1 - v` carries that onto
+`[α,1) = [1-(1-α),1)`, the lower arc of slope `1-α`. -/
+
+lemma fract_neg_eq (y : ℝ) :
+    Int.fract (-y) = if Int.fract y = 0 then 0 else 1 - Int.fract y := by
+  by_cases h : Int.fract y = 0
+  · rw [if_pos h]
+    have hy : -y = ((-⌊y⌋ : ℤ) : ℝ) := by
+      have h2 := Int.floor_add_fract y
+      rw [h] at h2
+      push_cast
+      linarith
+    rw [hy, Int.fract_intCast]
+  · rw [if_neg h, Int.fract_neg h]
+
+/-- **The upper coding is the complement of a lower coding of the reflected
+slope.** -/
+theorem codeUp_add_code_reflect (hα0 : 0 < α) (x : ℝ) (k : ℕ) :
+    codeUp α x k + code (1 - α) (-x) k = 1 := by
+  have hshift : Int.fract (-x + (k : ℝ) * (1 - α)) = Int.fract (-(x + (k : ℝ) * α)) := by
+    rw [Int.fract_eq_fract]
+    exact ⟨k, by push_cast; ring⟩
+  have hv0 := Int.fract_nonneg (x + (k : ℝ) * α)
+  have hv1 := Int.fract_lt_one (x + (k : ℝ) * α)
+  unfold code codeUp
+  rw [hshift, fract_neg_eq]
+  by_cases h0 : Int.fract (x + (k : ℝ) * α) = 0
+  · rw [if_pos h0, if_pos (Or.inr h0), if_neg (not_le.mpr (by linarith))]
+  · rw [if_neg h0]
+    by_cases h1 : 1 - α < Int.fract (x + (k : ℝ) * α)
+    · rw [if_pos (Or.inl h1), if_neg (not_le.mpr (by linarith))]
+    · have h1' := not_lt.mp h1
+      rw [if_neg (fun hc => hc.elim (fun hlt => h1 hlt) h0), if_pos (by linarith)]
+
+lemma code_le_one (α x : ℝ) (k : ℕ) : code α x k ≤ 1 := by
+  unfold code; split_ifs <;> omega
+
+lemma codeUp_le_one (α x : ℝ) (k : ℕ) : codeUp α x k ≤ 1 := by
+  unfold codeUp; split_ifs <;> omega
+
+/-! ### The factor set of an arbitrary sequence -/
+
+/-- The factors of length `m` of a sequence. -/
+def factors (ℓ : ℕ → ℕ) (m : ℕ) : Set (Fin m → ℕ) :=
+  {w | ∃ k : ℕ, w = fun j : Fin m => ℓ (k + (j : ℕ))}
+
+lemma factors_code (α x : ℝ) (m : ℕ) :
+    factors (code α x) m = {w : Fin m → ℕ | ∃ k : ℕ, w = factor α x m k} := rfl
+
+/-- **Theorem 3.1**, in the language of `factors`. -/
+theorem ncard_factors_code (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x : ℝ) (m : ℕ) :
+    (factors (code α x) m).ncard = m + 1 := by
+  rw [factors_code]; exact complexity hα hα0 hα1 x m
+
+/-- **Corollary 3.2.** -/
+theorem ncard_factors_codeUp (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x : ℝ) (m : ℕ) :
+    (factors (codeUp α x) m).ncard = m + 1 := by
+  have hβ : Irrational (1 - α) := by
+    have h := Irrational.intCast_sub hα 1
+    simpa using h
+  have hcompl : ∀ k : ℕ, codeUp α x k = 1 - code (1 - α) (-x) k := by
+    intro k
+    have h := codeUp_add_code_reflect hα0 x k
+    omega
+  have himg : factors (codeUp α x) m
+      = (fun w : Fin m → ℕ => fun j => 1 - w j) '' factors (code (1 - α) (-x)) m := by
+    ext w
+    constructor
+    · rintro ⟨k, rfl⟩
+      refine ⟨fun j : Fin m => code (1 - α) (-x) (k + (j : ℕ)), ⟨k, rfl⟩, ?_⟩
+      funext j
+      simp only [hcompl]
+    · rintro ⟨v, ⟨k, rfl⟩, rfl⟩
+      exact ⟨k, by funext j; simp only [hcompl]⟩
+  have hinj : Set.InjOn (fun w : Fin m → ℕ => fun j => 1 - w j)
+      (factors (code (1 - α) (-x)) m) := by
+    rintro v ⟨k, rfl⟩ v' ⟨k', rfl⟩ h
+    funext j
+    have hj := congrFun h j
+    simp only at hj
+    have h1 := code_le_one (1 - α) (-x) (k + j)
+    have h2 := code_le_one (1 - α) (-x) (k' + j)
+    omega
+  rw [himg, Set.InjOn.ncard_image hinj]
+  exact ncard_factors_code hβ (by linarith) (by linarith) (-x) m
+
+/-! ### Sturmian sequences
+
+The first place in this development where the word *Sturmian* is a Lean
+definition rather than a namespace. -/
+
+/-- A sequence is *Sturmian* when it has exactly `m + 1` factors of each
+length `m ≥ 1`. -/
+def IsSturmian (ℓ : ℕ → ℕ) : Prop := ∀ m : ℕ, 1 ≤ m → (factors ℓ m).ncard = m + 1
+
+theorem isSturmian_code (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x : ℝ) :
+    IsSturmian (code α x) := fun m _ => ncard_factors_code hα hα0 hα1 x m
+
+theorem isSturmian_codeUp (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x : ℝ) :
+    IsSturmian (codeUp α x) := fun m _ => ncard_factors_codeUp hα hα0 hα1 x m
+
+end Complexity
+
 /-! ## §4 The return time
 
 `a` and `β` are supplied rather than computed: `a = ⌊1/α⌋` and `β = {1/α}` is
@@ -454,14 +899,6 @@ end ReturnTime
 section Ones
 
 variable {a : ℕ} {β : ℝ}
-
-lemma fract_orbit_add (α x : ℝ) (k t : ℕ) :
-    Int.fract (x + ((k + t : ℕ) : ℝ) * α)
-      = Int.fract (Int.fract (x + (k : ℝ) * α) + (t : ℝ) * α) := by
-  rw [← fract_add_left]
-  congr 1
-  push_cast
-  ring
 
 /-- The orbit reaches the arc: a coding has a `1`. -/
 lemma exists_one (hα0 : 0 < α) (x : ℝ) :
@@ -1134,6 +1571,35 @@ theorem not_code_fib :
     apply Real.sqrt_lt_sqrt <;> norm_num
   exact not_code irrational_invPhi (by linarith) (by linarith)
 
+theorem isSturmian_cons1_code (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) :
+    IsSturmian (cons1 (code α α)) := by
+  rw [← codeUp_zero_eq hα hα0 hα1]
+  exact isSturmian_codeUp hα hα0 hα1 0
+
+/-- **`all-the-proofs.tex` Theorem 6.1, now complete.**  `sturmian.tex` §2
+asserts that every Sturmian sequence is a lower coding `code α' x`.  It is not:
+`cons1 (code α α)` is Sturmian — it has exactly `m + 1` factors of every
+length — and is a lower coding of nothing. -/
+theorem sturmian_not_code (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) :
+    IsSturmian (cons1 (code α α)) ∧
+      ¬ ∃ α' x : ℝ, 0 < α' ∧ α' < 1 ∧ 0 ≤ x ∧ x < 1 ∧ cons1 (code α α) = code α' x :=
+  ⟨isSturmian_cons1_code hα hα0 hα1, not_code hα hα0 hα1⟩
+
+/-- The Fibonacci instance: the headline of §6, with the word *Sturmian* now
+discharged inside Lean rather than taken from the paper. -/
+theorem fib_sturmian_not_code :
+    IsSturmian (cons1 (code ((Real.sqrt 5 - 1) / 2) ((Real.sqrt 5 - 1) / 2))) ∧
+      ¬ ∃ α' x : ℝ, 0 < α' ∧ α' < 1 ∧ 0 ≤ x ∧ x < 1 ∧
+        cons1 (code ((Real.sqrt 5 - 1) / 2) ((Real.sqrt 5 - 1) / 2)) = code α' x := by
+  have h2 : (2 : ℝ) < Real.sqrt 5 := by
+    have h : Real.sqrt 4 < Real.sqrt 5 := by apply Real.sqrt_lt_sqrt <;> norm_num
+    rwa [show (4 : ℝ) = 2 ^ 2 by norm_num, Real.sqrt_sq (by norm_num)] at h
+  have h3 : Real.sqrt 5 < 3 := by
+    rw [show (3 : ℝ) = Real.sqrt 9 by
+      rw [show (9 : ℝ) = 3 ^ 2 by norm_num, Real.sqrt_sq (by norm_num)]]
+    apply Real.sqrt_lt_sqrt <;> norm_num
+  exact sturmian_not_code irrational_invPhi (by linarith) (by linarith)
+
 /-! ## §8 The tower
 
 The slope at level `j` is `α j` and the partial quotient is `a j`; the identity
@@ -1401,6 +1867,10 @@ end Tower
 #print axioms Sturmian.exists_fract_mem_Ioo
 #print axioms Sturmian.Icc_subset_closure_orbit
 #print axioms Sturmian.code_eq_codeUp
+#print axioms Sturmian.complexity
+#print axioms Sturmian.codeUp_add_code_reflect
+#print axioms Sturmian.ncard_factors_code
+#print axioms Sturmian.ncard_factors_codeUp
 #print axioms Sturmian.return_time
 #print axioms Sturmian.ones_succ_eq
 #print axioms Sturmian.derived_eq
@@ -1413,6 +1883,8 @@ end Tower
 #print axioms Sturmian.codeUp_zero_eq
 #print axioms Sturmian.not_code
 #print axioms Sturmian.not_code_fib
+#print axioms Sturmian.sturmian_not_code
+#print axioms Sturmian.fib_sturmian_not_code
 #print axioms Sturmian.tower_eq
 #print axioms Sturmian.tower_period
 

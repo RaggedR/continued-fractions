@@ -15,8 +15,8 @@ the slope. Everything about `√n` is stated through that.
 
 ## Status
 
-Phases 0, 1, 3, 4, 5 and 6 are complete.  `Sturmian.lean` 1419 lines,
-`SqrtN.lean` 95 lines, 0 errors, 0 warnings, 0 sorries, 21 theorems checked by
+Phases 0, 1, 2, 3, 4, 5 and 6 are complete.  `Sturmian.lean` 1891 lines,
+`SqrtN.lean` 95 lines, 0 errors, 0 warnings, 0 sorries, 26 theorems checked by
 `#print axioms`.
 
     derive_code       : derived   α x a = codeUp β (refl   α x 0)
@@ -25,12 +25,21 @@ Phases 0, 1, 3, 4, 5 and 6 are complete.  `Sturmian.lean` 1419 lines,
     tower_period      : α L = α 0 → tower α a L = fun k => code (α 0) 0 (k+1)
     sqrt_tower_period : tower (sqrtTail n) (sqrtQuot n) (period n hn)
                           = fun k => code (sqrtTail n 0) 0 (k+1)
-    not_code_fib      : ¬ ∃ α' x, 0 < α' ∧ α' < 1 ∧ 0 ≤ x ∧ x < 1 ∧
+    complexity        : {w : Fin m → ℕ | ∃ k, w = factor α x m k}.ncard = m + 1
+    ncard_factors_codeUp : (factors (codeUp α x) m).ncard = m + 1
+    fib_sturmian_not_code
+                      : IsSturmian (cons1 (code φ⁻¹ φ⁻¹)) ∧
+                        ¬ ∃ α' x, 0 < α' ∧ α' < 1 ∧ 0 ≤ x ∧ x < 1 ∧
                           cons1 (code φ⁻¹ φ⁻¹) = code α' x
 
-The last is the headline: for every non-square `n`, deriving `L` times returns
-the sequence with its first letter removed.  `sturmian.tex` observes it for
-`n = 2` and `n = 7`.
+`sqrt_tower_period` is one headline: for every non-square `n`, deriving `L`
+times returns the sequence with its first letter removed.  `sturmian.tex`
+observes it for `n = 2` and `n = 7`.
+
+`fib_sturmian_not_code` is the other, and it is now self-contained: both halves
+are proved in Lean.  Before Phase 2 the word *Sturmian* appeared in no
+statement, so the refutation of `sturmian.tex` §2 took *it is Sturmian* from
+the paper.  It no longer does.
 
 `tower_eq` is stated for an abstract sequence of tails with
 `(a j : ℝ) + α (j+1) = 1 / α j`, so it needs no import and is not about `√n`;
@@ -55,8 +64,8 @@ development grows further.
 
 ## Remaining
 
-Phase 2 (complexity), Phase 7 (the substitution), Phase 8 (Euler's half of
-Lagrange). Two larger targets are out of scope below.
+Phase 7 (the substitution), Phase 8 (Euler's half of Lagrange). Two larger
+targets are out of scope below.
 
 ## Design
 
@@ -73,9 +82,10 @@ def codeUp (α x : ℝ) (k : ℕ) : ℕ :=
 ```
 
 Phases 0, 3, 4 and 5 need no density, no limits and no cardinality argument.
-Phase 2 needs all three. **Do them in the order 0, 3, 4, 5, then 6, then 2** —
-the reverse of the order the sections appear in, and the reverse of the note in
-memory. The √n headline (Phase 5) lands without ever touching Phase 1.
+Phase 2 needs density and a cardinality argument (in the event, no limits).
+They were done in the order 0, 3, 4, 5, 6, 2 — the reverse of the order the
+sections appear in, and the reverse of the note in memory. The √n headline
+(Phase 5) lands without ever touching Phase 1.
 
 ## Phase 0 — codings (§1)
 
@@ -198,29 +208,68 @@ The slopes agree without a limit: `sum_code` on both sides gives
 Archimedes. Then `⌊fract(Nα) + x⌋ = 1` for every `N ≥ 1`, which Phase 1
 contradicts.
 
-## Phase 2 — complexity (§3)
+## Phase 2 — complexity (§3) — **done**
 
 ```lean
-theorem complexity (hα : Irrational α) (hx : x ∈ Set.Ico (0:ℝ) 1) (m : ℕ) :
-    {w | ∃ k, w = fun j : Fin (m+1) => code α x (k+j)}.ncard = m + 2
+theorem complexity (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x : ℝ) (m : ℕ) :
+    {w : Fin m → ℕ | ∃ k : ℕ, w = factor α x m k}.ncard = m + 1
+def IsSturmian (ℓ : ℕ → ℕ) : Prop := ∀ m : ℕ, 1 ≤ m → (factors ℓ m).ncard = m + 1
 ```
 
-Three parts:
-1. `⌊t + j*α⌋ = ⌊j*α⌋ + if Int.fract (-j*α) ≤ t then 1 else 0` — easy.
-2. The word determines, and is determined by, the cell of `[0,1)` cut by the `m`
-   points `Int.fract (-j*α)`, `1 ≤ j ≤ m`. Index the cells with
-   `Finset.orderIsoOfFin` on the `Finset` of cut points; distinctness is
-   irrationality.
-3. Every cell is hit — Phase 1.
+`x ∈ [0,1)` turned out not to be needed: the factor set depends on `x` only
+through `Int.fract`, so the theorem holds for every real base point.
 
-The counting in part 2 is the cost, not the mathematics. ~400 lines, confidence
-60%. The only phase that can swallow a week, and now the next one.
+**The counting went a different way from the sketch above.**  The sketch said
+to index the cells with `Finset.orderIsoOfFin`; that costs a `Fin m`-indexed
+enumeration with dependent `r - 1` and `r` endpoints.  Instead there is one
+definition doing three jobs:
 
-**It is load-bearing.** No Lean theorem so far contains the word Sturmian;
-`Sturmian` is a namespace and `F(m) = m+1` appears in no statement. Until this
-phase lands, `not_code_fib` proves that the prefixed Fibonacci sequence is not
-a lower coding, and takes *it is Sturmian* from the paper — so the refutation
-of `sturmian.tex` §2 is only half checked.
+```lean
+noncomputable def cuts (α : ℝ) (m : ℕ) : Finset ℝ :=
+  (Finset.Icc 1 m).image (fun j : ℕ => Int.fract (-((j : ℝ) * α)))
+noncomputable def cell (α : ℝ) (m : ℕ) (t : ℝ) : ℕ :=
+  ((cuts α m).filter (fun p => p ≤ t)).card
+```
+
+`cell` is the cell label; restricted to `cuts` it is *strictly monotone*, hence
+injective, from an `m`-element set into `{1,…,m}`, hence a **bijection** onto
+`{1,…,m}` (`exists_cut_cell`) — so "the cut point of rank `r`" is available
+with no `Fin` and no sorting; and the cardinality itself is
+`#{p ∈ cuts | cell p ≤ r} = #(Icc 1 r) = r`.  Irrationality enters in exactly
+two places: `card_cuts` (the cut points are distinct) and density.
+
+The cell bounds are carried abstractly as `c = 0 ∨ c ∈ cuts` and
+`d = 1 ∨ d ∈ cuts`, which is just enough to get `0 ≤ c < d ≤ 1` in all four
+corner cases without a case split on `r = 0` / `r = m` inside the main
+argument.
+
+Actual cost: ~230 lines for Theorem 3.1, confidence was 60% and the estimate
+of ~400 lines was high.
+
+### Corollary 3.2 — the upper coding
+
+The tex proves it by rerunning §3 with `⌈·⌉` for `⌊·⌋`.  **That is
+unnecessary**, and the Lean does not do it:
+
+```lean
+theorem codeUp_add_code_reflect (hα0 : 0 < α) (x : ℝ) (k : ℕ) :
+    codeUp α x k + code (1 - α) (-x) k = 1
+```
+
+The upper coding of slope `α` is the *bitwise complement* of the lower coding
+of slope `1 - α` at base `-x`.  `codeUp` is `1` exactly on the arc
+`(1-α,1) ∪ {0}`, whose complement in `[0,1)` is `(0,1-α]`, and the reflection
+`v ↦ 1 - v` carries that onto `[α,1) = [1-(1-α),1)` — the lower arc of slope
+`1 - α`.  No index shift is needed, because
+`Int.fract (-x + k(1-α)) = Int.fract (-(x + kα))`.
+
+Complementation is a bijection on words, so Corollary 3.2 is 50 lines on top of
+Theorem 3.1 rather than a parallel development on `(0,1]`.  Going the other way
+would have been genuinely longer: the upper coding's natural base-point range
+is `(0,1]`, not `[0,1)`, because `codeUp` reads `fract = 0` as the letter `1`.
+
+This identity is **not** in `all-the-proofs.tex`; it is recorded there now as a
+remark in §3.
 
 ## Phase 7 — the substitution (§7)
 
@@ -289,13 +338,13 @@ Done:
 ```
 0 ──► 3 ──► 4 ──► 5        (no density, no cardinals, ends at the headline)
                    └► 6    (needs 1)
-      1                    (density, used by 2 and 6)
+      1 ──► 2              (density; 2 closes the §6 refutation)
 ```
 
 Next, in order:
 
 ```
-2 ──► 7 ──► 8              (finishes all-the-proofs.tex)
+7 ──► 8                    (finishes all-the-proofs.tex)
 ```
 
 Then, each its own project and independent of the other:

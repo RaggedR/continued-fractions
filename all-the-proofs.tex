@@ -188,10 +188,32 @@ $F_{\Cp(\alpha,x)}(m) = m+1$ for every $m \geq 1$.
 \end{corollary}
 
 \begin{proof}
-The same proof with $\lceil\cdot\rceil$ for $\lfloor\cdot\rfloor$: the
-comparisons become $x_k > \{-j\alpha\}$ and the intervals are half-open at the
-other end.
+One can rerun the proof above with $\lceil\cdot\rceil$ for
+$\lfloor\cdot\rfloor$: the comparisons become $x_k > \{-j\alpha\}$ and the
+intervals are half-open at the other end. But that is more work than is needed,
+because an upper coding is the bitwise complement of a lower coding:
+\[
+  \Cp(\alpha,x)_k + \C(1-\alpha,-x)_k = 1 \qquad (k \geq 0).
+\]
+Indeed $\Cp(\alpha,x)_k = 1$ exactly when
+$\{x+k\alpha\} \in (1-\alpha,1) \cup \{0\}$, whose complement in $[0,1)$ is
+$(0,1-\alpha]$; and $\{-x + k(1-\alpha)\} = \{-(x+k\alpha)\}$, so the
+reflection $v \mapsto 1-v$ sends the orbit of $x$ at slope $\alpha$ to the
+orbit of $-x$ at slope $1-\alpha$, carrying $(0,1-\alpha]$ onto
+$[\alpha,1) = [1-(1-\alpha),1)$ --- the arc of the lower coding of slope
+$1-\alpha$. The exceptional point $v = 0$ is fixed by the reflection and lies
+outside $[\alpha,1)$, as it must. Complementation is a bijection on words, and
+$1-\alpha$ is again irrational and in $(0,1)$, so
+Theorem~\ref{thm:complexity} gives the count.
 \end{proof}
+
+The second proof is the one formalised. In \texttt{lean/Sturmian.lean} the
+displayed identity is
+\texttt{codeUp\_add\_code\_reflect}, and the corollary is
+\texttt{ncard\_factors\_codeUp}. The first proof would have cost a parallel
+development: the natural range of the base point for
+an upper coding is $(0,1]$ rather than $[0,1)$, since $\Cp$ reads
+$\{x+k\alpha\} = 0$ as the letter $1$.
 
 For the Fibonacci sequence of \texttt{sturmian.tex} \S1 and $m = 3$ the four
 intervals are cut by $\{-\alpha\}, \{-2\alpha\}, \{-3\alpha\}$ with

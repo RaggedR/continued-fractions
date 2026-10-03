@@ -3,6 +3,20 @@
 `Palindrome.lean` — a complete formalisation of `../palindrome.tex`.
 **954 lines, 0 errors, 0 warnings, 0 sorries.**
 
+Two further files formalise `../all-the-proofs.tex` (the Sturmian material);
+they are documented in `PLAN.md`, not here.
+
+| file | lines | contents |
+|---|---|---|
+| `Palindrome.lean` | 953 | Legendre's palindrome theorem, §§1–5 of `../palindrome.tex` |
+| `Sturmian.lean` | 1891 | `../all-the-proofs.tex` §§1–6: codings, density, complexity, gaps, derivation, Morse–Hedlund, the tower |
+| `SqrtN.lean` | 95 | the tower instantiated at `√n`, joining the two |
+
+The two headlines of `Sturmian.lean` are `sqrt_tower_period` (for every
+non-square `n`, exactly `L` derivations return the sequence with its first
+letter removed) and `fib_sturmian_not_code` (a Sturmian sequence that is not a
+lower mechanical coding — a refutation of `../sturmian.tex` §2).
+
 ## The theorems
 
 ```lean
