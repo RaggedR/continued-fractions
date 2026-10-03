@@ -4,6 +4,11 @@
 3 October 2026 and is now §7 of `all-the-proofs.tex`. `lean/PLAN.md` Phase 9 is
 the remaining work and it is now pure formalisation.
 
+Phase 9 has started: `lem:rs` and `cor:onesp` are formalised as
+`ncard_factors_succ` and `isSturmian_iff_ncard_rightSpecial`. Step 2 is next,
+and `PLAN.md` records what the right-special API looks like and where
+`Fin.snoc` fights back.
+
 ## What step 5 turned out to be
 
 Not Ostrowski, and not the tower inverted. Both routes the previous handover

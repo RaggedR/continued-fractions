@@ -86,8 +86,8 @@ that other projects import.
 One target: the converse half of Morse–Hedlund.  `all-the-proofs.tex` §6 is
 complete as of 3 October 2026 — steps 2 and 4 (`prop:blocks`, `prop:derived`)
 and then step 5, which is §7 of that document (`lem:slope`, `prop:bound`,
-`thm:step5`).  **No open mathematics remains; none of §6 or §7 is formalised.**
-Planned as **Phase 9** below.
+`thm:step5`).  **No open mathematics remains.**  Of the formalisation, `lem:rs`
+and `cor:onesp` are done; the rest is **Phase 9** below.
 
 ## Design
 
@@ -497,6 +497,8 @@ infrastructure, and it was not.
 | step | content | tex | Lean |
 |---|---|---|---|
 | 1 | `F(1)=2`, `F(2)=3`, so exactly one of `00`/`11` is absent | proved | not started |
+| `lem:rs` | `F(m+1) − F(m)` counts right-special factors of length `m` | proved | **`ncard_factors_succ`** |
+| `cor:onesp` | `F(m) = m+1` ⟺ one right-special factor per length | proved | **`isSturmian_iff_ncard_rightSpecial`** |
 | 2 | block lengths take two consecutive values `a-1`, `a` | **proved** — `prop:blocks` | not started |
 | 3 | `ℓ = 0^{k₀} τ_a(ℓ')` | proved | `block_length`, `block_zero`, but see below |
 | 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | **proved** — `prop:derived` | not started |
@@ -556,11 +558,31 @@ elementary and finite — `Finset`, `Nat`, and one geometric series.
 lem:rs, cor:onesp  ──►  2  ──►  3'  ──►  1  ──►  4  ──►  5
 ```
 
-All five steps are proved; all of this is now formalisation.  Start with `lem:rs` and
-`cor:onesp`: short, self-contained, and they make step 2 mechanical.  Then
-step 2, then `3'` (step 3 restated for an abstract `ℓ`, see above), then step 1,
-then step 4 — which needs `lem:rschain` and `lem:aper` as well as `lem:bridge`,
-all three proved in the paper and all three small.
+All five steps are proved; all of this is now formalisation.  `lem:rs` and
+`cor:onesp` were formalised on 3 October 2026 as `ncard_factors_succ` and
+`isSturmian_iff_ncard_rightSpecial`, next to `IsSturmian` in `Sturmian.lean`;
+they make step 2 mechanical.  Next is step 2, then `3'` (step 3 restated for an
+abstract `ℓ`, see above), then step 1, then step 4 — which needs `lem:rschain`
+and `lem:aper` as well as `lem:bridge`, all three proved in the paper and all
+three small.
+
+### What `lem:rs` cost, and what it bought
+
+43 lines.  Three things are worth knowing before building on it.
+
+* **`rightSpecial ℓ m` is `extBy ℓ m 0 ∩ extBy ℓ m 1`**, where `extBy ℓ m b` is
+  the set of length-`m` words whose extension by `b` is a factor.  The count
+  then falls out of `Set.ncard_union_add_ncard_inter` with `extBy_union`
+  (`extBy ℓ m 0 ∪ extBy ℓ m 1 = factors ℓ m`, i.e. every factor extends) — no
+  fibrewise sum, no `Finset` transfer.
+* **Right-special is a conjunction, not a cardinality.** Over `{0,1}` the two
+  agree, and the conjunction is far cheaper to case-split on in step 2.  Every
+  statement therefore carries `hb : ∀ k, ℓ k ≤ 1` rather than deriving
+  binarity.
+* **`Fin.snoc` is dependent, and this bites twice.** `fun u => Fin.snoc u b`
+  will not elaborate without the ascription `(… : Fin (m+1) → ℕ)`, and
+  `rw [← h]` for `h : w (Fin.last m) = 1` abstracts the `1` in `m + 1` and
+  fails on the motive.  Rewrite forwards into `Fin.snoc_init_self` instead.
 
 **Nothing here is open mathematics any more.**  Step 5 is `all-the-proofs.tex`
 §7, proved 3 October 2026 and checked over ≈3·10⁶ factors in exact arithmetic.

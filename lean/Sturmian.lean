@@ -800,6 +800,137 @@ theorem isSturmian_code (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x
 theorem isSturmian_codeUp (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x : ℝ) :
     IsSturmian (codeUp α x) := fun m _ => ncard_factors_codeUp hα hα0 hα1 x m
 
+/-! ### Right-special factors — `../all-the-proofs.tex` §6 `lem:rs`
+
+The first piece of §6.  `rightSpecial` is a set of words rather than a
+predicate because what §6 uses is its cardinality. -/
+
+variable {ℓ : ℕ → ℕ}
+
+/-- The factors of length `m` whose extension by the letter `b` is again a
+factor. -/
+def extBy (ℓ : ℕ → ℕ) (m b : ℕ) : Set (Fin m → ℕ) :=
+  {u | Fin.snoc u b ∈ factors ℓ (m + 1)}
+
+/-- A word of length `m` is *right-special* when both `u0` and `u1` are
+factors.  The alphabet is `{0,1}`, so those are all the extensions there are. -/
+def rightSpecial (ℓ : ℕ → ℕ) (m : ℕ) : Set (Fin m → ℕ) :=
+  extBy ℓ m 0 ∩ extBy ℓ m 1
+
+lemma snoc_factor (k m b : ℕ) (hb : ℓ (k + m) = b) :
+    Fin.snoc (fun j : Fin m => ℓ (k + (j : ℕ))) b
+      = fun j : Fin (m + 1) => ℓ (k + (j : ℕ)) := by
+  funext j
+  refine Fin.lastCases ?_ ?_ j
+  · simp [hb]
+  · intro i; simp
+
+lemma extBy_subset (m b : ℕ) : extBy ℓ m b ⊆ factors ℓ m := by
+  rintro u ⟨k, hk⟩
+  refine ⟨k, ?_⟩
+  funext j
+  have := congrFun hk j.castSucc
+  simpa using this
+
+/-- Binary letters confine the factors of length `m` to a finite set of
+functions. -/
+lemma factors_finite (hb : ∀ k, ℓ k ≤ 1) (m : ℕ) : (factors ℓ m).Finite := by
+  have hsub : factors ℓ m ⊆ Set.pi Set.univ (fun _ : Fin m => Set.Iic 1) := by
+    rintro w ⟨k, rfl⟩ j -
+    exact hb _
+  exact Set.Finite.subset (Set.Finite.pi (fun _ => Set.finite_Iic 1)) hsub
+
+/-- The empty word, and nothing else. -/
+lemma ncard_factors_zero (ℓ : ℕ → ℕ) : (factors ℓ 0).ncard = 1 := by
+  rw [Set.ncard_eq_one]
+  refine ⟨fun j => ℓ (j : ℕ), ?_⟩
+  ext w
+  simp only [Set.mem_singleton_iff, factors, Set.mem_setOf_eq]
+  constructor
+  · rintro ⟨k, rfl⟩; funext j; exact j.elim0
+  · rintro rfl; exact ⟨0, by funext j; exact j.elim0⟩
+
+/-- Every factor has a right extension: it occurs at some `k`, and `ℓ (k+m)`
+extends it. -/
+lemma extBy_union (hb : ∀ k, ℓ k ≤ 1) (m : ℕ) :
+    extBy ℓ m 0 ∪ extBy ℓ m 1 = factors ℓ m := by
+  apply Set.Subset.antisymm
+  · exact Set.union_subset (extBy_subset m 0) (extBy_subset m 1)
+  · rintro u ⟨k, rfl⟩
+    have hmem : Fin.snoc (fun j : Fin m => ℓ (k + (j : ℕ))) (ℓ (k + m))
+        ∈ factors ℓ (m + 1) := ⟨k, snoc_factor k m _ rfl⟩
+    rcases Nat.le_one_iff_eq_zero_or_eq_one.1 (hb (k + m)) with h | h
+    · rw [h] at hmem; exact Or.inl hmem
+    · rw [h] at hmem; exact Or.inr hmem
+
+/-- **`lem:rs`.**  `F_ℓ(m+1) - F_ℓ(m)` is the number of right-special factors
+of length `m`. -/
+theorem ncard_factors_succ (hb : ∀ k, ℓ k ≤ 1) (m : ℕ) :
+    (factors ℓ (m + 1)).ncard
+      = (factors ℓ m).ncard + (rightSpecial ℓ m).ncard := by
+  have hinj : ∀ b : ℕ,
+      Function.Injective (fun u : Fin m → ℕ => (Fin.snoc u b : Fin (m + 1) → ℕ)) := by
+    intro b u v h
+    have := congrArg Fin.init h
+    simpa [Fin.init_snoc] using this
+  have hsplit : factors ℓ (m + 1)
+      = (fun u : Fin m → ℕ => (Fin.snoc u 0 : Fin (m + 1) → ℕ)) '' extBy ℓ m 0
+        ∪ (fun u : Fin m → ℕ => (Fin.snoc u 1 : Fin (m + 1) → ℕ)) '' extBy ℓ m 1 := by
+    apply Set.Subset.antisymm
+    · intro w hw
+      have hsi : (Fin.snoc (Fin.init w) (w (Fin.last m)) : Fin (m + 1) → ℕ) = w :=
+        Fin.snoc_init_self w
+      have hlast : w (Fin.last m) ≤ 1 := by
+        obtain ⟨k, rfl⟩ := hw; exact hb _
+      rcases Nat.le_one_iff_eq_zero_or_eq_one.1 hlast with h | h
+      · rw [h] at hsi
+        refine Or.inl ⟨Fin.init w, ?_, hsi⟩
+        show (Fin.snoc (Fin.init w) 0 : Fin (m + 1) → ℕ) ∈ factors ℓ (m + 1)
+        rw [hsi]; exact hw
+      · rw [h] at hsi
+        refine Or.inr ⟨Fin.init w, ?_, hsi⟩
+        show (Fin.snoc (Fin.init w) 1 : Fin (m + 1) → ℕ) ∈ factors ℓ (m + 1)
+        rw [hsi]; exact hw
+    · refine Set.union_subset ?_ ?_
+      · rintro w ⟨u, hu, rfl⟩; exact hu
+      · rintro w ⟨u, hu, rfl⟩; exact hu
+  have hdisj : Disjoint
+      ((fun u : Fin m → ℕ => (Fin.snoc u 0 : Fin (m + 1) → ℕ)) '' extBy ℓ m 0)
+      ((fun u : Fin m → ℕ => (Fin.snoc u 1 : Fin (m + 1) → ℕ)) '' extBy ℓ m 1) := by
+    rw [Set.disjoint_left]
+    rintro w ⟨u, -, rfl⟩ ⟨v, -, hv⟩
+    have := congrFun hv (Fin.last m)
+    simp [Fin.snoc_last] at this
+  have h0 : (extBy ℓ m 0).Finite := (factors_finite hb m).subset (extBy_subset m 0)
+  have h1 : (extBy ℓ m 1).Finite := (factors_finite hb m).subset (extBy_subset m 1)
+  rw [hsplit, Set.ncard_union_eq hdisj (h0.image _) (h1.image _),
+      Set.ncard_image_of_injective _ (hinj 0),
+      Set.ncard_image_of_injective _ (hinj 1),
+      rightSpecial, ← extBy_union hb m,
+      Set.ncard_union_add_ncard_inter _ _ h0 h1]
+
+/-- **`cor:onesp`.**  Complexity `m + 1` is exactly one right-special factor of
+each length. -/
+theorem isSturmian_iff_ncard_rightSpecial (hb : ∀ k, ℓ k ≤ 1) :
+    IsSturmian ℓ ↔ ∀ m : ℕ, (rightSpecial ℓ m).ncard = 1 := by
+  have hzero := ncard_factors_zero ℓ
+  constructor
+  · intro hS m
+    have h1 : (factors ℓ m).ncard = m + 1 := by
+      rcases Nat.eq_zero_or_pos m with rfl | hm
+      · simpa using hzero
+      · exact hS m hm
+    have h2 : (factors ℓ (m + 1)).ncard = m + 2 := hS (m + 1) (by omega)
+    have := ncard_factors_succ hb m
+    omega
+  · intro hrs
+    have key : ∀ m : ℕ, (factors ℓ m).ncard = m + 1 := by
+      intro m
+      induction m with
+      | zero => simpa using hzero
+      | succ n ih => rw [ncard_factors_succ hb n, hrs n, ih]
+    exact fun m _ => key m
+
 end Complexity
 
 /-! ## §4 The return time
@@ -2034,6 +2165,8 @@ end Substitution
 #print axioms Sturmian.codeUp_add_code_reflect
 #print axioms Sturmian.ncard_factors_code
 #print axioms Sturmian.ncard_factors_codeUp
+#print axioms Sturmian.ncard_factors_succ
+#print axioms Sturmian.isSturmian_iff_ncard_rightSpecial
 #print axioms Sturmian.return_time
 #print axioms Sturmian.ones_succ_eq
 #print axioms Sturmian.derived_eq
