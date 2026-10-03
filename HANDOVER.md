@@ -1,11 +1,11 @@
 # Handover: formalise `all-the-proofs.tex` §6–§7 in Lean
 
-**The paper is finished.** §6 step 5 — the last unproved item — was proved on
-3 October 2026 and is now §7 of `all-the-proofs.tex`. `lean/PLAN.md` Phase 9 is
-the remaining work and it is now pure formalisation.
+**The paper is finished** — §6 step 5, the last unproved item, was proved on
+3 October 2026 and is now §7 of `all-the-proofs.tex`, and §11 reads "Nothing".
+All that is left anywhere is Lean Phase 9, and it is pure formalisation.
 
-**Steps 1 to 4 of the converse are formalised**, in `Sturmian.lean` §6.1, on
-`lem:rs`, `cor:onesp`, `lem:evper`, `lem:aper`, `lem:rschain` and
+**Of Phase 9, steps 1 to 4 of the converse are done**, in `Sturmian.lean`
+§6.1, on `lem:rs`, `cor:onesp`, `lem:evper`, `lem:aper`, `lem:rschain` and
 `lem:bridge`. `isSturmian_deriveSeq` is `prop:derived`.
 
 What remains is **step 5 (§7), which has no Lean at all**, the letter-exchange
