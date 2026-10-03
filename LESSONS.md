@@ -169,3 +169,24 @@ The second marker came *before* the first, so the slice was `""`, and
 - **Prefer `count(old) == 1` and a literal string** over a computed slice.
   Every other edit in this session used a literal anchor and none of them
   failed.
+
+## A test can share the proof's blind spot (3 October 2026)
+
+`step5_check.py` verified §7's block decomposition over 3,022,668 factors and
+passed. The decomposition was still wrong: `prop:bound` read "the block to the
+left of `u'`" when `s = a`, and a factor inside the run of zeros before the
+first `1` has no block to its left. The test never saw it, because its loop
+was `for M in range(kp[0], Mmax)` — **every window started at the first `1`**,
+which is precisely the assumption the proof was making.
+
+A large passing case count is evidence only about the cases the harness can
+reach. Both the test and the proof were written from the same picture, so the
+test could not falsify the picture.
+
+- **Read a test's loop bounds against the case list of the thing it defends.**
+  Ask what it cannot reach, not how many cases it ran.
+- **Boundaries first.** The gap lived at index 0. Start windows, inductions
+  and scans at the first legal value, not at the first convenient one.
+- **When a proof says "the X to the left", check that there is one.** The same
+  blind spot produced all three slips found in this paper: each was a claim
+  about what sits next to or inside something else.

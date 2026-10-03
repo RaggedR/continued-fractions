@@ -14,12 +14,15 @@ Four claims, in the order the proof needs them:
      PROPER prefix 1 0^t of its block, hence s <= a and t <= a-1, with
      s = a forcing 1u' to be a factor of l'.  The lem:dev identity
      Delta_a(u) = -alpha Delta_b(u') + boundary is checked on each factor.
+     Windows start at 0.  Inside the initial run s = a has no block to its
+     left, and 1u' comes instead from an occurrence past the run.
   C  thm:step5    x = sup_N (S(N) - N alpha) recovers the intercept.
   D  thm:counterex  for 1.c the supremum is 1 and is attained nowhere, which
      is why C+ is needed.
 
 Run: python step5_check.py
 """
+from bisect import bisect_left
 from fractions import Fraction
 from math import floor, isqrt, sqrt
 
@@ -92,10 +95,15 @@ def check_bound(seq, n, Lmax):
 
 # ------------------------------- B: the decomposition of prop:bound
 
-def check_decomposition(n, x, Mmax=3000, Lmax=36, Nletters=20000):
+def check_decomposition(n, x, Mmax=3000, Lmax=36, Nletters=20000, Psearch=4000):
     """Every factor is 0^s tau_a(u') q with q empty or a proper prefix 1 0^t.
-    Checks s <= a, t <= a-1, s = a => 1u' a factor, the lem:dev identity,
-    and |Delta| < 1. Returns (counts, failures)."""
+    Checks s <= a, t <= a-1, the lem:dev identity, and |Delta| < 1.
+
+    Windows start at 0, so the initial run is covered. That is where s = a has
+    no block to its left: there the factor is required to recur past the run
+    with a long block to the left, which is what supplies 1u'.
+
+    Returns (counts, failures)."""
     al = sqrt(n) - isqrt(n)
     a = floor(1 / al)
     if a < 2:
@@ -104,30 +112,37 @@ def check_decomposition(n, x, Mmax=3000, Lmax=36, Nletters=20000):
     s = code(n, x, Nletters)
     lp, _ = derived(s, a)
     kp = [i for i, c in enumerate(s) if c == 1]
-    blk = {}
-    for i in range(len(kp) - 1):
-        for p in range(kp[i], kp[i + 1]):
-            blk[p] = (i, p - kp[i])
 
-    counts = {"u' empty": 0, "general": 0, "s = a": 0}
+    def split(M, N):
+        """0^s tau_a(u') q for the window [M, N): (s, u', t, index of u')."""
+        first = bisect_left(kp, M)
+        ss = min(kp[first] - M, N - M)
+        last, j = first - 1, first
+        while j + 1 < len(kp) and kp[j + 1] <= N:
+            last, j = j, j + 1
+        q_at = M + ss if last < first else kp[last + 1]
+        up = [] if last < first else lp[first:last + 1]
+        qlen = N - q_at
+        return ss, up, (qlen - 1 if qlen > 0 else None), first
+
+    def recurs_with_long_left(M, N):
+        """s[M:N] occurs past the initial run with a long block to its left."""
+        w, L = s[M:N], N - M
+        for P in range(kp[0] + 1, min(Psearch, len(s) - L)):
+            if s[P] == w[0] and s[P:P + L] == w:
+                ss, up, _, first = split(P, P + L)
+                if ss == a and up and first >= 1 and lp[first - 1] == 1:
+                    return P
+        return None
+
+    counts = {"u' empty": 0, "general": 0, "s = a": 0, "s = a in run": 0}
     bad = []
-    for M in range(kp[0], Mmax):
+    for M in range(0, Mmax):
         for L in range(1, Lmax + 1):
             N = M + L
-            if N - 1 not in blk or N not in blk:
+            if N >= kp[-1]:
                 break
-            i0, off = blk[M]
-            first = i0 if off == 0 else i0 + 1
-            last, j = first - 1, first
-            while j < len(lp) and kp[j + 1] <= N:
-                last, j = j, j + 1
-            ss = min(kp[first] - M, L) if first > i0 else 0
-            if last < first:
-                up, q_at = [], M + ss
-            else:
-                up, q_at = lp[first:last + 1], kp[last + 1]
-            qlen = N - q_at
-            tt = qlen - 1 if qlen > 0 else None
+            ss, up, tt, first = split(M, N)
 
             if ss > a:
                 bad.append(("s > a", M, L, ss))
@@ -135,7 +150,13 @@ def check_decomposition(n, x, Mmax=3000, Lmax=36, Nletters=20000):
                 bad.append(("t > a-1", M, L, tt))
             if up and ss == a:
                 counts["s = a"] += 1
-                if not (first >= 1 and lp[first - 1] == 1):
+                if first >= 1 and lp[first - 1] == 1:
+                    pass
+                elif M < kp[0]:
+                    counts["s = a in run"] += 1
+                    if recurs_with_long_left(M, N) is None:
+                        bad.append(("s = a in run, never recurs", M, L))
+                else:
                     bad.append(("s = a but 1u' not a factor", M, L))
             dp = sum(up) - len(up) * be
             d = sum(s[M:N]) - L * al
@@ -182,9 +203,10 @@ def main():
             counts, bad = r
             assert not bad, (n, x, bad[:2])
             total += counts["u' empty"] + counts["general"]
-            empty, gen, sa = counts["u' empty"], counts["general"], counts["s = a"]
+            empty, gen = counts["u' empty"], counts["general"]
+            sa, run = counts["s = a"], counts["s = a in run"]
             print(f"   n={n:3d} x={str(x):5s}  u'empty={empty:6d}"
-                  f"  general={gen:6d}  s=a={sa:6d}  ok")
+                  f"  general={gen:6d}  s=a={sa:6d}  in run={run:4d}  ok")
     print(f"   {total} factors checked")
 
     print("\nC. thm:step5 -- x = sup_N (S(N) - N alpha)")

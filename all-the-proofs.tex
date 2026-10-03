@@ -612,6 +612,19 @@ $\lvert \tau_a(w)\rvert_1 = \lvert w\rvert$, so
 \]
 \end{proof}
 
+\begin{lemma}\label{lem:recur}
+Every factor of a Sturmian sequence occurs at arbitrarily large positions.
+\end{lemma}
+
+\begin{proof}
+Suppose $u$, of length $m$, occurs only below $P$. The tail
+$\ell_P\ell_{P+1}\cdots$ omits $u$, so its complexity at $m$ is at most $m$,
+and its complexity at $0$ is $1$. Were it to rise at every step it would be
+$m+1$ at $m$, so by Lemma~\ref{lem:rs} the tail has no right-special factor of
+some length $j < m$, and by Lemma~\ref{lem:aper} it is eventually periodic. So
+is $\ell$, and Lemma~\ref{lem:evper} contradicts $F_\ell(m) = m+1$.
+\end{proof}
+
 \begin{proposition}\label{prop:bound}
 $\lvert \Delta_\alpha(u)\rvert < 1$ for every factor $u$ of $\ell$.
 \end{proposition}
@@ -619,6 +632,9 @@ $\lvert \Delta_\alpha(u)\rvert < 1$ for every factor $u$ of $\ell$.
 \begin{proof}
 By induction on $\lvert u\rvert$, over all levels at once; $\alpha$ and $\beta$
 are the slopes of $\ell$ and $\ell'$, and $1/\alpha = a + \beta$.
+$\Delta_\alpha$ depends on $u$ and not on where it sits, so by
+Lemma~\ref{lem:recur} take an occurrence past the zeros before the first
+$\seq{1}$.
 
 Write $u = \seq{0}^s\,\tau_a(u')\,q$ with $u'$ a factor of $\ell'$ and $q$ empty
 or $q = \seq{1}\seq{0}^t$ a \emph{proper} prefix of its block. A block has
