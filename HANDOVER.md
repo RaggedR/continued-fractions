@@ -8,6 +8,9 @@ now has a Lean counterpart, `lem:slope` included — `exists_slopes` for the
 existence half, `slopes_unique` for "exactly one", and irrationality by the
 periodicity route rather than the paper's descent.
 
+All of it is committed and pushed to `RaggedR/continued-fractions` main, in
+three commits: the §7 repair, Phase 9, and the open question.
+
 Read `lean/PLAN.md` Phase 9 for the decomposition and `lean/README.md` for
 file sizes. This file records what the last session found, because one of the
 findings was a hole in the paper.
@@ -94,17 +97,33 @@ error is a bare "no such file or directory".
 
 ## If there is to be a next thing
 
-Nothing is owed. Two candidates, both outward-facing rather than internal:
+Nothing is owed. Three candidates, in the order I would take them.
 
+* **The open question, in `research-question.txt`.** `thm:step5` splits on
+  whether `sup_N D(N)` is attained, and that split is what decides which of
+  the two codings a Sturmian sequence is; `thm:counterex` is its extreme
+  point rather than a separate pathology. The question is to characterise
+  attainment from the tower. `lem:slope` pins `α` and provably nothing more
+  (`slopes_unique`), so what the tower omits is the sequence of initial block
+  lengths `k₀ⱼ` — which is an Ostrowski-type representation of `x`. Note the
+  earlier finding "step 5 does not need Ostrowski" stands and is not a
+  contradiction: §7 needs none of it, but the data §7 leaves undetermined is
+  exactly the Ostrowski digits. The file lists three experiments runnable
+  against `step5_check.py`'s existing exact machinery. **Check the literature
+  first** — it may be standard, and `papers/sturmian/README.md` records why
+  Lothaire ch. 2 could not be obtained.
 * **Upstream `exists_iterate_eq_self`** (`Palindrome.lean`, ~15 lines, no
   number theory) — `PLAN.md` already flags it as belonging in
-  `Mathlib.Dynamics`.
+  `Mathlib.Dynamics`. Small enough to be a first Mathlib PR and learn the
+  review process on something that cannot go wrong.
 * **Upstream the Sturmian API.** `PLAN.md`'s October 2026 survey found
   nothing comparable in Mathlib, the Isabelle AFP, or Rocq: no complexity
   function, no factor-set or special-factor API. What exists here —
   `factors`, `extBy`, `rightSpecial`, `window`, `cnt`, `deriveSeq`,
   `blockMax`, `exch`, and `isSturmian_iff_mechanical` on top of them — would
-  be the first of its kind, and Berstel's definitions are verbatim ours.
+  be the first of its kind, and Berstel's definitions are verbatim ours. The
+  valuable artefact is the infrastructure, not the theorem: the theorem is
+  classical.
 
 ## Two decisions already taken, so they are not re-litigated
 
@@ -130,10 +149,12 @@ Nothing is owed. Two candidates, both outward-facing rather than internal:
   test was wrong and the claim was right.
 - **Never test on a decimal truncation.** Build slopes as
   `sqrt(n) - floor(sqrt(n))`.
-- **`LESSONS.md` governs the prose.** Read it before writing any sentence in
-  the `.tex`. Shortest relevant rules: no stage direction, no advance
-  summaries of method, no restating a display in prose, concrete before
-  general, and no paragraph over three lines in a definitional passage.
+- **`LESSONS.md` governs the prose, and now the testing too.** Read it before
+  writing any sentence in the `.tex`. Shortest relevant prose rules: no stage
+  direction, no advance summaries of method, no restating a display in prose,
+  concrete before general, and no paragraph over three lines in a definitional
+  passage. Its last section, "A test can share the proof's blind spot", is the
+  §7 gap written as a rule.
 - **Three strikes.** Lothaire ch. 2 and Vuillon's "Balanced words" are
   recorded in `papers/sturmian/README.md` with citations rather than retried.
   Neither was needed: the errata's Proposition 2.1.10 is our `prop:bound`, and

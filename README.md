@@ -31,6 +31,7 @@ figures with the source kept.
 | `sturmian.tex` / `.pdf` | The Sturmian side: codings of an irrational rotation, derived sequences, and the tower of derivations of √n. Assertion-dense — written to be checked, and it was. |
 | `all-the-proofs.tex` / `.pdf` | Proofs of everything `sturmian.tex` asserts, plus the corrections it needed. This is what `lean/Sturmian.lean` and `lean/Lagrange.lean` formalise. |
 | `step5_check.py` | The numerics behind `all-the-proofs.tex` §7, asserting rather than printing: the factor bound, the block decomposition over 3,024,000 windows starting at position 0, and the recovery of the intercept as `x = sup_N (S(N) − Nα)`. |
+| `research-question.txt` | The one thing §7 opens and does not close: `thm:step5` splits on whether `sup_N D(N)` is attained, and `thm:counterex` is the extreme point of that split rather than a separate pathology. Asks for a characterisation from the derivation tower, and says what is not known. |
 | `papers/` | Scans of Euler 1767, Lagrange 1770 and Legendre 1798, with an article-level index of where each theorem actually is. |
 | `original/` | The 14 September originals, for comparison: `period-histogram.pdf`, `period-distribution.pdf`, and the `period-histogram.txt` write-up. Kept unmodified. |
 
