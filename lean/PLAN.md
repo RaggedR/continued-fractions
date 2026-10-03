@@ -83,8 +83,8 @@ that other projects import.
 
 ## Remaining
 
-Nothing inside `all-the-proofs.tex`.  Two larger targets remain, each its own
-project; both are described under **Not attempted** below.
+One target: the converse half of Morse–Hedlund, `all-the-proofs.tex` §6
+steps 2, 4a and 5.  Planned as **Phase 9** below.
 
 ## Design
 
@@ -433,20 +433,119 @@ The theorem is stated for an abstract admissible state, so it needs witnesses.
 with preperiod 1), and `eventually_periodic_golden` is the case
 `Palindrome.lean` cannot reach: `φ = (1+√5)/2`, where `Q = 2 ∣ 5 - 1²`.
 
-## Not attempted
+## Phase 9 — the converse of Morse–Hedlund (§6, steps 2, 4a, 5)
 
-- **The converse of Morse–Hedlund** (§6, steps 2/4/5): complexity `m+1` ⟹
-  balanced ⟹ mechanical. `all-the-proofs.tex` does not support it, but it is
-  classical: transcribe from Lothaire, *Algebraic Combinatorics on Words*,
-  ch. 2 (Berstel–Séébold).
+The only thing left in `all-the-proofs.tex`.
 
-  Checked October 2026: **no proof assistant has it.** The Isabelle AFP entry
-  *Combinatorics on Words Basics* (Holub–Raška–Starosta, 2021) defines Sturmian
-  words as lower mechanical words and proves elementary facts — that is our §1.
-  No complexity function, no balancedness. Mathlib has nothing; nothing found
-  for Rocq. So the first third of this is building a factor-set and
-  bispecial-factor API that exists nowhere, which is why it gets no line
-  estimate: the risk is infrastructure, not mathematics.
+```lean
+theorem mechanical_of_isSturmian (ℓ : ℕ → ℕ) (hb : ∀ k, ℓ k ≤ 1)
+    (hap : ¬ ∃ p, 0 < p ∧ ∀ k, ℓ (k + p) = ℓ k) (hS : IsSturmian ℓ) :
+    ∃ α x : ℝ, Irrational α ∧ 0 < α ∧ α < 1 ∧ 0 ≤ x ∧ x < 1 ∧
+      (ℓ = code α x ∨ ℓ = codeUp α x)
+```
+
+With `isSturmian_code` and `isSturmian_codeUp` that closes `thm:mh`; with
+`fib_sturmian_not_code` it says precisely why the `sturmian.tex` §2 form was
+wrong — both codings are needed and neither alone suffices.
+
+### Sources
+
+`papers/sturmian/README.md` has the full accounting.  In short: the original is
+Morse–Hedlund, *Symbolic Dynamics II. Sturmian Trajectories*, Amer. J. Math.
+**62** (1940) 1–42, paywalled and in copyright until 2035; the proof is in
+Lothaire, *Algebraic Combinatorics on Words* (CUP 2002) ch. 2, by Berstel and
+Séébold, which is **not** freely available — Berstel's Lothaire page posts only
+contents, solutions and errata for that volume.  Three openly-offered PDFs sit
+in `papers/sturmian/`: they give the statement, confirm our definitions are
+verbatim the standard ones, and carry the *finite* theory in full, but all three
+defer the infinite step to Lothaire ch. 2.
+
+So the decomposition below is `all-the-proofs.tex` §6's own, **not** transcribed
+from a proof anyone on this project has read.  Flagged, because the one time
+this plan guessed at a decomposition it was wrong: Phase 7's sketch assumed
+`lem:blocks` was already formalised, and it was not.
+
+### The route is already chosen, and it is not Lothaire's
+
+§6 says the route that fits this document is to **run §4 and §5 backwards**.
+That matters.  The standard treatment builds a factor-set and bispecial-factor
+API from scratch; §§4, 5 and 7 are already formalised here.  Berstel's
+standard-sequence recurrence `sₙ = sₙ₋₁^{dₙ} sₙ₋₂`, with `[0; 1+d₁, d₂, …]` the
+continued fraction of the slope, is the *inverse of our derivation tower*.  So
+Phase 9 ought to be an inversion of `derived`/`tower`, not a new development.
+
+Status of §6's five steps:
+
+| step | content | tex | Lean |
+|---|---|---|---|
+| 1 | `F(1)=2`, `F(2)=3`, so exactly one of `00`/`11` is absent | proved | not started |
+| 2 | block lengths take two consecutive values `a-1`, `a` — balancedness | *not proved* | — |
+| 3 | `ℓ = 0^{k₀} τ_a(ℓ')` | proved | `block_length`, `block_zero`, but see below |
+| 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | *not proved* | — |
+| 4b | both letters of `ℓ'` occur | proved | not started |
+| 5 | the limit pins a single `α = [0;a₁,a₂,…]` and a single `x` | *not proved* | — |
+
+**Step 3 is less reusable than it looks.** `block_length` and `block_zero` are
+stated for `code α x` — they presuppose a coding, which is exactly what Phase 9
+is trying to produce.  They must be restated for an abstract `ℓ` whose block
+lengths take two consecutive values, i.e. downstream of step 2.  Cheap, but it
+is work; §6's "applies verbatim" is about the mathematics, not the Lean.
+
+### Where the cost is
+
+**Step 2 is the real infrastructure.**  The classical proof is a
+minimal-counterexample induction producing a palindrome `w` with both `0w0` and
+`1w1` factors — a bispecial-factor argument, and nothing of the kind exists in
+any proof assistant.  The CRM monograph in `papers/sturmian/` does carry the
+finite half of this exact shape: a Lyndon word is Christoffel iff `xux, xuy,
+yux, yuy` are all balanced (§6.2), with the palindromic characterisation in
+ch. 4.  The induction lives in the finite setting, so that is the best starting
+point available.
+
+**Step 5 needs a convergence argument** — the Ostrowski representation of `x`.
+Unlike Phases 2–8 this is genuinely analytic.  Mathlib's continued-fraction API
+(`GenContFract.of_convergence`, `of_convergence_epsilon`, `abs_sub_convs_le`,
+`ContinuantsRecurrence`, `Determinant`) is the right tool; it was surveyed
+during Lagrange 1770 and turned out not to be needed there.  Here it will be.
+It also wants `Palindrome.stream_fst` generalised off `√n`, which
+`Quadratic.lean` also did not need.
+
+**Step 4a** may fall out of the tower for free, since `derive_code` and
+`derive_codeUp` already say what deriving a coding gives.
+
+### Order, and the early failure point
+
+```
+4a  ──►  2  ──►  3'  ──►  1, 4b  ──►  5
+```
+
+Attempt **4a first**: it is the cheapest probe of whether "run §4–§5 backwards"
+is really the right route, and the place this phase can fail early.  Then step 2,
+the bulk.  `3'` is step 3 restated for abstract `ℓ`.  Steps 1 and 4b are small.
+Step 5 last — the only analytic piece, and the only one needing new Mathlib
+surface.
+
+**No line estimate and no confidence number, deliberately.**  Phases 2, 7 and 8
+each carried both because the mathematics was in hand and only the Lean was
+unknown.  Here the mathematics of step 2 has not been read by anyone on this
+project, only its shape.  The first honest estimate can be written once 4a has
+been attempted.
+
+## Prior art: what proof assistants already have
+
+Checked October 2026, and the answer for Phase 9 is **nothing**.
+
+The Isabelle AFP entry *Combinatorics on Words Basics* (Holub–Raška–Starosta,
+2021) defines Sturmian words as lower mechanical words and proves elementary
+facts — that is our §1, already done here.  It has no complexity function and no
+balancedness.  Mathlib has neither, nor a factor-set or bispecial-factor API.
+Nothing found for Rocq.
+
+So Phase 9 step 2 means building that API from scratch.  That is the argument
+for doing the phase at all: the statement is classical, but the infrastructure
+would be the first of its kind, and Berstel's definitions being verbatim ours
+(see `papers/sturmian/README.md`) means it would be recognisable to anyone else
+working in the area.
 
 
 ## Order of work
@@ -470,5 +569,5 @@ Done since:
 Next, and now the only thing left:
 
 ```
-reverse Morse–Hedlund (§6)   — needs a factor-set API first
+9 (converse Morse–Hedlund)   4a ──► 2 ──► 3' ──► 1, 4b ──► 5
 ```
