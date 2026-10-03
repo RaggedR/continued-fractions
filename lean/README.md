@@ -3,14 +3,20 @@
 `Palindrome.lean` — a complete formalisation of `../palindrome.tex`.
 **954 lines, 0 errors, 0 warnings, 0 sorries.**
 
-Two further files formalise `../all-the-proofs.tex` (the Sturmian material);
-they are documented in `PLAN.md`, not here.
+Three further files formalise `../all-the-proofs.tex`; they are documented in
+`PLAN.md`, not here.
 
 | file | lines | contents |
 |---|---|---|
 | `Palindrome.lean` | 953 | Legendre's palindrome theorem, §§1–5 of `../palindrome.tex` |
-| `Sturmian.lean` | 1891 | `../all-the-proofs.tex` §§1–6: codings, density, complexity, gaps, derivation, Morse–Hedlund, the tower |
-| `SqrtN.lean` | 95 | the tower instantiated at `√n`, joining the two |
+| `Sturmian.lean` | 2057 | `../all-the-proofs.tex` §§1–8: codings, density, complexity, gaps, derivation, Morse–Hedlund, the tower, the substitution |
+| `Lagrange.lean` | 212 | §9: Euler's half of Lagrange's theorem, for an abstract tail sequence |
+| `SqrtN.lean` | 127 | `√n` instances of the tower (§8) and of Euler (§9), joining the files |
+
+`Palindrome`, `Lagrange` and `Sturmian` are mutually independent; only
+`SqrtN.lean` imports all three. Together they formalise
+`../all-the-proofs.tex` apart from the two items that document itself declares
+unproved.
 
 The two headlines of `Sturmian.lean` are `sqrt_tower_period` (for every
 non-square `n`, exactly `L` derivations return the sequence with its first

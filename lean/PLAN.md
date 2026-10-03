@@ -1,7 +1,8 @@
 # Sturmian.lean — plan
 
-Target: formalise `../all-the-proofs.tex`. New file `Sturmian.lean`, same build
-as `Palindrome.lean`:
+Target: formalise `../all-the-proofs.tex`. Files `Sturmian.lean` (the words)
+and `Lagrange.lean` (§9, continued fractions), joined to `Palindrome.lean` by
+`SqrtN.lean`. Same build as `Palindrome.lean`:
 
 ```bash
 cd ~/git/experiments/waarnar/loop-experiment/lean
@@ -15,9 +16,13 @@ the slope. Everything about `√n` is stated through that.
 
 ## Status
 
-Phases 0, 1, 2, 3, 4, 5 and 6 are complete.  `Sturmian.lean` 1891 lines,
-`SqrtN.lean` 95 lines, 0 errors, 0 warnings, 0 sorries, 26 theorems checked by
-`#print axioms`.
+**All eight phases are complete.**  `Sturmian.lean` 2057 lines,
+`Lagrange.lean` 212 lines, `SqrtN.lean` 127 lines, 0 errors, 0 warnings,
+0 sorries, 45 theorems checked by `#print axioms` across the four files.
+
+`all-the-proofs.tex` is now formalised apart from the two things it itself
+declares unproved (§10 items 1 and 2).  That was the stated stopping point:
+the paper and the Lean say the same thing.
 
     derive_code       : derived   α x a = codeUp β (refl   α x 0)
     derive_codeUp     : derivedUp α x a = code   β (reflUp α x 0)
@@ -31,6 +36,12 @@ Phases 0, 1, 2, 3, 4, 5 and 6 are complete.  `Sturmian.lean` 1891 lines,
                       : IsSturmian (cons1 (code φ⁻¹ φ⁻¹)) ∧
                         ¬ ∃ α' x, 0 < α' ∧ α' < 1 ∧ 0 ≤ x ∧ x < 1 ∧
                           cons1 (code φ⁻¹ φ⁻¹) = code α' x
+    fib_derive        : derived φ⁻¹ φ⁻¹ 1 = code φ⁻¹ φ⁻¹
+    sigma_pre         : sigma (pre c m) = pre c (ones φ⁻¹ φ⁻¹ m)
+    fib_limit         : sigma^[j] [1] = pre c (fibLen j)
+    quadratic_of_eventually_periodic
+                      : Irrational (α 0) → α (m+L) = α m → 1 ≤ L →
+                        ∃ A B C : ℤ, A ≠ 0 ∧ A * α 0 ^ 2 + B * α 0 + C = 0
 
 `sqrt_tower_period` is one headline: for every non-square `n`, deriving `L`
 times returns the sequence with its first letter removed.  `sturmian.tex`
@@ -54,18 +65,22 @@ and put the `.olean`s on `LEAN_PATH`:
 ```bash
 W=~/git/experiments/waarnar/loop-experiment/lean
 OUT=/tmp/cf-oleans && mkdir -p $OUT
-cd $W && lake env sh -c "cd ~/git/continued-fractions/lean && lean -o $OUT/Palindrome.olean Palindrome.lean"
-cd $W && lake env sh -c "cd ~/git/continued-fractions/lean && lean -o $OUT/Sturmian.olean   Sturmian.lean"
-cd $W && lake env sh -c "cd ~/git/continued-fractions/lean && LEAN_PATH=\$LEAN_PATH:$OUT lean SqrtN.lean"
+for f in Palindrome Lagrange Sturmian; do
+  cd $W && lake env sh -c "cd ~/git/continued-fractions/lean && \
+    LEAN_PATH=\$LEAN_PATH:$OUT lean -o $OUT/$f.olean $f.lean"
+done
+cd $W && lake env sh -c "cd ~/git/continued-fractions/lean && \
+  LEAN_PATH=\$LEAN_PATH:$OUT lean SqrtN.lean"
 ```
 
-A lakefile for `lean/` would replace all three lines and is worth doing if the
-development grows further.
+`Palindrome`, `Lagrange` and `Sturmian` are mutually independent; only
+`SqrtN.lean` imports all three.  A lakefile for `lean/` would replace the loop
+and is worth doing now that there are four files.
 
 ## Remaining
 
-Phase 7 (the substitution), Phase 8 (Euler's half of Lagrange). Two larger
-targets are out of scope below.
+Nothing inside `all-the-proofs.tex`.  Two larger targets remain, each its own
+project; both are described under **Not attempted** below.
 
 ## Design
 
@@ -271,43 +286,89 @@ is `(0,1]`, not `[0,1)`, because `codeUp` reads `fract = 0` as the letter `1`.
 This identity is **not** in `all-the-proofs.tex`; it is recorded there now as a
 remark in §3.
 
-## Phase 7 — the substitution (§7)
+## Phase 7 — the substitution (§7) — **done**
 
 ```lean
-theorem fib_derive  : derived φ⁻¹ φ⁻¹ 1 = code φ⁻¹ φ⁻¹          -- c' = c
-theorem fib_subst   : σ (code φ⁻¹ φ⁻¹) = code φ⁻¹ φ⁻¹           -- σ(c) = c
-theorem fib_limit   : code φ⁻¹ φ⁻¹ = lim_j σ^[j] [1]
+theorem fib_derive : derived invPhi invPhi 1 = code invPhi invPhi
+theorem sigma_pre (m : ℕ) :
+    sigma (pre (code invPhi invPhi) m) = pre (code invPhi invPhi) (ones invPhi invPhi m)
+theorem fib_limit (j : ℕ) : sigma^[j] [1] = pre (code invPhi invPhi) (fibLen j)
 ```
 
-with `σ 1 = [1,0]`, `σ 0 = [1]`, which is `τ_{a₁}` at `a₁ = 1`.
+Two things the sketch got wrong.
 
-This is the opening of `sturmian.tex` §1 and it had no phase. `derive_code`
-already gives `c' = c` once `u₀ = 1 - α` is computed, the same one-line
-computation Phase 5 does twice; `{-u₀} = α` and `Cp(α,α) = C(α,α)` by
-`code_eq_codeUp`.
-
-The third line is the only new work: `σʲ(1)` is a prefix of `σʲ⁺¹(1)`, so the
-limit exists. A `List`-valued iterate plus a prefix-stability induction;
-no analysis. ~150 lines, confidence 80%.
-
-## Phase 8 — Euler's half of Lagrange (§9)
+**`lem:blocks` was not already in Lean.** The sketch assumed Phase 3 had it; it
+did not. It is cheap, though, because `ones_succ_le` ("nothing between
+consecutive `1`s is a `1`") was already there:
 
 ```lean
-theorem quadratic_of_periodic (hper : α m = α (m + L)) (hL : 0 < L) :
-    ∃ r s t : ℤ, (r, s, t) ≠ 0 ∧ r * α m ^ 2 + s * α m + t = 0
+theorem block_length : ones α x (i + 1) = ones α x i + (a + derived α x a i)
+theorem block_zero (hj0 : 0 < j) (hj : ones α x i + j < ones α x (i + 1)) :
+    code α x (ones α x i + j) = 0
 ```
 
-Eventually periodic ⟹ quadratic irrational. Composing `L` Möbius maps
-`α j = 1/(a (j+1) + α (j+1))` gives `α m = (p α m + q)/(r α m + s)`, hence
-`r α m ² + (s - p) α m - q = 0`.
+Both live at the end of §4.2, where Lemma 4.3 belongs. ~25 lines.
 
-Euler, 1737. `Palindrome.lean` already has `M`, `initWord`, `periodWord` and
-`det_periodWord`, so the composite is a matrix product and the coefficients are
-its entries. ~200 lines, confidence 80%.
+**`σ(c) = c` and the limit are stated on prefixes.** `σ` of an infinite
+sequence is not a function of position without first inverting the block-start
+map, which is a bookkeeping swamp. The prefix form avoids it entirely and is
+the standard rigorous reading: `sigma_pre` says `σ` applied to the first `m`
+letters gives the first `ones m` letters, and `fib_limit` says `σʲ(1)` is the
+prefix of `c` of length `fibLen j`, with `fibLen` strictly increasing
+(`fibLen_lt_succ`) so the limit exists. The induction is three lines once
+`sigma_append` and `pre_succ` are in place.
 
-Phases 2, 7 and 8 together finish `all-the-proofs.tex` apart from the two
-things that document itself declares unproved. That is the natural stopping
-point: the paper and the Lean then say the same thing.
+`fib_derive` is ~5 lines: it is `step_low` at the fixed point `β = α`, so the
+only new computation is `1/α = 1 + α` (`invPhi_rec`). Which is why §7 sits
+*after* §8 in the file — it consumes `step_low` and `isLeast_code_slope`.
+
+## Phase 8 — Euler's half of Lagrange (§9) — **done**
+
+In its own file, `Lagrange.lean` (212 lines), because §9 is about continued
+fractions and not about words: it mentions no coding, and is stated for an
+abstract tail sequence with `(a j : ℝ) + α (j+1) = 1 / α j` — the convention of
+`tower_eq` and `sqrtTail_rec`, *not* the `a_{j+1}` of the tex. It imports only
+Mathlib.
+
+```lean
+def N (b : ℕ) : Matrix (Fin 2) (Fin 2) ℤ := !![0, 1; 1, (b : ℤ)]
+def cfWord (a : ℕ → ℕ) (m : ℕ) : ℕ → Matrix (Fin 2) (Fin 2) ℤ
+  | 0 => 1
+  | L + 1 => cfWord a m L * N (a (m + L))
+
+theorem cfWord_apply :
+    α m * ((cfWord a m L 1 0 : ℝ) * α (m + L) + (cfWord a m L 1 1 : ℝ))
+      = (cfWord a m L 0 0 : ℝ) * α (m + L) + (cfWord a m L 0 1 : ℝ)
+theorem quadratic_of_periodic (hper : α (m + L) = α m) (hL : 1 ≤ L) :
+    ∃ r s t : ℤ, 0 < r ∧ (r : ℝ) * α m ^ 2 + s * α m + t = 0
+theorem quadratic_of_eventually_periodic (h0 : Irrational (α 0)) … :
+    ∃ A B C : ℤ, A ≠ 0 ∧ (A : ℝ) * α 0 ^ 2 + B * α 0 + C = 0
+```
+
+Three things worth recording.
+
+**The Möbius action is stated multiplicatively**, so no denominator ever has to
+be shown nonzero, and the induction step is a single `linear_combination`
+against `α (m+L) * (a (m+L) + α (m+L+1)) = 1`.
+
+**`0 < r`, not just `(r, s-p, q) ≠ 0`.** The tex claims only the triple is
+nonzero, which leaves open that the relation is linear. Positivity of the
+leading coefficient falls out of the product's shape,
+`!![p,q;r,s] * !![0,1;1,b] = !![q, p+q*b; s, r+s*b]` — the new bottom-left entry
+is the old bottom-right one, so once the bottom row is positive it stays
+positive (`cfWord_entries`).
+
+**The transport to `α 0` needs no discriminant.** Substituting
+`α m = (Q - S·α 0)/(R·α 0 - P)` gives leading coefficient `r*S² - s*S*R + t*R²`,
+which is the form `(r,s,t)` evaluated at the *rational* point `-S/R`; it cannot
+vanish because the form's roots are `α m` and its conjugate, neither rational.
+`irrational_tail` supplies the irrationality, propagating it down from `α 0`.
+
+Since the file is abstract it needs a witness, or the theorem could be vacuous.
+`Sturmian.sqrt_quadratic` in `SqrtN.lean` is it: the same `sqrtTail`/`sqrtQuot`
+pair that instantiates `tower_period` also instantiates this. A concrete check
+in `Lagrange.lean` confirms that `[1;1,1,…]` yields `(r,s,t) = (1,1,-1)`, i.e.
+`x² + x - 1 = 0`, the equation of `1/φ` from §7.
 
 ## Not attempted
 
@@ -339,15 +400,11 @@ Done:
 0 ──► 3 ──► 4 ──► 5        (no density, no cardinals, ends at the headline)
                    └► 6    (needs 1)
       1 ──► 2              (density; 2 closes the §6 refutation)
+                   └► 7    (needs step_low from 8)
+8                          (Lagrange.lean, independent of everything else)
 ```
 
-Next, in order:
-
-```
-7 ──► 8                    (finishes all-the-proofs.tex)
-```
-
-Then, each its own project and independent of the other:
+Next, each its own project and independent of the other:
 
 ```
 Lagrange general (§9, 1770)

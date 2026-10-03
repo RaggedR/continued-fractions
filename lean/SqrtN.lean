@@ -3,13 +3,16 @@
 
 The instantiation of `Sturmian.tower_period` at `α = √n - ⌊√n⌋`, using
 `Palindrome.lean` for the continued fraction of `√n`.  This is Corollary 8.3 of
-`../all-the-proofs.tex`:
+`../all-the-proofs.tex`.  The same tail sequence instantiates
+`Lagrange.quadratic_of_eventually_periodic` (§9) at the end of the file, which
+is what shows that theorem's hypotheses are satisfiable.
 
   for every non-square `n`, exactly `L` derivations return the sequence with its
   first letter removed, where `L` is the period of the continued fraction.
 
 `sturmian.tex` observes this for `n = 2` and `n = 7`.
 -/
+import Lagrange
 import Palindrome
 import Sturmian
 
@@ -90,6 +93,35 @@ theorem sqrt_tower_period (n : ℕ) (hn : ¬IsSquare n) :
   tower_period (sqrtTail_rec hn) (sqrtTail_pos hn) (fun j => sqrtTail_lt_one j)
     (Palindrome.period_pos n hn) (sqrtTail_period hn) (sqrt_fract_ne_zero hn)
 
+/-! ## §9 — the same tails instantiate Euler's theorem
+
+`Lagrange.lean` is stated for an abstract tail sequence, so it needs a witness.
+The conclusion for `√n` is of course no surprise; the point is that the
+hypotheses of `Lagrange.quadratic_of_eventually_periodic` are satisfiable, so
+the theorem is not vacuous. -/
+
+lemma one_le_sqrtQuot (hn : ¬IsSquare n) (j : ℕ) : 1 ≤ sqrtQuot n j := by
+  have h := one_le_a_succ hn j
+  unfold sqrtQuot
+  omega
+
+lemma sqrtTail_zero_irrational (hn : ¬IsSquare n) : Irrational (sqrtTail n 0) := by
+  have h : sqrtTail n 0 = Real.sqrt n - ((⌊Real.sqrt n⌋ : ℤ) : ℝ) := by
+    unfold sqrtTail
+    rw [Palindrome.alpha_zero, Int.fract]
+  rw [h]
+  exact Irrational.sub_intCast (Palindrome.sqrt_irrational n hn) _
+
+/-- Euler's theorem applied to `√n - ⌊√n⌋`, whose continued fraction is purely
+periodic by `Palindrome.purely_periodic`. -/
+theorem sqrt_quadratic (n : ℕ) (hn : ¬IsSquare n) :
+    ∃ A B C : ℤ, A ≠ 0 ∧ (A : ℝ) * sqrtTail n 0 ^ 2 + B * sqrtTail n 0 + C = 0 :=
+  Lagrange.quadratic_of_eventually_periodic (m := 0) (L := Palindrome.period n hn)
+    (sqrtTail_pos hn) (sqrtTail_rec hn) (one_le_sqrtQuot hn)
+    (sqrtTail_zero_irrational hn) (by simpa using sqrtTail_period hn)
+    (Palindrome.period_pos n hn)
+
 #print axioms sqrt_tower_period
+#print axioms sqrt_quadratic
 
 end Sturmian

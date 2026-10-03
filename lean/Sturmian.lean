@@ -1054,6 +1054,30 @@ theorem derived_eq (hα0 : 0 < α) (hα1 : α < 1) (hβ : (a : ℝ) + β = 1/α)
   rw [ones_succ_eq hα0 hα1 hβ hβ0 hβ1 x i]
   split_ifs <;> omega
 
+/-! ### The block decomposition — `../all-the-proofs.tex` Lemma 4.3
+
+Positionally: block `i` starts at `ones α x i`, has length `a + ℓ'ᵢ`, opens with
+a `1`, and is otherwise `0`.  With `ones α x 0 = k₀` that is
+`ℓ = 0^{k₀} · τ_a(ℓ')`. -/
+
+/-- Block `i` has length `a + ℓ'ᵢ`. -/
+theorem block_length (hα0 : 0 < α) (hα1 : α < 1) (hβ : (a : ℝ) + β = 1 / α)
+    (hβ0 : 0 ≤ β) (hβ1 : β < 1) (x : ℝ) (i : ℕ) :
+    ones α x (i + 1) = ones α x i + (a + derived α x a i) := by
+  have h := ones_succ_eq hα0 hα1 hβ hβ0 hβ1 x i
+  have hd := derived_eq hα0 hα1 hβ hβ0 hβ1 x i
+  rw [hd]
+  split_ifs at h ⊢ <;> omega
+
+/-- Inside a block there are only zeros. -/
+theorem block_zero (x : ℝ) (i j : ℕ) (hj0 : 0 < j)
+    (hj : ones α x i + j < ones α x (i + 1)) : code α x (ones α x i + j) = 0 := by
+  have h1 : code α x (ones α x i + j) ≤ 1 := code_le_one α x _
+  by_contra hc
+  have he : code α x (ones α x i + j) = 1 := by omega
+  have := ones_succ_le (i := i) x he (by omega)
+  omega
+
 end Derived
 
 /-! ## §5 The derivation theorem -/
@@ -1553,6 +1577,23 @@ theorem not_code (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) :
 
 /-! ### The Fibonacci instance of `all-the-proofs.tex` Theorem 6.1 -/
 
+/-- `1/φ = (√5 - 1)/2`, the slope of the Fibonacci sequence. -/
+noncomputable abbrev invPhi : ℝ := (Real.sqrt 5 - 1) / 2
+
+lemma sqrt5_sq : Real.sqrt 5 ^ 2 = 5 := Real.sq_sqrt (by norm_num)
+
+lemma two_lt_sqrt5 : (2 : ℝ) < Real.sqrt 5 := by
+  nlinarith [sqrt5_sq, Real.sqrt_nonneg 5]
+
+lemma sqrt5_lt_three : Real.sqrt 5 < 3 := by
+  nlinarith [sqrt5_sq, Real.sqrt_nonneg 5]
+
+lemma invPhi_pos : 0 < invPhi := by
+  have := two_lt_sqrt5; unfold invPhi; linarith
+
+lemma invPhi_lt_one : invPhi < 1 := by
+  have := sqrt5_lt_three; unfold invPhi; linarith
+
 lemma irrational_invPhi : Irrational ((Real.sqrt 5 - 1) / 2) := by
   have h5 : Irrational (Real.sqrt 5) := by
     simpa using (by norm_num : Nat.Prime 5).irrational_sqrt
@@ -1560,16 +1601,8 @@ lemma irrational_invPhi : Irrational ((Real.sqrt 5 - 1) / 2) := by
 
 theorem not_code_fib :
     ¬ ∃ α' x : ℝ, 0 < α' ∧ α' < 1 ∧ 0 ≤ x ∧ x < 1 ∧
-      cons1 (code ((Real.sqrt 5 - 1) / 2) ((Real.sqrt 5 - 1) / 2)) = code α' x := by
-  have h2 : (2 : ℝ) < Real.sqrt 5 := by
-    have : Real.sqrt 4 < Real.sqrt 5 := by
-      apply Real.sqrt_lt_sqrt <;> norm_num
-    rwa [show (4 : ℝ) = 2 ^ 2 by norm_num, Real.sqrt_sq (by norm_num)] at this
-  have h3 : Real.sqrt 5 < 3 := by
-    rw [show (3 : ℝ) = Real.sqrt 9 by
-      rw [show (9 : ℝ) = 3 ^ 2 by norm_num, Real.sqrt_sq (by norm_num)]]
-    apply Real.sqrt_lt_sqrt <;> norm_num
-  exact not_code irrational_invPhi (by linarith) (by linarith)
+      cons1 (code ((Real.sqrt 5 - 1) / 2) ((Real.sqrt 5 - 1) / 2)) = code α' x :=
+  not_code irrational_invPhi invPhi_pos invPhi_lt_one
 
 theorem isSturmian_cons1_code (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) :
     IsSturmian (cons1 (code α α)) := by
@@ -1590,15 +1623,8 @@ discharged inside Lean rather than taken from the paper. -/
 theorem fib_sturmian_not_code :
     IsSturmian (cons1 (code ((Real.sqrt 5 - 1) / 2) ((Real.sqrt 5 - 1) / 2))) ∧
       ¬ ∃ α' x : ℝ, 0 < α' ∧ α' < 1 ∧ 0 ≤ x ∧ x < 1 ∧
-        cons1 (code ((Real.sqrt 5 - 1) / 2) ((Real.sqrt 5 - 1) / 2)) = code α' x := by
-  have h2 : (2 : ℝ) < Real.sqrt 5 := by
-    have h : Real.sqrt 4 < Real.sqrt 5 := by apply Real.sqrt_lt_sqrt <;> norm_num
-    rwa [show (4 : ℝ) = 2 ^ 2 by norm_num, Real.sqrt_sq (by norm_num)] at h
-  have h3 : Real.sqrt 5 < 3 := by
-    rw [show (3 : ℝ) = Real.sqrt 9 by
-      rw [show (9 : ℝ) = 3 ^ 2 by norm_num, Real.sqrt_sq (by norm_num)]]
-    apply Real.sqrt_lt_sqrt <;> norm_num
-  exact sturmian_not_code irrational_invPhi (by linarith) (by linarith)
+        cons1 (code ((Real.sqrt 5 - 1) / 2) ((Real.sqrt 5 - 1) / 2)) = code α' x :=
+  sturmian_not_code irrational_invPhi invPhi_pos invPhi_lt_one
 
 /-! ## §8 The tower
 
@@ -1858,6 +1884,143 @@ theorem tower_period {α : ℕ → ℝ} {a : ℕ → ℕ}
 
 end Tower
 
+/-! ## §7 The substitution
+
+Placed after §8 because it consumes `step_low` and `isLeast_code_slope`, which
+are stated there for an abstract slope: §7 is their instance at the fixed point
+`β = α` of `α ↦ {1/α}`. -/
+
+section Substitution
+
+/-- The orbit of the base point `α` never meets `0`, so the two codings of the
+slope agree.  This is the hypothesis inlined in `codeUp_zero_eq`. -/
+lemma fract_slope_ne_zero (hα : Irrational α) (k : ℕ) :
+    Int.fract (α + (k : ℝ) * α) ≠ 0 := by
+  have e : α + (k : ℝ) * α = ((k + 1 : ℕ) : ℝ) * α := by push_cast; ring
+  rw [e]
+  exact fract_nat_mul_ne_zero hα (by omega)
+
+/-! ### The golden ratio
+
+`invPhi`, `invPhi_pos` and `invPhi_lt_one` are in §6, where `not_code_fib`
+first needs them. -/
+
+/-- `1/α = 1 + α`: the partial quotient is `a₁ = 1` and the next slope is
+`β = α`.  This is the computation opening the proof of Theorem 7.1. -/
+lemma invPhi_rec : ((1 : ℕ) : ℝ) + invPhi = 1 / invPhi := by
+  rw [eq_div_iff (ne_of_gt invPhi_pos)]
+  unfold invPhi
+  push_cast
+  linear_combination sqrt5_sq / 4
+
+/-! ### `c' = c` -/
+
+/-- **`c' = c`.**  Deriving the Fibonacci sequence returns it unchanged: the
+first claim of `../all-the-proofs.tex` Theorem 7.1. -/
+theorem fib_derive : derived invPhi invPhi 1 = code invPhi invPhi := by
+  rw [step_low invPhi_pos invPhi_lt_one invPhi_rec invPhi_pos invPhi_lt_one]
+  exact (code_eq_codeUp (fract_slope_ne_zero irrational_invPhi)).symm
+
+lemma fib_ones_zero : ones invPhi invPhi 0 = 0 := by
+  simpa using ones_zero_eq
+    (isLeast_code_slope invPhi_pos invPhi_lt_one invPhi_rec invPhi_pos invPhi_lt_one)
+
+lemma fib_code_zero : code invPhi invPhi 0 = 1 := by
+  have h := code_ones invPhi_pos invPhi 0
+  rwa [fib_ones_zero] at h
+
+/-- The blocks of the Fibonacci sequence: block `i` has length `1 + cᵢ`. -/
+lemma fib_block_length (i : ℕ) :
+    ones invPhi invPhi (i + 1) = ones invPhi invPhi i + (1 + code invPhi invPhi i) := by
+  rw [← fib_derive]
+  exact block_length invPhi_pos invPhi_lt_one invPhi_rec invPhi_pos.le invPhi_lt_one _ i
+
+/-! ### `σ(c) = c` -/
+
+/-- `σ(1) = 10`, `σ(0) = 1` — the substitution `τ_{a₁}` at `a₁ = 1`. -/
+def sigma (l : List ℕ) : List ℕ := l.flatMap (fun b => if b = 1 then [1, 0] else [1])
+
+lemma sigma_append (l l' : List ℕ) : sigma (l ++ l') = sigma l ++ sigma l' := by
+  simp [sigma, List.flatMap_append]
+
+/-- The prefix of length `m`. -/
+def pre (ℓ : ℕ → ℕ) (m : ℕ) : List ℕ := (List.range m).map ℓ
+
+lemma pre_succ (ℓ : ℕ → ℕ) (m : ℕ) : pre ℓ (m + 1) = pre ℓ m ++ [ℓ m] := by
+  simp [pre, List.range_succ]
+
+lemma pre_length (ℓ : ℕ → ℕ) (m : ℕ) : (pre ℓ m).length = m := by simp [pre]
+
+/-- **`σ(c) = c`**, read on prefixes: applying `σ` to the first `m` letters of
+`c` gives the first `ones m` letters of `c`.  Since `ones m → ∞` this says the
+infinite sequences agree.  Second claim of Theorem 7.1. -/
+theorem sigma_pre (m : ℕ) :
+    sigma (pre (code invPhi invPhi) m) = pre (code invPhi invPhi) (ones invPhi invPhi m) := by
+  induction m with
+  | zero => simp [pre, sigma, fib_ones_zero]
+  | succ m ih =>
+      rw [pre_succ, sigma_append, ih]
+      have hlen := fib_block_length m
+      have h1 : code invPhi invPhi (ones invPhi invPhi m) = 1 := code_ones invPhi_pos _ m
+      by_cases hc : code invPhi invPhi m = 1
+      · have h2 : code invPhi invPhi (ones invPhi invPhi m + 1) = 0 :=
+          block_zero _ m 1 one_pos (by omega)
+        rw [hc, show ones invPhi invPhi (m + 1) = ones invPhi invPhi m + 1 + 1 by omega,
+          pre_succ, pre_succ, h1, h2]
+        simp [sigma]
+      · have hc0 : code invPhi invPhi m = 0 := by
+          have := code_le_one invPhi invPhi m; omega
+        rw [hc0, show ones invPhi invPhi (m + 1) = ones invPhi invPhi m + 1 by omega,
+          pre_succ, h1]
+        simp [sigma]
+
+/-! ### `c = lim σʲ(1)` -/
+
+/-- The length of `σʲ(1)`: `1, 2, 3, 5, 8, …`, the Fibonacci numbers. -/
+noncomputable def fibLen : ℕ → ℕ
+  | 0 => 1
+  | j + 1 => ones invPhi invPhi (fibLen j)
+
+/-- **`c = lim σʲ(1)`.**  `σʲ(1)` is the prefix of `c` of length `fibLen j`.
+Third claim of Theorem 7.1. -/
+theorem fib_limit (j : ℕ) : sigma^[j] [1] = pre (code invPhi invPhi) (fibLen j) := by
+  induction j with
+  | zero => simp [pre, fibLen, fib_code_zero]
+  | succ j ih =>
+      rw [Function.iterate_succ_apply', ih, sigma_pre, fibLen]
+
+lemma succ_le_ones {m : ℕ} (hm : 1 ≤ m) : m + 1 ≤ ones invPhi invPhi m := by
+  induction m, hm using Nat.le_induction with
+  | base =>
+      have h := fib_block_length 0
+      rw [fib_ones_zero, fib_code_zero] at h
+      norm_num at h
+      omega
+  | succ m hm ih =>
+      have h := fib_block_length m
+      omega
+
+lemma one_le_fibLen (j : ℕ) : 1 ≤ fibLen j := by
+  induction j with
+  | zero => simp [fibLen]
+  | succ j ih =>
+      have := succ_le_ones ih
+      rw [fibLen]
+      omega
+
+/-- The prefixes genuinely grow, so the limit in `fib_limit` exists. -/
+theorem fibLen_lt_succ (j : ℕ) : fibLen j < fibLen (j + 1) := by
+  have := succ_le_ones (one_le_fibLen j)
+  rw [fibLen]
+  omega
+
+/-- The length of `σʲ(1)` is `fibLen j`, so `fib_limit` says `σʲ(1)` is the
+prefix of `c` of its own length. -/
+theorem length_sigma_iterate (j : ℕ) : (sigma^[j] [1]).length = fibLen j := by
+  rw [fib_limit, pre_length]
+
+end Substitution
+
 
 
 
@@ -1887,5 +2050,8 @@ end Tower
 #print axioms Sturmian.fib_sturmian_not_code
 #print axioms Sturmian.tower_eq
 #print axioms Sturmian.tower_period
+#print axioms Sturmian.fib_derive
+#print axioms Sturmian.sigma_pre
+#print axioms Sturmian.fib_limit
 
 end Sturmian

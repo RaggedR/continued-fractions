@@ -455,6 +455,17 @@ limit exists. It is a prefix of every $\sigma$-fixed sequence beginning with
 $\seq{1}$, and $c$ is one.
 \end{proof}
 
+Theorem~\ref{thm:fib} is \texttt{fib\_derive}, \texttt{sigma\_pre} and
+\texttt{fib\_limit} in \texttt{lean/Sturmian.lean}. Two remarks on the
+formalisation. First, $c' = c$ is the instance at the fixed point $\beta =
+\alpha$ of the general \texttt{step\_low}, so the only new computation is
+$1/\alpha = 1 + \alpha$. Second, $\sigma(c) = c$ and $c = \lim_j
+\sigma^j(\seq{1})$ are stated on prefixes --- $\sigma$ applied to the first $m$
+letters of $c$ gives the first $k_m$ letters of $c$, where $k_m$ is the position
+of the $m$th $1$ --- because $\sigma$ of an infinite sequence is not a function
+of position without first inverting the block-start map. Lemma~\ref{lem:blocks}
+is \texttt{block\_length} and \texttt{block\_zero}, also positional.
+
 The converse computation of \texttt{sturmian.tex} \S6 is now legitimate. Suppose
 $\ell$ is a coding whose blocks are $\seq{1}$ and $\seq{10}$, so $a_1 = 1$, and
 suppose $\ell' = \ell$. By Corollary~\ref{cor:slope} the slopes agree, so
@@ -577,6 +588,21 @@ hence $r\alpha_m^2 + (s-p)\alpha_m - q = 0$ with $(r,s-p,q) \neq 0$. So
 $\alpha_m$ is a quadratic irrational, and composing $m$ further M\"obius maps
 with integer coefficients keeps $\alpha$ in $\mathbb{Q}(\alpha_m)$.
 \end{proof}
+
+This is \texttt{lean/Lagrange.lean}, where it is stated for an abstract
+sequence of tails, so it needs a witness: \texttt{Sturmian.sqrt\_quadratic} in
+\texttt{lean/SqrtN.lean} supplies one. The Lean proves slightly more than the
+display above. The leading coefficient $r$ is not merely part of a nonzero
+triple but \emph{positive}, so the relation really has degree $2$; this comes
+from the shape of the product, since
+$\left(\begin{smallmatrix}p&q\\r&s\end{smallmatrix}\right)
+\left(\begin{smallmatrix}0&1\\1&b\end{smallmatrix}\right) =
+\left(\begin{smallmatrix}q&p+qb\\s&r+sb\end{smallmatrix}\right)$ --- the new
+bottom-left entry is the old bottom-right one, so a positive bottom row stays
+positive. For the transport to $\alpha$ itself the leading coefficient is the
+form $(r,s,t)$ evaluated at the rational point $-S/R$, and that cannot vanish
+because the roots of $(r,s,t)$ are $\alpha_m$ and its conjugate, neither of
+which is rational.
 
 The converse --- every quadratic irrational has an eventually periodic
 continued fraction --- is \textbf{not proved here}. For $\alpha = \sqrt n - a_0$
