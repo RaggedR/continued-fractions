@@ -470,9 +470,11 @@ such that (α−β) ≥ 2/|u|, one has π(u)−α > −1/|u| by Proposition 2.1.
 So `π(u)` is the frequency of `1`s in a factor, **Proposition 2.1.10 is a
 quantitative bound `|π(u)·|u| − α·|u|| < 1`**, and 2.1.18 uses it to show two
 candidate slopes coincide.  That bound is exactly the converse of our `sum_code`
-(`∑_{k<N} code α x k = ⌊Nα + x⌋`), and it is step 5's machinery.  Which suggests
-the right first move inside step 5: prove that a balanced sequence has a slope,
-in the form `|(count of 1s in any factor of length N) − Nα| < 1`.
+(`∑_{k<N} code α x k = ⌊Nα + x⌋`), and it is step 5's machinery — it is our
+`prop:bound`.  The agreement is a check on the statement only: §7 proves it in
+half a page from `lem:blocks`, by induction on word length.  Do **not** route it
+through `Sturmian ⟹ balanced`; that is the direction the literature defers to
+Lothaire ch. 2, and the derivation gives the bound directly.
 
 So the decomposition below is `all-the-proofs.tex` §6's own, **not** transcribed
 from a proof anyone on this project has read.  Flagged, because the one time
@@ -488,8 +490,9 @@ standard-sequence recurrence `sₙ = sₙ₋₁^{dₙ} sₙ₋₂`, with `[0; 1+
 continued fraction of the slope, is the *inverse of our derivation tower*.  So
 Phase 9 ought to be an inversion of `derived`/`tower`, not a new development.
 
-Status of §6's five steps.  **Step 2 was proved on 3 October 2026** — see below;
-it was the step this plan called the real infrastructure, and it was not.
+Status of §6's five steps.  **All five were proved by 3 October 2026**; step 5 is
+§7 of `all-the-proofs.tex`.  Step 2 was the step this plan called the real
+infrastructure, and it was not.
 
 | step | content | tex | Lean |
 |---|---|---|---|
@@ -498,7 +501,7 @@ it was the step this plan called the real infrastructure, and it was not.
 | 3 | `ℓ = 0^{k₀} τ_a(ℓ')` | proved | `block_length`, `block_zero`, but see below |
 | 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | **proved** — `prop:derived` | not started |
 | 4b | both letters of `ℓ'` occur | absorbed into 4a (`m = 1`) | — |
-| 5 | the limit pins a single `α = [0;a₁,a₂,…]` and a single `x` | *not proved* | — |
+| 5 | the limit pins a single `α = [0;a₁,a₂,…]` and a single `x` | **proved** — §7 | not started |
 
 **Step 3 is less reusable than it looks.** `block_length` and `block_zero` are
 stated for `code α x` — they presuppose a coding, which is exactly what Phase 9
@@ -553,7 +556,7 @@ elementary and finite — `Finset`, `Nat`, and one geometric series.
 lem:rs, cor:onesp  ──►  2  ──►  3'  ──►  1  ──►  4  ──►  5
 ```
 
-All of this is now formalisation except step 5.  Start with `lem:rs` and
+All five steps are proved; all of this is now formalisation.  Start with `lem:rs` and
 `cor:onesp`: short, self-contained, and they make step 2 mechanical.  Then
 step 2, then `3'` (step 3 restated for an abstract `ℓ`, see above), then step 1,
 then step 4 — which needs `lem:rschain` and `lem:aper` as well as `lem:bridge`,
