@@ -144,19 +144,26 @@ step list, and both are real work:
   `PLAN.md` Phase 9. Combining it with `isSturmian_code` and
   `isSturmian_codeUp` closes `thm:mh`, and that is the end of Phase 9.
 
-## Decisions waiting on Robin
+## Two decisions already taken, so they are not re-litigated
 
-* **A corrupt blob in local history.** Commit `a74730f` contains a 97MB
-  (2.5MB packed) corruption of `lean/PLAN.md`, from a Python `str.replace("", …)`
-  — see `LESSONS.md`. The file was restored in `14fa7fe` and the working tree
-  is correct. Nothing is pushed, so the blob can still be dropped cleanly;
-  doing so is a history rewrite, which the global `CLAUDE.md` forbids by
-  default, so it needs Robin's explicit say-so. Otherwise it ships.
-* **The root `README.md` restates the Lean line and theorem counts** that
-  `lean/README.md` also carries. They drifted three commits apart once already
-  this session. Making the root file point at `lean/README.md` instead of
-  restating would stop it recurring, but that is a change to how the docs are
-  organised, not to what they say.
+* **The corrupt blob in history stays.** Commit `a74730f` carries a 92.8MB
+  corruption of `lean/PLAN.md` — the largest object in the repo, from a Python
+  `str.replace("", …)`; see `LESSONS.md`. The file was restored in `14fa7fe`
+  and the working tree has been correct ever since.
+
+  **Packed it costs 0.61MB**, not the 2.5MB the loose object suggests: it is
+  one string repeated tens of thousands of times and deltas against the good
+  `PLAN.md`. That is 3% of a 20MiB pack and less than four of the tracked PDFs.
+  Removing it means rewriting six commits of verified Lean with non-interactive
+  tooling only (`rebase -i` is unavailable in the agent environment), which
+  risks the session's actual asset for a cosmetic gain. Measure before
+  reopening this: `git rev-list --objects --all | git cat-file
+  --batch-check='%(objecttype) %(objectname) %(objectsize) %(objectsize:disk) %(rest)'`.
+* **The root `README.md` no longer restates Lean counts.** It duplicated the
+  line counts and theorem total from `lean/README.md`, and the two drifted
+  three commits apart during this session. The root file's table now carries
+  only the per-file descriptions and points at `lean/README.md` for sizes.
+  Keep it that way: one copy of every number.
 
 ## Numerics
 
