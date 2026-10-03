@@ -10,6 +10,11 @@ result is tracked: this index, the four section excerpts, and both OCR text
 layers. Re-download the full volumes from the bibliographic details below if you
 need to look at a scan page outside the excerpts.
 
+The `sturmian/` subdirectory holds the sources for the *remaining* target —
+Phase 9, the converse of Morse–Hedlund — with its own README accounting for
+them, including the two that could not be obtained. The files below are for the
+two theorems already formalised.
+
 ## Files
 
 | File | What it is |

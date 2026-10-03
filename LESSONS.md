@@ -117,3 +117,31 @@ section: "I can't understand a word of it."
   $a_1$, $\beta$, $p_m$, $\ell'_m$ is unreadable regardless of correctness.
 - Correctness is not the bar here. Every one of those formulas was verified
   numerically and it made no difference.
+
+## Check instead of asserting (3 October 2026)
+
+Four failures in one session, all the same shape.
+
+- **Measure infrastructure before recommending it.** I twice wrote that a
+  lakefile for `lean/` was worth doing. It needs its own Mathlib checkout —
+  7.1GB, against 36GB free. One `du -sh` on the borrowed project would have
+  settled it. Do that before any recommendation whose cost is a download or a
+  build.
+- **Verify the prerequisites a plan claims.** Phase 7 was estimated at 150
+  lines and ran longer because the plan assumed `lem:blocks` was already
+  formalised. It was not. Before estimating a phase, grep for every lemma the
+  sketch says is in hand.
+- **Promote a target when it becomes the live one.** The converse of
+  Morse–Hedlund sat under "Not attempted" with a literature note while every
+  other phase had statements, a decomposition and an early failure point.
+  "Not attempted" means parked. Once something is the only thing left it needs
+  the same treatment as the others, and the heading must stop saying we decided
+  against it.
+- **Sweep the directory, not the one link.** Asked for the paper behind a
+  theorem, I fetched three PDFs and stopped. The book's errata — two pages,
+  same directory, free — turned out to be the most informative thing available
+  about that chapter's internals, and I had skipped it. List the page or
+  directory and take everything adjacent and small.
+- **Do not delete a source for looking off-topic.** I downloaded a thesis,
+  judged it irrelevant and deleted it. Keeping it costs 250KB; re-finding it
+  costs a search. Keep it, and say in the README why it is weak.
