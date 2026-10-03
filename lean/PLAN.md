@@ -460,6 +460,17 @@ in `papers/sturmian/`: they give the statement, confirm our definitions are
 verbatim the standard ones, and carry the *finite* theory in full, but all three
 defer the infinite step to Lothaire ch. 2.
 
+One oblique glimpse of the real proof *is* available, from the book's errata.
+The Sturmian corrections sit on pp. 56–61, and the correction to Proposition
+2.1.18 quotes its proof: *"We may suppose that β < α.  For any factor u of s
+such that (α−β) ≥ 2/|u|, one has π(u)−α > −1/|u| by Proposition 2.1.10 …"*.
+So `π(u)` is the frequency of `1`s in a factor, **Proposition 2.1.10 is a
+quantitative bound `|π(u)·|u| − α·|u|| < 1`**, and 2.1.18 uses it to show two
+candidate slopes coincide.  That bound is exactly the converse of our `sum_code`
+(`∑_{k<N} code α x k = ⌊Nα + x⌋`), and it is step 5's machinery.  Which suggests
+the right first move inside step 5: prove that a balanced sequence has a slope,
+in the form `|(count of 1s in any factor of length N) − Nα| < 1`.
+
 So the decomposition below is `all-the-proofs.tex` §6's own, **not** transcribed
 from a proof anyone on this project has read.  Flagged, because the one time
 this plan guessed at a decomposition it was wrong: Phase 7's sketch assumed
