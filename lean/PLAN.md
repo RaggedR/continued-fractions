@@ -549,24 +549,26 @@ It also wants `Palindrome.stream_fst` generalised off `√n`, which
 ### Order, and where it can still fail
 
 ```
-lem:rs, cor:onesp  ──►  2  ──►  3'  ──►  1, 4b  ──►  4a  ──►  5
+lem:rs, cor:onesp  ──►  2  ──►  3'  ──►  1  ──►  4  ──►  5
 ```
 
-Start with `lem:rs` and `cor:onesp`: short, self-contained, and they make step 2
-mechanical.  Then step 2, then `3'` (step 3 restated for an abstract `ℓ`, see
-above), then steps 1 and 4b, which are small.
+All of this is now formalisation except step 5.  Start with `lem:rs` and
+`cor:onesp`: short, self-contained, and they make step 2 mechanical.  Then
+step 2, then `3'` (step 3 restated for an abstract `ℓ`, see above), then step 1,
+then step 4 — which needs `lem:rschain` and `lem:aper` as well as `lem:bridge`,
+all three proved in the paper and all three small.
 
-**4a and 5 are still open mathematics** and should be done on paper first, in
-`all-the-proofs.tex`, as step 2 was.  4a first of the two: it is the cheapest
-probe of whether "run §4–§5 backwards" really works, and the place this phase
-can still fail.  5 is the only analytic piece and the only one wanting new
-Mathlib surface — `GenContFract.of_convergence`, and `Palindrome.stream_fst`
-generalised off `√n`.
+**Step 5 is the only open mathematics left**, and the only remaining place this
+phase can fail.  Do it on paper first, in `all-the-proofs.tex`, as steps 2 and 4
+were; `../HANDOVER.md` is the brief, with two candidate routes.  It is also the
+only part wanting new Mathlib surface — `GenContFract.of_convergence`, and
+`Palindrome.stream_fst` generalised off `√n`.
 
-**Still no line estimate**, but the reason has narrowed.  It is no longer that
-step 2's mathematics was unread — that is written down now — but that 4a and 5
-are unproved.  An estimate for everything up to and including `3'` could be
-written today; the honest version of the whole phase waits on 4a.
+**Still no line estimate for the whole phase**, but the reason has narrowed
+twice.  It is no longer that step 2's mathematics was unread, nor that step 4's
+was: both are written down.  It is that step 5 is unproved.  An estimate for
+everything up to and including step 4 could be written today; the honest version
+of the whole phase waits on step 5.
 
 ## Prior art: what proof assistants already have
 

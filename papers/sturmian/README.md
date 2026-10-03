@@ -1,7 +1,8 @@
 # Sturmian sources
 
 For the one target left in `../../lean/PLAN.md`: Phase 9, the converse half of
-Morse–Hedlund (`all-the-proofs.tex` §6, steps 2, 4a and 5).
+Morse–Hedlund. Steps 2 and 4 of `all-the-proofs.tex` §6 were proved on
+3 October 2026; **step 5 alone remains** — see `../../HANDOVER.md`.
 
 ## The two that could not be obtained
 
@@ -24,7 +25,7 @@ If either turns up it supersedes everything below for planning purposes.
 | `berstel-2003-tutorial.pdf` | J. Berstel, "Combinatorics on Words" tutorial, 53pp | **Statement only** (Thm 6.5, cited to [MH40], proof deferred to [Lot02] ch. 2). Valuable regardless: its definitions are *verbatim* ours — `s_{α,ρ}(n) = ⌊α(n+1)+ρ⌋ − ⌊αn+ρ⌋` is our `code_eq_sub_floor`, and the rotation partition `I₀ = [0,1−α)`, `I₁ = [1−α,1)` is our `code`. Also gives the standard-sequence recurrence `sₙ = sₙ₋₁^{dₙ} sₙ₋₂` with `[0; 1+d₁, d₂, …]` the slope's continued fraction. |
 | `berstel-lauve-reutenauer-saliola-christoffel.pdf` | Berstel, Lauve, Reutenauer, Saliola, *Combinatorics on Words: Christoffel Words and Repetitions in Words*, CRM monograph, 202pp | **The finite theory in full.** Balanced finite words are exactly the factors of Christoffel words (§6.2); a Lyndon word is Christoffel iff `xux, xuy, yux, yuy` are all balanced — the same `0w0`/`1w1` structure step 2 needs; palindromic characterisation (ch. 4); continued fractions and Christoffel words (§7); Stern–Brocot (§7.3). Defers the infinite theory to [Lot2002, ch. 2]. **Best starting point available for step 2**, whose induction lives in the finite setting. |
 | `lothaire-ACW-errata.pdf` | Errata to *Algebraic Combinatorics on Words*, 2pp | Small but **the most informative thing here about ch. 2's structure.** The Sturmian entries sit on pp. 56–61, and the correction to Proposition 2.1.18 quotes its proof: *"We may suppose that β < α. For any factor u of s such that (α−β) ≥ 2/\|u\|, one has π(u)−α > −1/\|u\| by Proposition 2.1.10 …"*. So `π(u)` is the frequency of `1`s in a factor, **Prop. 2.1.10 is a quantitative bound `\|π(u)·\|u\| − α·\|u\|\| < 1`**, and 2.1.18 uses it to show two candidate slopes coincide. That bound is the converse of our `sum_code`, and it is step 5's machinery. Also: anything transcribed from ch. 2 must be checked against this file. |
-| `glen-justin-episturmian-survey.pdf` | A. Glen and J. Justin, "Episturmian words: a survey", arXiv:0801.1655, 36pp | States the equivalence as well known (§1) without proof, but carries the **directive-word / epistandard machinery with proofs** (Thm 2.3), and notes that in the binary case the directive word is related to the continued fraction — the generalisation of the standard-sequence recurrence, hence relevant to steps 4a and 5. |
+| `glen-justin-episturmian-survey.pdf` | A. Glen and J. Justin, "Episturmian words: a survey", arXiv:0801.1655, 36pp | States the equivalence as well known (§1) without proof, but carries the **directive-word / epistandard machinery with proofs** (Thm 2.3), and notes that in the binary case the directive word is related to the continued fraction — the generalisation of the standard-sequence recurrence, hence relevant to step 5. |
 | `berstel-2007-survey.pdf` | J. Berstel, "Sturmian and Episturmian Words (A Survey of Some Recent Results)", 8pp | Orientation. Statement only. |
 | `lothaire-ACW-contents.html` | Contents of the 2002 volume | Chapter titles and authors only — no section structure. Confirms ch. 2 is Berstel–Séébold. |
 | `lothaire-ACW-solutions.html` | Solutions page | Chapter 1 only; the Sturmian entry is listed but unlinked. Kept so nobody re-checks. |
