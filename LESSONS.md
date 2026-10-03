@@ -145,3 +145,27 @@ Four failures in one session, all the same shape.
 - **Do not delete a source for looking off-topic.** I downloaded a thesis,
   judged it irrelevant and deleted it. Keeping it costs 250KB; re-finding it
   costs a search. Keep it, and say in the README why it is weak.
+
+## Never let a replace pattern be empty (3 October 2026)
+
+I destroyed `lean/PLAN.md` — 678 lines became 1,552,614 — and committed it.
+The edit was a read-modify-write in Python, which obeys the rule above, but:
+
+```python
+old = s[s.index("### Step 2 ..."):s.index("### Where the cost is")]
+s = s.replace(old, new)
+```
+
+The second marker came *before* the first, so the slice was `""`, and
+`str.replace("", new)` inserts `new` between every character of the file.
+
+- **Assert the order of slice markers**: `assert ia < ib`. A slice between two
+  `index` calls is empty whenever they are the wrong way round, and empty is
+  the one pattern that matches everywhere.
+- **Assert the pattern is non-trivial** before replacing: `assert len(old) > 200`.
+- **Check the line count after any scripted edit**, not just the exit status.
+  `wc -l` would have caught this in one second; I found it three commits later
+  because a `grep` returned nothing.
+- **Prefer `count(old) == 1` and a literal string** over a computed slice.
+  Every other edit in this session used a literal anchor and none of them
+  failed.

@@ -2002,6 +2002,75 @@ theorem not_both_rightSpecial (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (j
   rw [hu, Set.mem_singleton_iff] at h0 h1
   exact zeros_ne_oneZeros j (h0.trans h1.symm)
 
+/-! ### Step 1 — exactly one of `00`, `11` is absent -/
+
+/-- A letter that is never left makes `ℓ` eventually periodic. -/
+lemma eventuallyPeriodic_of_absorbing (hbb : ∀ k, ℓ k ≤ 1) {b : ℕ} (hb1 : b ≤ 1)
+    (habs : ∀ k, ℓ k = b → ℓ (k + 1) = b) : EventuallyPeriodic ℓ := by
+  by_cases hex : ∃ k, ℓ k = b
+  · obtain ⟨k₀, hk₀⟩ := hex
+    refine ⟨k₀, 1, one_pos, fun k hk => ?_⟩
+    have key : ∀ t, ℓ (k₀ + t) = b := by
+      intro t
+      induction t with
+      | zero => simpa using hk₀
+      | succ n ih =>
+          rw [show k₀ + (n + 1) = k₀ + n + 1 by omega]
+          exact habs _ ih
+    have h1 : ℓ k = b := by rw [show k = k₀ + (k - k₀) by omega]; exact key _
+    have h2 : ℓ (k + 1) = b := habs k h1
+    omega
+  · push Not at hex
+    refine ⟨0, 1, one_pos, fun k _ => ?_⟩
+    have h1 := hex k
+    have h2 := hex (k + 1)
+    have h3 := hbb k
+    have h4 := hbb (k + 1)
+    omega
+
+/-- **Step 1.**  `00` or `11` is absent.  Both `01` and `10` must occur, so the
+engine at length `1` decides between the other two. -/
+theorem step_one (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
+    (∀ k, ℓ k = 0 → ℓ (k + 1) = 1) ∨ (∀ k, ℓ k = 1 → ℓ (k + 1) = 0) := by
+  by_contra hcon
+  push Not at hcon
+  obtain ⟨⟨k, hk0, hk0'⟩, ⟨m, hm1, hm1'⟩⟩ := hcon
+  have h00 : ℓ (k + 1) = 0 := by have := hbb (k + 1); omega
+  have h11 : ℓ (m + 1) = 1 := by have := hbb (m + 1); omega
+  have h01 : ∃ p, ℓ p = 0 ∧ ℓ (p + 1) = 1 := by
+    by_contra hc
+    push Not at hc
+    refine not_eventuallyPeriodic hS
+      (eventuallyPeriodic_of_absorbing hbb (b := 0) (by omega) fun p hp => ?_)
+    have h1 := hbb (p + 1)
+    have h2 := hc p hp
+    omega
+  have h10 : ∃ p, ℓ p = 1 ∧ ℓ (p + 1) = 0 := by
+    by_contra hc
+    push Not at hc
+    refine not_eventuallyPeriodic hS
+      (eventuallyPeriodic_of_absorbing hbb (b := 1) (by omega) fun p hp => ?_)
+    have h1 := hbb (p + 1)
+    have h2 := hc p hp
+    omega
+  obtain ⟨p, hp0, hp1⟩ := h01
+  obtain ⟨q, hq1, hq0⟩ := h10
+  refine not_both_rightSpecial hbb hS 0 ?_ ?_
+  · refine (rightSpecial_zeros_iff 0).2 ⟨?_, ?_⟩
+    · refine (mem_factors_zeros_iff 2).2 ⟨k, fun i hi => ?_⟩
+      rcases (by omega : i = 0 ∨ i = 1) with rfl | rfl
+      · simpa using hk0
+      · simpa using h00
+    · refine (mem_factors_zerosOne_iff 1).2 ⟨p, fun i hi => ?_, by simpa using hp1⟩
+      rcases (by omega : i = 0) with rfl
+      simpa using hp0
+  · refine (rightSpecial_oneZeros_iff 0).2 ⟨?_, ?_⟩
+    · refine (mem_factors_oneZeros_iff 1).2 ⟨q, hq1, fun i hi => ?_⟩
+      rcases (by omega : i = 0) with rfl
+      simpa using hq0
+    · exact (mem_factors_oneZerosOne_iff 0).2
+        ⟨m, hm1, fun i hi => absurd hi (by omega), by simpa using h11⟩
+
 /-! ### The interior block lengths -/
 
 def blockLens (ℓ : ℕ → ℕ) : Set ℕ := {j | oneZerosOne j ∈ factors ℓ (j + 2)}
@@ -2212,6 +2281,111 @@ theorem initial_block_le (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
     · have h := blockMax_sub_one_mem hbb hS
       rwa [show blockMax ℓ - 1 = b by omega] at h
 
+/-! ### Step 3 — the block decomposition for an abstract `ℓ` -/
+
+/-- Deriving, as an operation on sequences.  Stated here rather than in §8
+because step 3 is where an abstract `ℓ` first needs it. -/
+noncomputable def deriveSeq (ℓ : ℕ → ℕ) (a : ℕ) (i : ℕ) : ℕ :=
+  Nat.nth (fun k => ℓ k = 1) (i + 1) - Nat.nth (fun k => ℓ k = 1) i - a
+
+lemma deriveSeq_code (α x : ℝ) (a : ℕ) : deriveSeq (code α x) a = derived α x a := rfl
+
+lemma deriveSeq_codeUp (α x : ℝ) (a : ℕ) :
+    deriveSeq (codeUp α x) a = derivedUp α x a := rfl
+
+/-- The position of the `i`-th `1`. -/
+noncomputable def onesPos (ℓ : ℕ → ℕ) (i : ℕ) : ℕ := Nat.nth (fun k => ℓ k = 1) i
+
+lemma deriveSeq_eq (a i : ℕ) :
+    deriveSeq ℓ a i = onesPos ℓ (i + 1) - onesPos ℓ i - a := rfl
+
+lemma setOf_one_infinite' (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
+    {k : ℕ | ℓ k = 1}.Infinite := by
+  apply Set.infinite_of_not_bddAbove
+  rintro ⟨N, hN⟩
+  obtain ⟨k, hk1, hk2⟩ := exists_one_ge hbb hS (N + 1)
+  have := hN (show k ∈ {k : ℕ | ℓ k = 1} from hk2)
+  omega
+
+lemma one_onesPos (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (i : ℕ) :
+    ℓ (onesPos ℓ i) = 1 :=
+  Nat.nth_mem_of_infinite (setOf_one_infinite' hbb hS) i
+
+lemma onesPos_lt_succ (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (i : ℕ) :
+    onesPos ℓ i < onesPos ℓ (i + 1) :=
+  Nat.nth_strictMono (setOf_one_infinite' hbb hS) (Nat.lt_succ_self i)
+
+/-- Nothing between consecutive `1`s is a `1`. -/
+lemma onesPos_succ_le {i m : ℕ} (hm : ℓ m = 1) (hlt : onesPos ℓ i < m) :
+    onesPos ℓ (i + 1) ≤ m := by
+  by_contra h
+  push Not at h
+  have := Nat.le_nth_of_lt_nth_succ (p := fun k => ℓ k = 1) h hm
+  simp only [onesPos] at hlt
+  omega
+
+/-- Inside a block there are only zeros. -/
+theorem onesPos_block_zero (hbb : ∀ k, ℓ k ≤ 1) {i j : ℕ} (hj0 : 0 < j)
+    (hj : onesPos ℓ i + j < onesPos ℓ (i + 1)) : ℓ (onesPos ℓ i + j) = 0 := by
+  have h1 := hbb (onesPos ℓ i + j)
+  by_contra hc
+  have he : ℓ (onesPos ℓ i + j) = 1 := by omega
+  have := onesPos_succ_le (i := i) he (by omega)
+  omega
+
+/-- The zeros between consecutive `1`s form an interior block. -/
+theorem gap_mem_blockLens (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (i : ℕ) :
+    onesPos ℓ (i + 1) - onesPos ℓ i - 1 ∈ blockLens ℓ := by
+  have hlt := onesPos_lt_succ hbb hS i
+  refine (mem_factors_oneZerosOne_iff _).2
+    ⟨onesPos ℓ i, one_onesPos hbb hS i, fun t ht => ?_, ?_⟩
+  · rw [show onesPos ℓ i + 1 + t = onesPos ℓ i + (1 + t) by omega]
+    exact onesPos_block_zero hbb (by omega) (by omega)
+  · rw [show onesPos ℓ i + 1 + (onesPos ℓ (i + 1) - onesPos ℓ i - 1)
+        = onesPos ℓ (i + 1) by omega]
+    exact one_onesPos hbb hS (i + 1)
+
+/-- **Step 3.**  Block `i` has length `a + ℓ'ᵢ`: with `onesPos ℓ 0 = k₀` and
+`ℓ' = deriveSeq ℓ a`, this is `ℓ = 0^{k₀} τ_a(ℓ')`. -/
+theorem onesPos_block_length (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) (i : ℕ) :
+    onesPos ℓ (i + 1) = onesPos ℓ i + (blockMax ℓ + deriveSeq ℓ (blockMax ℓ) i) := by
+  obtain ⟨ha2, hset⟩ := blocks hbb hS h11
+  have hmem := gap_mem_blockLens hbb hS i
+  rw [hset] at hmem
+  simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hmem
+  have hlt := onesPos_lt_succ hbb hS i
+  rw [deriveSeq_eq]
+  omega
+
+/-- The derived letter is binary. -/
+theorem deriveSeq_le_one (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) (i : ℕ) :
+    deriveSeq ℓ (blockMax ℓ) i ≤ 1 := by
+  obtain ⟨ha2, hset⟩ := blocks hbb hS h11
+  have hmem := gap_mem_blockLens hbb hS i
+  rw [hset] at hmem
+  simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hmem
+  have hlt := onesPos_lt_succ hbb hS i
+  rw [deriveSeq_eq]
+  omega
+
+/-- Before the first `1` there are only zeros. -/
+theorem onesPos_zero_zeros (hbb : ∀ k, ℓ k ≤ 1) {i : ℕ} (hi : i < onesPos ℓ 0) :
+    ℓ i = 0 := by
+  have h1 := hbb i
+  by_contra hc
+  have he : ℓ i = 1 := by omega
+  have : onesPos ℓ 0 ≤ i := by
+    rw [onesPos, Nat.nth_zero]
+    exact Nat.sInf_le he
+  omega
+
+/-- **Step 3, the prefix.**  The initial block is at most `a` long. -/
+theorem onesPos_zero_le (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) : onesPos ℓ 0 ≤ blockMax ℓ :=
+  initial_block_le hbb hS h11 (one_onesPos hbb hS 0) (fun _ hi => onesPos_zero_zeros hbb hi)
+
 end MorseHedlund
 
 /-! ## §8 The tower
@@ -2415,14 +2589,6 @@ theorem step_up (hγ0 : 0 < γ) (hγ1 : γ < 1) (hg : (a : ℝ) + γ' = 1/γ)
   rw [derive_codeUp hγ0 hγ1 hg hg0 hg1 γ, reflUp_slope_eq hγ0 hγ1 hg hg0 hg1]
 
 /-! ### The tower -/
-
-/-- Deriving, as an operation on sequences. -/
-noncomputable def deriveSeq (ℓ : ℕ → ℕ) (a : ℕ) (i : ℕ) : ℕ :=
-  Nat.nth (fun k => ℓ k = 1) (i + 1) - Nat.nth (fun k => ℓ k = 1) i - a
-
-lemma deriveSeq_code (α x : ℝ) (a : ℕ) : deriveSeq (code α x) a = derived α x a := rfl
-
-lemma deriveSeq_codeUp (α x : ℝ) (a : ℕ) : deriveSeq (codeUp α x) a = derivedUp α x a := rfl
 
 /-- The tower of derived sequences of `code (α 0) 0`. -/
 noncomputable def tower (α : ℕ → ℝ) (a : ℕ → ℕ) : ℕ → (ℕ → ℕ)
@@ -2628,10 +2794,13 @@ end Substitution
 #print axioms Sturmian.not_eventuallyPeriodic
 #print axioms Sturmian.exists_one_ge
 #print axioms Sturmian.not_both_rightSpecial
+#print axioms Sturmian.step_one
 #print axioms Sturmian.mem_factors_oneZerosOne_iff
 #print axioms Sturmian.blockLens_le
 #print axioms Sturmian.blocks
 #print axioms Sturmian.initial_block_le
+#print axioms Sturmian.onesPos_block_length
+#print axioms Sturmian.onesPos_zero_le
 #print axioms Sturmian.return_time
 #print axioms Sturmian.ones_succ_eq
 #print axioms Sturmian.derived_eq

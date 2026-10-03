@@ -5,11 +5,10 @@
 the remaining work and it is now pure formalisation.
 
 Phase 9 is underway in `Sturmian.lean` §6.1. `lem:rs`, `cor:onesp`,
-`lem:evper` and **all of step 2** are formalised — `blocks` is `prop:blocks`.
-Steps 3, 1, 4 and 5 remain, in that order; `PLAN.md` has the brief and records
-the two places the Lean route diverges from the paper's (`blockLens_le`
-collapses two paragraphs, and the initial-block clause swaps from definition
-to lemma).
+`lem:evper` and **steps 1, 2 and 3** of the converse are formalised. Steps 4
+and 5 remain. `PLAN.md` has the brief, records where the Lean route beats the
+paper's, and lists the two proof slips formalising turned up in §6 — both now
+fixed in the `.tex`.
 
 ## What step 5 turned out to be
 
