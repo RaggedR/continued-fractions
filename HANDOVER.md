@@ -109,9 +109,15 @@ Nothing is owed. Three candidates, in the order I would take them.
   earlier finding "step 5 does not need Ostrowski" stands and is not a
   contradiction: §7 needs none of it, but the data §7 leaves undetermined is
   exactly the Ostrowski digits. The file lists three experiments runnable
-  against `step5_check.py`'s existing exact machinery. **Check the literature
-  first** — it may be standard, and `papers/sturmian/README.md` records why
-  Lothaire ch. 2 could not be obtained.
+  against `step5_check.py`'s existing exact machinery.
+
+  **Started, and narrowed, later on 3 October.** The literature check is done:
+  Wojcik, `arXiv:1803.02073`, has the parametrisation and contains no ceiling,
+  so it never names the split; the PDF and what it gives are in
+  `papers/sturmian/README.md`. The closed form is settled, and `attainment.py`
+  kills two shapes of answer — no tail of the tower decides attainment, and no
+  bounded window of it does. `research-question.txt` was rewritten to record
+  all of it; read that, not this bullet.
 * **Upstream `exists_iterate_eq_self`** (`Palindrome.lean`, ~15 lines, no
   number theory) — `PLAN.md` already flags it as belonging in
   `Mathlib.Dynamics`. Small enough to be a first Mathlib PR and learn the
