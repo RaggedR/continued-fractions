@@ -697,13 +697,46 @@ Three things it needs, in increasing cost:
 3. **A suffix of `τ_a(w')` beginning with `1` is `τ_a(v)` for a suffix `v` of
    `w'`**, and counting blocks forces `v = w'`.  This is the real content.
 
-**Try the positional route first.**  "`τ_a(w)` occurs at block start `i`" is
-just `∀ t < m, deriveSeq ℓ a (i+t) = w t` — that is, `w` occurs in `ℓ'` at `i`,
-with no word construction at all.  If the uniqueness argument can be run on
-block *indices* rather than on words, `τ_a` never has to exist as a function.
-The obstruction to beat is that `rightSpecial_chain` is a statement about
-words; it would have to be re-proved as a statement about block-aligned
-positions.  Worth half a day before reaching for (2).
+**The positional route works.**  Worked through on paper 3 October 2026, not
+yet in Lean.  `τ_a` never has to exist as a word; everything runs on windows of
+`ℓ` and on counting `1`s.
+
+Write `s = |w|₁`, `T = m*a + s`, and `n = T + a`.
+
+1. **The bridge.**  Let `w` be right-special for `ℓ'` of length `m`, occurring
+   at block `i` followed by a short block and at block `i'` by a long one.  Put
+   `k = onesPos ℓ i`, `k' = onesPos ℓ i'`.  Then
+   `window ℓ n k = window ℓ n k'` — both read `τ_a(w)` followed by `1 0^{a-1}`,
+   and that word is determined by `w` and `a` without being constructed — while
+   `ℓ (k+n) = 1` and `ℓ (k'+n) = 0`, because the block after the window is `a`
+   long at `i` and `a+1` long at `i'`.  So `window ℓ n k ∈ rightSpecial ℓ n`.
+2. **Equal weights are immediate.**  If `|w|₁ = |w'|₁` the two windows have the
+   same length `n`, so uniqueness in `ℓ` makes them equal, and the window
+   determines `w` (the `1`s in it are the block starts).
+3. **Unequal weights die by counting `1`s, not blocks.**  Say `s < s'`, so
+   `n < n'`.  The transitive chain makes `R_n` the length-`n` suffix of
+   `R_{n'}`, i.e. `window ℓ n k = window ℓ n (j + (s' - s))` with
+   `j = onesPos ℓ i'`.  The left end of `window ℓ n k` is `ℓ k = 1`, so
+   `j + (s'-s)` is a block start, say block `i' + r`.  Now count `1`s:
+   `window ℓ n k` has `m + 1` of them — the `m` block starts `i … i+m-1` plus
+   the start of block `i+m`, which the trailing `1 0^{a-1}` contains — and the
+   suffix has `(m - r) + 1`.  The two windows are equal, so `r = 0`, so
+   `s' = s`.  Contradiction.
+
+   **Counting blocks does not work here and counting `1`s does.**  The naive
+   block count gives `r(a+1) ≤ m`, which is satisfiable for large `m`.  The
+   `1`-count is an invariant of the *word*, so window equality transfers it for
+   free.
+
+What this needs in Lean, none of it dependently typed:
+
+| | |
+|---|---|
+| a transitive `rightSpecial_chain` | `window ℓ n k = window ℓ n (k' + (n' - n))`, by iterating `tail` |
+| `window ℓ n (onesPos ℓ i)` from the `ℓ'`-window | letters of `ℓ` in block `t` are fixed by offset and block length |
+| `onesPos ℓ (i+m) - onesPos ℓ i = m*a + s` | sum `onesPos_block_length` over `t < m` |
+| the `1`-count of a window | `∑ t, window ℓ n k t`, and `= m + 1` on a block-aligned window |
+| `w` recovered from the window | the `1`s are the block starts |
 
 ### Two gaps in `all-the-proofs.tex` §6, found by formalising
 
