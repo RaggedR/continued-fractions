@@ -1,93 +1,82 @@
-# Handover: finish `all-the-proofs.tex`
+# Handover: formalise `all-the-proofs.tex` §6–§7 in Lean
 
-**One thing is left: §6 step 5.** Everything else in that document is proved.
-Written 3 October 2026.
+**The paper is finished.** §6 step 5 — the last unproved item — was proved on
+3 October 2026 and is now §7 of `all-the-proofs.tex`. `lean/PLAN.md` Phase 9 is
+the remaining work and it is now pure formalisation.
 
-## The target
+## What step 5 turned out to be
 
-§6 reduces the converse of Morse–Hedlund to five steps. Steps 1–4 are proved
-(`prop:blocks`, `prop:derived` and the lemmas around them). Step 5 reads:
+Not Ostrowski, and not the tower inverted. Both routes the previous handover
+suggested were abandoned. Write `S(N)` for the number of `1`s in the first `N`
+letters of `ℓ` and
 
-> Iterating produces `a₁, a₂, a₃, … ≥ 1` and hence an irrational
-> `α = [0; a₁, a₂, …]`, and the nested prefixes `τ_{a₁}τ_{a₂}···τ_{a_j}`
-> together with the shifts `k₀, k₁, …` pin a single `x`.
+    D(N) = S(N) − Nα ,   Δ_α(u) = |u|₁ − α|u| .
 
-So: the *digits* come free from iterating step 4, and what is unproved is that
-the data `(a_j, k_j)` determines a single pair `(α, x)` with
-`ℓ = C(α,x)` or `Cp(α,x)`. That is a convergence argument — the Ostrowski
-representation of `x`. It is the only analytic step in the document.
+By `lem:mech`, `ℓ = C(α,x)` iff `⌊Nα + x⌋ = S(N)` for every `N`, which is the
+linear condition `x ∈ ⋂_N [D(N), D(N)+1)`. So the intercept is a formula,
 
-Do it **on paper first**, in `all-the-proofs.tex`, then formalise. Steps 2 and 4
-were done that way on 3 October and both came out shorter than the literature
-suggests. Lean has been excellent at exposing what is unproved and poor at
-finding an argument.
+    x = sup_{N ≥ 0} (S(N) − Nα) ,
 
-## What you already have
-
-In the paper:
+and everything reduces to `sup D − inf D ≤ 1`, i.e. to `|Δ_α(u)| < 1` for every
+factor `u`. That is `prop:bound`, and it is an induction on `|u|` running down
+the levels, not an analytic argument.
 
 | | |
 |---|---|
-| `thm:return`, `cor:gaps` | the return time, and that gaps are `a₁` or `a₁+1` |
-| `lem:blocks` | `ℓ = 0^{k₀} τ_a(ℓ')` — the block decomposition |
-| `thm:derive` | the derivation theorem, with the new intercept computed **exactly**: `derive(C(α,x)) = C⁺({1/α}, {−u₀})` |
-| `lem:rs`, `cor:onesp` | `F(m+1) − F(m)` counts right-special factors; complexity `m+1` ⟺ exactly one of each length |
-| `lem:rschain` | those right-special factors form a suffix chain |
-| `lem:aper`, `lem:evper` | no right-special factor of length `m` ⟹ eventually periodic ⟹ bounded complexity |
-| `prop:blocks` | block lengths are `a−1` and `a` |
-| `lem:bridge`, `prop:derived` | `ℓ'` is Sturmian |
-| §8 | the tower, and `sqrt_tower_period` |
+| `lem:slope` | `α` exists and is irrational: `β ↦ 1/(a+β)` contracts by `1/a² ≤ 1/4` |
+| `lem:dev` | `Δ_α(τ_a(w)) = −α Δ_β(w)` — the deviation scales by `−α` per level |
+| `prop:bound` | `|Δ_α(u)| < 1`, by induction on `|u|` |
+| `lem:countup` | the `C⁺` count, `⌈Nα+x⌉ − ⌈x⌉` |
+| `thm:step5` | `x = sup D`; `C` if the supremum is attained, `C⁺` if not |
 
-In Lean (`lean/`, 5 files, 51 theorems, 0 sorries, build with `lean/build.sh`):
-`derive_code`, `derive_codeUp`, `tower_eq`, `tower_period`, `complexity`,
-`ncard_factors_codeUp`, `block_length`, `block_zero`, `sigma_pre`, `fib_limit`.
-`lean/PLAN.md` Phase 9 is the Lean-side plan and is current.
+Three things make it work, and all three were already in the paper:
 
-## Three facts established while proving steps 2 and 4
+1. **`prop:blocks` gives `a ≥ 2`** (after step 1's letter exchange). Hence
+   `|τ_a(u')| ≥ 2|u'|`, so the induction on word length descends strictly even
+   though the level changes — no base case at infinite depth is needed. The same
+   `a ≥ 2` is what makes `lem:slope` a contraction.
+2. **The gap inequality `aα < 1`** from §4 is the only slack in the system. The
+   worst case of the lower bound is `α(2a+β) = αa + 1 < 2`, where
+   `α(a+β) = 1` is an identity, not an estimate. The bound `< 1` is tight.
+3. **`q` must be a *proper* prefix of its block** in `u = 0^s τ_a(u') q`.
+   Otherwise absorb it into `u'`. This gives `t ≤ a−1`, and without it the
+   case `s = a, t = a` is false. It is the one piece of real bookkeeping, and
+   the first draft got it wrong.
 
-All three were checked numerically; the first two are also proved in the paper.
+The `C`/`C⁺` dichotomy is exactly whether `sup D` is attained. `thm:counterex`
+is that supremum being `1` and unattained — not a separate pathology.
 
-1. **`11` is absent exactly when the slope is `≤ 1/2`, and then `a = ⌊1/α⌋ = a₁`.**
-   Checked on 24 exact irrational slopes, no mismatch. So the block parameter of
-   `prop:blocks` *is* the continued-fraction digit — but only after the letter
-   exchange of step 1 has been applied.
-2. **The letter exchange is `α ↦ 1−α`**, because the complement of `C(β,y)` is
-   `C⁺(1−β,−y)` (the identity proved for `cor:complexityup`, and
-   `codeUp_add_code_reflect` in `lean/Sturmian.lean`). It swaps lower and upper
-   codings.
-3. **That swap is the same alternation `tower_eq` already carries** as
-   `if Even j then codeUp else code`. Step 5 must track it: iterating step 4
-   alternates the coding type, so the `a_j` you read off are the digits of
-   whichever of `α`, `1−α` is below `1/2` at that level.
+## What was wrong in the previous handover
 
-Fact 3 is the thing most likely to be got wrong. `prop:blocks` gives `a ≥ 2`
-always, while CF digits can be `1`; there is no contradiction, because `a₁ = 1`
-is exactly the case where the exchange fires. Do not try to read the digits off
-without the exchange.
+Recorded because two of its three "established facts" steered toward the longer
+route.
 
-## Suggested route for step 5
+* **Mathlib's continued-fraction API is not needed.** `of_convergence`,
+  `ContinuantsRecurrence`, `Determinant`, `TerminatesIffRat`, and a generalised
+  `Palindrome.stream_fst` were all predicted for step 5. §7 uses none of them.
+* **Lothaire's Proposition 2.1.10 is not needed either.** The errata pointed at
+  `| |u|₁ − α|u| | < 1` as "step 5's machinery", which is right — it is exactly
+  `prop:bound` — but it is provable in half a page from `lem:blocks`, not
+  something to reconstruct from a book we cannot obtain.
+* **`Sturmian ⟹ balanced` is a trap.** It gives `prop:bound` in three lines via
+  the density, and it is the direction the literature defers to Lothaire ch. 2.
+  CRM Theorem 6.10 states it and proves only the converse. Do not go that way:
+  the derivation gives the bound directly.
 
-Two shapes, and the second is probably better here.
+## Numerics
 
-**Nested intervals.** Knowing `k₀, …, k_j` and `a₁, …, a_{j+1}` confines `x` to
-an interval whose length → 0 (these are the Ostrowski intervals). Take `x` in
-the intersection, then show `C(α,x)` has the same data as `ℓ` and conclude
-`ℓ = C(α,x)` because the data determines arbitrarily long prefixes. Standard,
-and self-contained.
+`prop:bound` and the decomposition were checked over ≈3·10⁶ factors, 28
+sequences, `n ∈ {2,3,5,6,8,10,11,12,13,29,43}` and four intercepts each — `s ≤ a`,
+`t ≤ a−1`, `s = a ⟹ 1u'` a factor, the `lem:dev` identity, and `|Δ| < 1` with
+`sup → 1` never attained. `thm:step5` was checked by reconstructing `x` from the
+sequence alone to `10⁻⁴` by `N = 4000`. Scripts were scratch, not committed;
+`sturmian.py` has the reusable helpers.
 
-**Invert the tower.** §5 computes the forward map `(α,x) ↦ (a_j, k_j)` exactly —
-`thm:derive` gives the new intercept as `{−u₀}`, not merely its existence, and
-that exactness is why §8 works. So step 5 is the statement that this map is
-injective with the right image, and the convergence is only needed to show the
-backward map is defined. This reuses machinery that already exists rather than
-building Ostrowski theory from scratch, and it is the reading of "run §4 and §5
-backwards" that the rest of §6 follows.
-
-For the Lean side, Mathlib has what the analytic part needs:
-`GenContFract.of_convergence`, `of_convergence_epsilon`, `abs_sub_convs_le`,
-`ContinuantsRecurrence`, `Determinant`, and `TerminatesIffRat` for irrationality
-of an infinite expansion. None of it has been needed so far — this is the first
-place it will be. It will also want `Palindrome.stream_fst` generalised off `√n`.
+Two test bugs in one session, both reporting a false failure: a bracket that
+trivially exceeded `1` for `|u| = 1`, and a decomposition that set `s = a`
+where it should have been `min(a, |u|)`. **Check the test before believing a
+counterexample** — that is now twice this has happened and twice the claim was
+right.
 
 ## Method that worked
 
@@ -114,8 +103,6 @@ place it will be. It will also want `Palindrome.stream_fst` generalised off `√
 
 `papers/sturmian/README.md` accounts for all of them, including the two that
 could not be obtained (Morse–Hedlund 1940 is paywalled and in copyright;
-Lothaire ch. 2 is not posted). The errata to Lothaire is the most informative
-free document about that chapter: its Proposition 2.1.10 is a quantitative bound
-`| |u|₁ − α|u| | < 1`, which is the converse of our `lem:count`, and 2.1.18 uses
-it to show two candidate slopes coincide. **That is step 5's machinery**, so
-start there if you want the classical route instead.
+Lothaire ch. 2 is not posted). Neither is needed now. The errata's Proposition
+2.1.10 is `| |u|₁ − α|u| | < 1`, which is our `prop:bound`; the agreement is a
+check on the statement, and the proof in §7 is our own.

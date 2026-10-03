@@ -2,7 +2,8 @@
 
 For the one target left in `../../lean/PLAN.md`: Phase 9, the converse half of
 Morse–Hedlund. Steps 2 and 4 of `all-the-proofs.tex` §6 were proved on
-3 October 2026; **step 5 alone remains** — see `../../HANDOVER.md`.
+3 October 2026, and **step 5 later the same day** — it is §7 of that document.
+The proof needs none of the sources below: see `../../HANDOVER.md`.
 
 ## The two that could not be obtained
 

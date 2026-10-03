@@ -83,10 +83,11 @@ that other projects import.
 
 ## Remaining
 
-One target: the converse half of Morse–Hedlund.  `all-the-proofs.tex` §6
-steps 2 and 4 were proved on 3 October 2026 (`prop:blocks`, `prop:derived`);
-**step 5 alone is still open mathematics**, and none of §6 is formalised.
-Planned as **Phase 9** below; `../HANDOVER.md` is the brief for step 5.
+One target: the converse half of Morse–Hedlund.  `all-the-proofs.tex` §6 is
+complete as of 3 October 2026 — steps 2 and 4 (`prop:blocks`, `prop:derived`)
+and then step 5, which is §7 of that document (`lem:slope`, `prop:bound`,
+`thm:step5`).  **No open mathematics remains; none of §6 or §7 is formalised.**
+Planned as **Phase 9** below.
 
 ## Design
 
@@ -535,13 +536,13 @@ factors `00`, `10` at length 2 and `{2,4}` give `000`, `100` at length 3 — the
 predicted witnesses; and prefixing an over-long `0`-block to a genuine Sturmian
 tail breaks the count at exactly the predicted length.
 
-**Step 5 needs a convergence argument** — the Ostrowski representation of `x`.
-Unlike Phases 2–8 this is genuinely analytic.  Mathlib's continued-fraction API
-(`GenContFract.of_convergence`, `of_convergence_epsilon`, `abs_sub_convs_le`,
-`ContinuantsRecurrence`, `Determinant`) is the right tool; it was surveyed
-during Lagrange 1770 and turned out not to be needed there.  Here it will be.
-It also wants `Palindrome.stream_fst` generalised off `√n`, which
-`Quadratic.lean` also did not need.
+**Step 5 needed no convergence argument and no Ostrowski theory.**  The
+prediction that Mathlib's continued-fraction API would finally be needed was
+wrong: §7 uses none of it.  `lem:slope` gets `α` from the fact that
+`β ↦ 1/(a+β)` has derivative at most `1/a² ≤ 1/4` when `a ≥ 2`, so the levels
+confine `α` to intervals of length `4^{-j}`; irrationality is a descent on
+denominators.  `prop:bound` is an induction on word length.  Everything is
+elementary and finite — `Finset`, `Nat`, and one geometric series.
 
 **Step 4a** may fall out of the tower for free, since `derive_code` and
 `derive_codeUp` already say what deriving a coding gives.
@@ -558,17 +559,17 @@ step 2, then `3'` (step 3 restated for an abstract `ℓ`, see above), then step 
 then step 4 — which needs `lem:rschain` and `lem:aper` as well as `lem:bridge`,
 all three proved in the paper and all three small.
 
-**Step 5 is the only open mathematics left**, and the only remaining place this
-phase can fail.  Do it on paper first, in `all-the-proofs.tex`, as steps 2 and 4
-were; `../HANDOVER.md` is the brief, with two candidate routes.  It is also the
-only part wanting new Mathlib surface — `GenContFract.of_convergence`, and
-`Palindrome.stream_fst` generalised off `√n`.
+**Nothing here is open mathematics any more.**  Step 5 is `all-the-proofs.tex`
+§7, proved 3 October 2026 and checked over ≈3·10⁶ factors in exact arithmetic.
+No new Mathlib surface is wanted: the survey that expected
+`GenContFract.of_convergence` and a generalised `Palindrome.stream_fst` was
+wrong on both counts.
 
-**Still no line estimate for the whole phase**, but the reason has narrowed
-twice.  It is no longer that step 2's mathematics was unread, nor that step 4's
-was: both are written down.  It is that step 5 is unproved.  An estimate for
-everything up to and including step 4 could be written today; the honest version
-of the whole phase waits on step 5.
+**A line estimate for the whole phase can now be written**, and the reason it
+could not has gone: every step has a paper proof.  The three new objects are
+`Δ_α(u) = |u|₁ − α|u|` on `List Bool`, the decomposition
+`u = 0^s τ_a(u') q` with `q` a proper block prefix, and the nested intervals of
+`lem:slope`.  The decomposition is the one piece with real bookkeeping.
 
 ## Prior art: what proof assistants already have
 

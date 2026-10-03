@@ -28,10 +28,9 @@
 \vspace{-2em}
 
 This is the proof-dense companion to \texttt{sturmian.tex}. Every claim made
-there is either proved here or listed in \S10 as unproved. Two claims that
-\texttt{sturmian.tex} states for $n = 2$ and $n = 7$ alone are proved for every
-$n$ in \S8, and one statement there is false as written; \S6 gives the
-counterexample and the repair.
+there is proved here. Two claims that \texttt{sturmian.tex} states for
+$n = 2$ and $n = 7$ alone are proved for every $n$ in \S9, and one statement
+there is false as written; \S6 gives the counterexample and the repair.
 
 \section{Codings}
 
@@ -401,7 +400,7 @@ for some irrational $\alpha \in (0,1)$ and some $x \in [0,1)$.
 
 The forward implication is Theorem~\ref{thm:complexity} and
 Corollary~\ref{cor:complexityup}. For the converse, run \S4 and \S5 backwards.
-Steps 1 to 4 below are proved; step 5 is not.
+Steps 1 to 4 are below; step 5 is \S7.
 
 \begin{enumerate}
 \item $F_\ell(1) = 2$, so both letters occur. $F_\ell(2) = 3$, so exactly one
@@ -417,11 +416,8 @@ Steps 1 to 4 below are proved; step 5 is not.
   $\{\seq{0},\seq{1}\}$. \emph{Proved.}
 \item $\ell'$ is again Sturmian. \emph{Proposition~\ref{prop:derived} below};
   that both of its letters occur is the case $m = 1$.
-\item Iterating produces $a_1, a_2, a_3, \ldots \geq 1$ and hence an irrational
-  $\alpha = [\,0;\,a_1,a_2,\ldots\,]$, and the nested prefixes
-  $\tau_{a_1}\tau_{a_2}\cdots\tau_{a_j}$ together with the shifts $k_0, k_1,
-  \ldots$ pin a single $x$. \emph{Not proved here.} This is the Ostrowski
-  representation of $x$ and needs a convergence argument.
+\item Iterating pins a single $\alpha$ and a single $x$. \emph{\S7:}
+  Lemma~\ref{lem:slope} and Theorem~\ref{thm:step5}.
 \end{enumerate}
 
 Step 1 delivers $\seq{00}$ or $\seq{11}$, and step 2 is stated for $\seq{11}$.
@@ -570,6 +566,142 @@ Lemma~\ref{lem:evper}.
 
 Corollary~\ref{cor:onesp} now gives $F_{\ell'}(m) = m+1$.
 \end{proof}
+
+\section{Step 5}
+
+Normalise so that \seq{11} is absent: by step 1 and the identity in the proof of
+Corollary~\ref{cor:complexityup}, the complement of $\C(\beta,y)$ is
+$\Cp(1-\beta,-y)$, and both codings are admitted. Then
+Proposition~\ref{prop:blocks} gives $a \geq 2$, and every level below is
+normalised the same way.
+
+Write $\Delta_\alpha(u) = \lvert u\rvert_1 - \alpha\lvert u\rvert$ for a finite
+word $u$, where $\lvert u \rvert_1$ counts the $1$s.
+
+\begin{lemma}\label{lem:slope}
+Let $a_1, a_2, \ldots \geq 2$ be the block parameters of the successive derived
+sequences and $\varepsilon_1, \varepsilon_2, \ldots \in \{0,1\}$ record which
+levels were complemented. There is exactly one $\alpha \in (0,1)$ compatible
+with this data, and it is irrational.
+\end{lemma}
+
+\begin{proof}
+A slope and the slope below it are related by $\alpha = 1/(a_1 + \beta)$ and
+$\beta \mapsto \beta$ or $1-\beta$. On $[0,1]$ the map $\beta \mapsto
+1/(a_1+\beta)$ has derivative $-1/(a_1+\beta)^2$ of modulus at most
+$1/a_1^2 \leq 1/4$, and $\beta \mapsto 1 - \beta$ is an isometry. So the first
+$j$ levels confine $\alpha$ to an interval of length at most $4^{-j}$.
+
+Were $\alpha = p/q$ in lowest terms, then $\beta = q/p - a_1$ has denominator
+$p < q$, and complementing does not change a denominator. Denominators cannot
+descend forever, and every level has a block parameter by
+Proposition~\ref{prop:derived}.
+\end{proof}
+
+\begin{lemma}\label{lem:dev}
+$\Delta_\alpha(\tau_a(w)) = -\alpha\,\Delta_\beta(w)$.
+\end{lemma}
+
+\begin{proof}
+$\lvert \tau_a(w)\rvert = a\lvert w\rvert + \lvert w\rvert_1$ and
+$\lvert \tau_a(w)\rvert_1 = \lvert w\rvert$, so
+\[
+  \Delta_\alpha(\tau_a(w)) = \lvert w\rvert(1 - a\alpha) - \alpha\lvert w\rvert_1
+  = \alpha\beta\lvert w\rvert - \alpha\lvert w\rvert_1 .
+\]
+\end{proof}
+
+\begin{proposition}\label{prop:bound}
+$\lvert \Delta_\alpha(u)\rvert < 1$ for every factor $u$ of $\ell$.
+\end{proposition}
+
+\begin{proof}
+By induction on $\lvert u\rvert$, over all levels at once; $\alpha$ and $\beta$
+are the slopes of $\ell$ and $\ell'$, and $1/\alpha = a + \beta$.
+
+Write $u = \seq{0}^s\,\tau_a(u')\,q$ with $u'$ a factor of $\ell'$ and $q$ empty
+or $q = \seq{1}\seq{0}^t$ a \emph{proper} prefix of its block. A block has
+$a-1$ or $a$ zeros, so $s \leq a$ and $t \leq a-1$.
+
+For $u'$ empty, $\Delta_\alpha(u) = -\alpha s$ or $1 - \alpha(s+1+t)$, and
+$\alpha a < 1$ bounds both: $-1 < -\alpha a \leq -\alpha s \leq 0$ and
+$-1 < 1 - 2\alpha a \leq 1 - \alpha(s+1+t) \leq 1-\alpha$.
+
+For $u'$ nonempty, $s = a$ forces the block to the left of $u'$ to be the long
+one, so $\seq{1}u'$ is a factor of $\ell'$. Also
+\[
+  \lvert u\rvert \;\geq\; s + a\lvert u'\rvert + \lvert u'\rvert_1
+  \;\geq\; a(1 + \lvert u'\rvert) \;>\; \lvert u'\rvert + 1 ,
+\]
+so the induction hypothesis applies to $u'$ and to $\seq{1}u'$. By
+Lemma~\ref{lem:dev},
+\[
+  \Delta_\alpha(u) \;=\; -\alpha s - \alpha\Delta_\beta(u')
+  \;+\; \begin{cases} 1 - \alpha(1+t) & q \neq \epsilon \\ 0 & q = \epsilon .\end{cases}
+\]
+For the upper bound, $\Delta_\beta(u') > -1$ gives $-\alpha s -
+\alpha\Delta_\beta(u') < \alpha$ when $q = \epsilon$, and $s + 1 + t +
+\Delta_\beta(u') > 0$ gives $\Delta_\alpha(u) < 1$ when $q \neq \epsilon$.
+
+For the lower bound, $s = a$ gives $\Delta_\beta(\seq{1}u') = 1 - \beta +
+\Delta_\beta(u') < 1$, hence $\Delta_\beta(u') < \beta$. Now:
+\[
+  \begin{array}{llll}
+    q = \epsilon, & s \leq a-1: & \alpha(s + \Delta_\beta(u')) < \alpha a & < 1 \\
+    q = \epsilon, & s = a: & \alpha(a + \beta) & = 1 \\
+    q \neq \epsilon, & s \leq a-1: & \alpha(s+1+t+\Delta_\beta(u')) < 2\alpha a & < 2 \\
+    q \neq \epsilon, & s = a: & \alpha(2a + \beta) = \alpha a + 1 & < 2 .
+  \end{array}
+\]
+\end{proof}
+
+\begin{lemma}\label{lem:countup}
+The number of $1$s among the first $N$ letters of $\Cp(\alpha,x)$ is
+$\lceil N\alpha + x\rceil - \lceil x \rceil$.
+\end{lemma}
+
+\begin{proof}
+Sum Lemma~\ref{lem:mech} over $k < N$.
+\end{proof}
+
+Let $S(N)$ be the number of $1$s among the first $N$ letters of $\ell$, and
+\[
+  D(N) \;=\; S(N) - N\alpha, \qquad D(0) = 0 .
+\]
+For $M < N$, $D(N) - D(M) = \Delta_\alpha(u)$ for the factor $u = \ell_M \cdots
+\ell_{N-1}$, so Proposition~\ref{prop:bound} says the values of $D$ lie in an
+interval of length at most $1$.
+
+\begin{theorem}\label{thm:step5}
+Put $x = \sup_{N \geq 0} D(N)$. Then $x \in [0,1]$, and
+\[
+  \ell \;=\; \begin{cases}
+    \C(\alpha, x) & \text{if the supremum is attained} \\
+    \Cp(\alpha, x) & \text{if not, and } x < 1 \\
+    \Cp(\alpha, 0) & \text{if not, and } x = 1 .
+  \end{cases}
+\]
+\end{theorem}
+
+\begin{proof}
+$D(0) = 0$ gives $x \geq 0$, and $D(N) - D(0) < 1$ gives $x \leq 1$.
+
+Attained at $N_0$: then $D(N) \leq x$ and $x - D(N) = D(N_0) - D(N) < 1$ for
+every $N$, so $S(N) \leq N\alpha + x < S(N)+1$ and
+$\lfloor N\alpha + x\rfloor = S(N)$. Lemma~\ref{lem:mech} gives
+$\C(\alpha,x)_k = S(k+1) - S(k) = \ell_k$.
+
+Not attained: then $D(N) < x$ for every $N$, and $x \leq D(N) + 1$. For
+$x \in (0,1)$ this reads $S(N) < N\alpha + x \leq S(N)+1$, so
+$\lceil N\alpha + x\rceil = S(N) + 1$ and Lemma~\ref{lem:countup} applies with
+$\lceil x\rceil = 1$. For $x = 1$ it reads $S(N) \geq N\alpha$ and
+$S(N) < N\alpha + 1$, so $\lceil N\alpha \rceil = S(N)$.
+\end{proof}
+
+Together with Lemma~\ref{lem:slope} this is step 5, and
+Theorem~\ref{thm:mh} is proved. The sequence $\seq{1}c$ of
+Theorem~\ref{thm:counterex} is the third case: its $D(N) = 1 - \{N\alpha\}$ has
+supremum $1$, attained nowhere.
 
 \section{The substitution}
 
@@ -810,19 +942,13 @@ $Q < 0$ the value is $-\lfloor (P + a_0)/(-Q)\rfloor - 1$.
 
 \section{What is not proved here}
 
-\begin{enumerate}
-\item The converse half of Theorem~\ref{thm:mh}: \textbf{step 5 only} of the
-  list in \S6. It is the Ostrowski convergence argument that pins the intercept
-  $x$. Steps 2 and 4 were on this list and are now
-  Propositions~\ref{prop:blocks} and \ref{prop:derived}.
-\item Nothing else. Both halves of Lagrange's theorem are now proved and
-  formalised: Euler's (\S9, \texttt{lean/Lagrange.lean}) and Lagrange's own
-  (Theorem~\ref{thm:lagrange1770}, \texttt{lean/Quadratic.lean}). Every other
-  assertion of \texttt{sturmian.tex} is proved
-  above, and the numbers in its tables --- the slopes, the four derived
-  sequences of $n = 7$, the gap lists for $n = 2$ and $n = 7$, the four factors
-  of length $3$ --- have been checked in exact arithmetic in
-  $\mathbb{Q}(\sqrt n)$.
-\end{enumerate}
+Nothing. Both halves of Lagrange's theorem are proved and formalised. Euler's
+is \S10, in \texttt{lean/Lagrange.lean}; Lagrange's own is
+Theorem~\ref{thm:lagrange1770}, in \texttt{lean/Quadratic.lean}.
+
+The numbers in the tables of \texttt{sturmian.tex} --- the slopes, the four
+derived sequences of $n = 7$, the gap lists for $n = 2$ and $n = 7$, the four
+factors of length $3$ --- have been checked in exact arithmetic in
+$\mathbb{Q}(\sqrt n)$.
 
 \end{document}
