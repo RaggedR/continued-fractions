@@ -13,7 +13,9 @@ Five claims:
   B  for C+ and for rational intercepts the records of D never stop: the last
      one moves out when the window doubles
   C  no TAIL of the tower decides attainment.  At n = 2 and n = 5 an attained
-     and a non-attained word have towers agreeing from level 2 on
+     and a non-attained word have towers differing at levels 0 and 1 only --
+     checked here to the depth a 200000-letter word supports, and separately to
+     depth 15 at n = 2 on two million letters
   D  no BOUNDED WINDOW decides it either.  The deepest agreement between an
      attained and a non-attained tower grows with the range of shifts searched
   E  k0_j = a_j for all j holds for no attained word: at n = 3 and n = 7 the

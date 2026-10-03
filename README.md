@@ -31,7 +31,8 @@ figures with the source kept.
 | `sturmian.tex` / `.pdf` | The Sturmian side: codings of an irrational rotation, derived sequences, and the tower of derivations of √n. Assertion-dense — written to be checked, and it was. |
 | `all-the-proofs.tex` / `.pdf` | Proofs of everything `sturmian.tex` asserts, plus the corrections it needed. This is what `lean/Sturmian.lean` and `lean/Lagrange.lean` formalise. |
 | `step5_check.py` | The numerics behind `all-the-proofs.tex` §7, asserting rather than printing: the factor bound, the block decomposition over 3,024,000 windows starting at position 0, and the recovery of the intercept as `x = sup_N (S(N) − Nα)`. |
-| `research-question.txt` | The one thing §7 opens and does not close: `thm:step5` splits on whether `sup_N D(N)` is attained, and `thm:counterex` is the extreme point of that split rather than a separate pathology. Asks for a characterisation from the derivation tower, and says what is not known. |
+| `attainment.py` | The numerics behind `research-question.txt`, asserting rather than printing: the supremum is attained at the one index `M = N` when the intercept is `{−Nα}`, and neither a tail of the derivation tower nor any bounded window of it decides attainment. Exact in ℤ[√n]; 16 seconds. |
+| `research-question.txt` | The one thing §7 opens and does not close: `thm:step5` splits on whether `sup_N D(N)` is attained, and `thm:counterex` is the extreme point of that split rather than a separate pathology. The closed form is settled — attained exactly when the intercept lies in the backward orbit of 0 — and two shapes of answer are ruled out, so what is left is a condition reading the whole derivation tower. |
 | `papers/` | Scans of Euler 1767, Lagrange 1770 and Legendre 1798, with an article-level index of where each theorem actually is. |
 | `original/` | The 14 September originals, for comparison: `period-histogram.pdf`, `period-distribution.pdf`, and the `period-histogram.txt` write-up. Kept unmodified. |
 
@@ -76,11 +77,13 @@ none of this was transcription.
 ## Reproducing
 
 ```bash
-python3 period.py     # ~1 min, writes data/periods.npz
+python3 period.py       # ~1 min, writes data/periods.npz
 python3 analyse.py
 python3 plots.py
+python3 step5_check.py  # §7, asserts
+python3 attainment.py   # research-question.txt, asserts
 tectonic method.tex
-lean/build.sh         # ~3 min, checks all four Lean files and prints the axiom report
+lean/build.sh           # ~1 min, checks all five Lean files and prints the axiom report
 ```
 
 Needs numpy, matplotlib, tectonic.
