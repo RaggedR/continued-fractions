@@ -4,6 +4,7 @@
 \usepackage{microtype}
 \usepackage{booktabs}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{tikz}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
@@ -20,152 +21,634 @@
 \maketitle
 \vspace{-1.5em}
 
-\section{What is to be proved}
+\section{$\sqrt 2$}
 
-\begin{theorem}\label{main}
-Let $n$ be a positive integer that is not a perfect square, and let $a_0 = \lfloor\sqrt n\rfloor$. Then the continued fraction of $\sqrt n$ is
+Let $x = \sqrt 2$. Then $x^2 - 1 = (x-1)(x+1) = 1$, so:
 \[
-  \sqrt n \;=\; [\,a_0;\ \overline{a_1, a_2, \ldots, a_{L-1},\ 2a_0}\,]
+  x \;=\; 1 + \cfrac{1}{1+x}.
 \]
-for some $L \geq 1$, where the block closes with $2a_0$ and the remaining terms read the same in both directions:
+Feed it into itself. Replacing the $x$ in the denominator,
+\[
+  \sqrt 2 \;=\; 1 + \cfrac{1}{2 + \cfrac{1}{1+x}}
+    \;=\; 1 + \cfrac{1}{2 + \cfrac{1}{2 + \cfrac{1}{1+x}}}
+    \;=\; \cdots
+    \;=\; 1 + \cfrac{1}{2 + \cfrac{1}{2 + \cfrac{1}{2 + \ddots}}} .
+\]
+This is called a continued fraction.
+
+\section{$\sqrt 7$}
+
+Let $x = \sqrt 7$. Then $(x-2)(x+2) = x^2 - 4 = 3$, so $x - 2 = 3/(x+2)$, and:
+\[
+  x \;=\; 2 + \cfrac{3}{x+2}.
+\]
+Feed it into itself. Adding $2$ to both sides gives $x + 2 = 4 + 3/(x+2)$, so
+replacing the $x+2$ in the denominator,
+\[
+  \sqrt 7 \;=\; 2 + \cfrac{3}{4 + \cfrac{3}{x+2}}
+    \;=\; 2 + \cfrac{3}{4 + \cfrac{3}{4 + \cfrac{3}{x+2}}}
+    \;=\; \cdots
+    \;=\; 2 + \cfrac{3}{4 + \cfrac{3}{4 + \cfrac{3}{4 + \ddots}}} .
+\]
+
+This is nice, but it's not quite what we want. We want all the numerators to
+be $1$. This can be obtained with some work.
+
+Divide the top and bottom of $3/(x+2)$ by $3$:
+\[
+  \sqrt 7 \;=\; 2 + \cfrac{1}{(x+2)/3}.
+\]
+We need an expression for $(x+2)/3$, so subtract $1$ to get $(x-1)/3$, and use
+$(x-1)(x+1) = 6$ to get:
+\[
+  \frac{3}{x-1} \;=\; \frac{3(x+1)}{6} \;=\; \frac{x+1}{2},
+  \qquad\text{so}\qquad
+  \sqrt 7 \;=\; 2 + \cfrac{1}{1 + \cfrac{1}{(x+1)/2}}.
+\]
+Now we need an expression for $(x+1)/2$, so subtract $1$ again, and
+use $(x-1)(x+1) = 6$ again to get:
+\[
+  \frac{2}{x-1} \;=\; \frac{2(x+1)}{6} \;=\; \frac{x+1}{3},
+  \qquad\text{so}\qquad
+  \sqrt 7 \;=\; 2 + \cfrac{1}{1 + \cfrac{1}{1 + \cfrac{1}{(x+1)/3}}}.
+\]
+Now we need an expression for $(x+1)/3$, so subtract $1$ again, and use
+$(x-2)(x+2) = 3$ to get:
+\[
+  \frac{3}{x-2} \;=\; \frac{3(x+2)}{3} \;=\; x+2,
+  \qquad\text{so}\qquad
+  \sqrt 7 \;=\; 2 + \cfrac{1}{1 + \cfrac{1}{1 + \cfrac{1}{1 + \cfrac{1}{x+2}}}}.
+\]
+Now we need an expression for $x+2$, so subtract $4$, and use
+$(x-2)(x+2) = 3$ again to get:
+\[
+  \frac{1}{x-2} \;=\; \frac{x+2}{3},
+  \qquad\text{so}\qquad
+  \sqrt 7 \;=\; 2 + \cfrac{1}{1 + \cfrac{1}{1 + \cfrac{1}{1 + \cfrac{1}{4 + \cfrac{1}{(x+2)/3}}}}}.
+\]
+We are back where we started. We already have an expression for
+$(x+2)/3$, so:
+\[
+  \sqrt 7 \;=\; 2 + \cfrac{1}{1 + \cfrac{1}{1 + \cfrac{1}{1 + \cfrac{1}{4 + \cfrac{1}{1 + \ddots}}}}} .
+\]
+
+\clearpage
+\section{The two theorems}
+
+The tower
+\[
+  a_0 + \cfrac{1}{a_1 + \cfrac{1}{a_2 + \cfrac{1}{a_3 + \ddots}}}
+\]
+is written $[\,a_0;\, a_1, a_2, a_3, \ldots\,]$.
+
+\begin{center}
+\colorbox{yellow!25}{%
+\begin{minipage}{0.93\textwidth}
+\begin{theorem}[Lagrange]\label{periodic}
+Let $n$ be a positive integer that is not a perfect square. Then
+\[
+  \sqrt n \;=\; [\,a_0;\ \overline{a_1, a_2, \ldots, a_L}\,]
+\]
+for some $L \geq 1$.
+\end{theorem}
+\end{minipage}}
+\end{center}
+
+The least such $L$ is the \emph{period}.
+
+\begin{center}
+\colorbox{yellow!25}{%
+\begin{minipage}{0.93\textwidth}
+\begin{theorem}[Legendre]\label{main}
+With $n$ and $L$ as above and $a_0 = \lfloor\sqrt n\rfloor$,
+\[
+  \sqrt n \;=\; [\,a_0;\ \overline{a_1, a_2, \ldots, a_{L-1},\ 2a_0}\,],
+\]
+and
 \[
   a_i \;=\; a_{L-i} \qquad (1 \leq i \leq L-1).
 \]
 \end{theorem}
+\end{minipage}}
+\end{center}
 
-The result is due to Legendre; the machinery it rests on is Galois', who proved it in 1828--29 while still at school.
+\section{The field $\mathbb{Q}(\sqrt n)$}
 
-The proof below is elementary throughout. The palindrome itself takes three lines once one fact is available, and essentially all of the work is in establishing that fact, which is Theorem~\ref{galois}.
+Fix for the rest of the paper a positive integer $n$ that is not a perfect
+square. Everything that follows happens inside a field just a little larger
+than the rationals.
 
-\section{The expansion in integer form}
+\begin{lemma}\label{irrational}
+$\sqrt n$ is irrational.
+\end{lemma}
 
-For irrational $x$ write $\alpha_0 = x$, $a_i = \lfloor \alpha_i\rfloor$, and $\alpha_{i+1} = 1/(\alpha_i - a_i)$. The $\alpha_i$ are the \emph{complete quotients} and the $a_i$ the \emph{partial quotients}. The expansion of an irrational number is infinite, and it is unique: distinct sequences $(a_i)$ give distinct values. We use that uniqueness at the end without further comment.
+\begin{proof}
+Suppose $\sqrt n = p/q$ with $p, q$ integers, $q > 0$ and $\gcd(p,q) = 1$.
+Then $p^2 = nq^2$, so $q^2$ divides $p^2$. But $\gcd(p,q) = 1$ gives
+$\gcd(p^2,q^2) = 1$, so $q^2 = 1$ and $n = p^2$ is a perfect square.
+\end{proof}
 
-For $x = \sqrt n$ every complete quotient has the shape
+Write
 \[
-  \alpha_i \;=\; \frac{P_i + \sqrt n}{Q_i}
+  \mathbb{Q}(\sqrt n) \;=\; \bigl\{\, p + q\sqrt n \;:\; p, q \in \mathbb{Q}
+    \,\bigr\} \;\subset\; \mathbb{R} .
 \]
-with $P_i, Q_i$ integers, $Q_i \neq 0$ and $Q_i \mid n - P_i^2$. Starting from $P_0 = 0$, $Q_0 = 1$, an induction gives
+This set is closed under addition and subtraction, and also under
+multiplication, because $\sqrt n \cdot \sqrt n = n$ stays inside:
 \[
-  a_i = \left\lfloor \frac{a_0 + P_i}{Q_i} \right\rfloor,
-  \qquad
-  P_{i+1} = a_i Q_i - P_i,
-  \qquad
-  Q_{i+1} = \frac{n - P_{i+1}^2}{Q_i},
+  (p + q\sqrt n)(p' + q'\sqrt n)
+    \;=\; (pp' + nqq') \;+\; (pq' + p'q)\sqrt n .
 \]
-the divisibility being preserved at each step because $n - P_{i+1}^2 = (n - P_i^2) + Q_i(2P_i - a_iQ_i)$ and $Q_i$ divides both summands. So the whole expansion is generated in exact integer arithmetic.
+Division is the only thing needing an argument, and it is where
+Lemma~\ref{irrational} earns its keep.
 
-\section{Reduced surds, and why there are finitely many}
+\begin{lemma}\label{basis}
+Every element of $\mathbb{Q}(\sqrt n)$ is $p + q\sqrt n$ for exactly one pair
+$(p,q) \in \mathbb{Q} \times \mathbb{Q}$, and every nonzero element has an
+inverse in $\mathbb{Q}(\sqrt n)$. So $\mathbb{Q}(\sqrt n)$ is a field.
+\end{lemma}
+
+\begin{proof}
+If $p + q\sqrt n = p' + q'\sqrt n$ with $q \neq q'$, then
+$\sqrt n = (p - p')/(q' - q)$ is rational, contradicting
+Lemma~\ref{irrational}. So $q = q'$, and then $p = p'$.
+
+Now let $\alpha = p + q\sqrt n \neq 0$. First, $p^2 - nq^2 \neq 0$: if $q = 0$
+it is $p^2$ and $p \neq 0$; if $q \neq 0$ then $p^2 = nq^2$ would make
+$\sqrt n = \pm p/q$ rational. Multiplying numerator and denominator by
+$p - q\sqrt n$,
+\[
+  \frac{1}{p + q\sqrt n} \;=\; \frac{p - q\sqrt n}{p^2 - nq^2} ,
+\]
+which is again of the required shape.
+\end{proof}
+
+The trick in that last line is the one every schoolchild learns as
+\emph{rationalising the denominator}. Its two ingredients deserve names.
 
 \begin{definition}
-A quadratic irrational $\alpha$ is \emph{reduced} if $\alpha > 1$ and its conjugate satisfies $-1 < \bar\alpha < 0$.
+The \emph{conjugate} and the \emph{norm} of $\alpha = p + q\sqrt n$ are
+\[
+  \bar\alpha \;=\; p - q\sqrt n ,
+  \qquad
+  N(\alpha) \;=\; \alpha\,\bar\alpha \;=\; p^2 - nq^2 \;\in\; \mathbb{Q} .
+\]
 \end{definition}
 
-\begin{lemma}\label{bounds}
-If $\alpha = (P+\sqrt n)/Q$ is reduced, then
+\noindent
+By the uniqueness half of Lemma~\ref{basis} the conjugate is well defined. In
+analogy with the complex case it is a field automorphism: it clearly respects
+sums, and for products
 \[
-  0 < P < \sqrt n \qquad\text{and}\qquad 0 < Q < 2\sqrt n .
+  \bar\alpha\,\bar\beta \;=\; (p - q\sqrt n)(p' - q'\sqrt n)
+    \;=\; (pp' + nqq') - (pq' + p'q)\sqrt n
+    \;=\; \overline{\alpha\beta} .
 \]
-In particular only finitely many reduced surds are attached to a given $n$.
+It is an involution, $\bar{\bar\alpha} = \alpha$, and it fixes exactly the
+rationals, since $q = -q$ forces $q = 0$. Hence the norm is multiplicative,
+\[
+  N(\alpha\beta) \;=\; \alpha\beta\,\overline{\alpha\beta}
+    \;=\; (\alpha\bar\alpha)(\beta\bar\beta) \;=\; N(\alpha)N(\beta) ,
+\]
+and the inverse computed above is just $\alpha^{-1} = \bar\alpha/N(\alpha)$.
+
+One warning, because the whole proof of Theorem~\ref{main} turns on it:
+conjugation has nothing to do with the ordering of $\mathbb{R}$. It is an
+automorphism of the field, not of the ordered field, and $\alpha$ and
+$\bar\alpha$ are two unrelated real numbers. The strategy will be to arrange
+that $\alpha_i > 1$ while $\bar\alpha_i$ lies in $(-1,0)$, and then to read the
+algorithm off the conjugates.
+
+\section{The general algorithm}
+
+Now let us look at the general algorithm. Write $\lfloor\alpha\rfloor$ for the
+largest integer not exceeding $\alpha$. Then starting with
+$\alpha_0 = x = \sqrt n$ we have
+\[
+  \alpha_0 \;=\; \lfloor\alpha_0\rfloor + \varepsilon_1 ,
+\]
+where $0 < \varepsilon_1 < 1$ because $x$ is irrational
+(Lemma~\ref{irrational}). Turn $\varepsilon_1$
+over to get $\alpha_1 = 1/\varepsilon_1 > 1$, and repeat:
+\[
+  \alpha_1 \;=\; \lfloor\alpha_1\rfloor + \varepsilon_2 ,
+  \qquad
+  \alpha_2 \;=\; \frac{1}{\varepsilon_2} ,
+\]
+and so on for ever. Writing $a_i = \lfloor\alpha_i\rfloor$,
+\[
+  \alpha_i \;=\; a_i + \varepsilon_{i+1} ,
+  \qquad
+  \alpha_{i+1} \;=\; \frac{1}{\varepsilon_{i+1}} .
+\]
+For $x = \sqrt 7$ these are the numbers we met:
+\begin{align*}
+  \alpha_0 &= x,\\
+  \alpha_1 &= \frac{x+2}{3},\\
+  \alpha_2 &= \frac{x+1}{2},\\
+  \alpha_3 &= \frac{x+1}{3},\\
+  \alpha_4 &= x+2,\\
+  \alpha_5 &= \alpha_1 .
+\end{align*}
+
+The $\alpha_i$ are the \emph{complete quotients} and the
+$a_i$ the \emph{partial quotients}.
+
+Look again at the complete quotients of $\sqrt 7$. Every one of them has the
+shape
+\[
+  \frac{P + \sqrt 7}{Q}
+\]
+with $P$ and $Q$ whole numbers:
+\[
+  \begin{array}{c|ccccc}
+    i   & 0 & 1 & 2 & 3 & 4 \\ \hline
+    P_i & 0 & 2 & 1 & 1 & 2 \\
+    Q_i & 1 & 3 & 2 & 3 & 1
+  \end{array}
+\]
+\begin{lemma}\label{pq}
+Put $P_0 = 0$ and $Q_0 = 1$, and define
+\[
+  P_{i+1} \;=\; a_i Q_i - P_i ,
+  \qquad
+  Q_{i+1} \;=\; \frac{n - P_{i+1}^2}{Q_i} .
+\]
+Then every $P_i$ and $Q_i$ is a whole number, and
+\[
+  \alpha_i \;=\; \frac{P_i + \sqrt n}{Q_i} .
+\]
 \end{lemma}
 
 \begin{proof}
-Here $\bar\alpha = (P-\sqrt n)/Q$. From $\alpha - \bar\alpha = 2\sqrt n / Q > 0$ we get $Q > 0$. From $\bar\alpha < 0$ and $Q>0$ we get $P < \sqrt n$. From $\bar\alpha > -1$, that is $(\sqrt n - P)/Q < 1$, we get $Q > \sqrt n - P$, and combined with $\alpha > 1$, that is $P + \sqrt n > Q$, we get
+This is proof by induction. Subtracting $a_i$ leaves
 \[
-  \sqrt n - P \;<\; Q \;<\; P + \sqrt n .
+  \varepsilon_{i+1} \;=\; \frac{P_i + \sqrt n}{Q_i} - a_i
+    \;=\; \frac{\sqrt n - (a_iQ_i - P_i)}{Q_i}
+    \;=\; \frac{\sqrt n - P_{i+1}}{Q_i} .
 \]
-The left inequality forces $P > \sqrt n - Q$ and, with the right, $P>0$: indeed if $P \leq 0$ then $Q < P + \sqrt n \leq \sqrt n$ while $Q > \sqrt n - P \geq \sqrt n$, a contradiction. Finally $Q < P + \sqrt n < 2\sqrt n$.
-\end{proof}
-
-\begin{lemma}\label{preserve}
-If $\alpha_i$ is reduced then so is $\alpha_{i+1}$.
-\end{lemma}
-
-\begin{proof}
-Since $\alpha_i$ is irrational, $0 < \alpha_i - a_i < 1$, so $\alpha_{i+1} = 1/(\alpha_i-a_i) > 1$. Conjugation is a field automorphism, so $\bar\alpha_{i+1} = 1/(\bar\alpha_i - a_i)$. As $\alpha_i > 1$ we have $a_i \geq 1$, and as $\bar\alpha_i < 0$ we get $\bar\alpha_i - a_i < -1$; hence $\bar\alpha_{i+1}$ lies in $(-1,0)$.
-\end{proof}
-
-\begin{lemma}\label{reverse}
-A reduced $\alpha_{i+1}$ determines $a_i$, and hence $\alpha_i$. Explicitly $a_i = \lfloor -1/\bar\alpha_{i+1} \rfloor$.
-\end{lemma}
-
-\begin{proof}
-Inverting $\bar\alpha_{i+1} = 1/(\bar\alpha_i - a_i)$ gives $-1/\bar\alpha_{i+1} = a_i - \bar\alpha_i$. Since $\bar\alpha_i \in (-1,0)$, the right side lies in $(a_i, a_i+1)$, so its floor is $a_i$. Then $\alpha_i = a_i + 1/\alpha_{i+1}$.
-\end{proof}
-
-\begin{theorem}\label{galois}
-Every reduced quadratic irrational has a purely periodic continued fraction.
-\end{theorem}
-
-\begin{proof}
-Let $\alpha = \alpha_0$ be reduced. By Lemma~\ref{preserve} every $\alpha_i$ is reduced, and by Lemma~\ref{bounds} they all lie in a finite set. So $\alpha_j = \alpha_k$ for some $j < k$; choose such a pair with $k$ least, and among those, $j$ least. If $j \geq 1$ then Lemma~\ref{reverse}, applied to the equal reduced surds $\alpha_j = \alpha_k$, gives $\alpha_{j-1} = \alpha_{k-1}$, contradicting minimality. Hence $j = 0$ and the expansion repeats from the very beginning.
-\end{proof}
-
-\section{Reversal}
-
-Let $M(a) = \begin{pmatrix} a & 1 \\ 1 & 0\end{pmatrix}$, acting on numbers by
-$\begin{pmatrix} r & s \\ u & v \end{pmatrix}\!\cdot x = \dfrac{rx+s}{ux+v}$, so that $M(a)\cdot x = a + 1/x$ and
+Now:
 \[
-  [\,a_0; a_1, \ldots, a_m, x\,] \;=\; M(a_0)M(a_1)\cdots M(a_m)\cdot x .
+  \alpha_{i+1} \;=\; \frac{1}{\varepsilon_{i+1}}
+    \;=\; \frac{Q_i}{\sqrt n - P_{i+1}}
+    \;=\; \frac{Q_i\,(P_{i+1} + \sqrt n)}{n - P_{i+1}^2}
+    \;=\; \frac{P_{i+1} + \sqrt n}{Q_{i+1}} .
 \]
-
-Two features of $M$ do all the work. Each $M(a)$ is \emph{symmetric}, so reversing a product transposes it:
-\[
-  \bigl(M(b_0)M(b_1)\cdots M(b_m)\bigr)^{\!\top} \;=\; M(b_m)\cdots M(b_1)M(b_0) .
-\]
-And a matrix and its transpose have related fixed points.
-
-\begin{lemma}\label{fixed}
-Let $A = \begin{pmatrix} p & p' \\ q & q'\end{pmatrix}$ with $q \neq 0$. The fixed points of $A$ are the roots of $q x^2 + (q'-p)x - p' = 0$, those of $A^\top$ the roots of $p' x^2 + (q'-p)x - q = 0$, and the two sets are related by $x \mapsto -1/x$.
-\end{lemma}
-
-\begin{proof}
-$A\cdot x = x$ reads $(px+p')/(qx+q') = x$, which is the first equation; the second is the same computation for $A^\top$. Substituting $x = -1/y$ into the first and multiplying by $-y^2$ gives $p'y^2 + (q'-p)y - q = 0$, the second.
+By assumption $Q_i$ divides $n - P_i^2$. We must show that it divides
+$n - P_{i+1}^2$:
+\begin{align*}
+  n - P_{i+1}^2 \;&=\; n - (a_iQ_i - P_i)^2 \\
+    \;&=\; (n - P_i^2) + Q_i\,a_i(2P_i - a_iQ_i) ,
+\end{align*}
+which is divisible by $Q_i$. So $Q_{i+1}$ is a whole number, and it divides
+$n - P_{i+1}^2$ because $Q_iQ_{i+1} = n - P_{i+1}^2$.
 \end{proof}
 
-\begin{lemma}\label{revlemma}
-Let $\alpha$ be reduced with purely periodic expansion $[\,\overline{b_0; b_1,\ldots,b_m}\,]$. Then
+\clearpage
+\section{Only finitely many $P$ and $Q$}
+
+We now have an algorithm for calculating $P$ and $Q$:
+
+\begin{verbatim}
+    from math import isqrt
+
+    def pq(n, steps):
+        a0 = isqrt(n)
+        P, Q = 0, 1
+        for _ in range(steps):
+            a = (a0 + P) // Q
+            P = a * Q - P
+            Q = (n - P * P) // Q
+            print(a, P, Q)
+\end{verbatim}
+
+One period of it, for three values of $n$:
 \[
-  -\frac{1}{\bar\alpha} \;=\; [\,\overline{b_m; b_{m-1},\ldots,b_0}\,].
+  \begin{array}{c|cccc}
+    i   & 1 & 2 & 3 & 4 \\ \hline
+    P_i & 2 & 1 & 1 & 2 \\
+    Q_i & 3 & 2 & 3 & 1
+  \end{array}
+  \qquad
+  \begin{array}{c|ccccc}
+    i   & 1 & 2 & 3 & 4 & 5 \\ \hline
+    P_i & 3 & 1 & 2 & 1 & 3 \\
+    Q_i & 4 & 3 & 3 & 4 & 1
+  \end{array}
+  \qquad
+  \begin{array}{c|cccccc}
+    i   & 1 & 2 & 3 & 4 & 5 & 6 \\ \hline
+    P_i & 4 & 2 & 3 & 3 & 2 & 4 \\
+    Q_i & 3 & 5 & 2 & 5 & 3 & 1
+  \end{array}
+\]
+
+Plot them:
+
+\begin{center}
+\begin{tikzpicture}[x=0.66cm,y=0.34cm,baseline=0pt]
+  \fill[black!8] (0,2.6458) -- (2.6458,0) -- (2.6458,5.2915) -- cycle;
+  \draw[thick] (0,2.6458) -- (2.6458,0) -- (2.6458,5.2915) -- cycle;
+  \draw[->] (0,0) -- (3.45,0) node[above]{$P$};
+  \draw[->] (0,0) -- (0,6.89) node[left]{$Q$};
+  \foreach \p/\q in {2/2,2/4} \fill[black!30] (\p,\q) circle (1.5pt);
+  \foreach \p/\q in {2/3,1/2,1/3,2/1} \fill (\p,\q) circle (2.3pt);
+  \node[left=1pt]  at (0,2.6458) {$\sqrt{7}$};
+  \node[below=1pt] at (2.6458,0) {$\sqrt{7}$};
+  \node[above=2pt] at (2.6458,5.2915) {$2\sqrt{7}$};
+  \node at (1.32,-3.40) {$n = 7$};
+\end{tikzpicture}
+\hspace{2em}
+\begin{tikzpicture}[x=0.66cm,y=0.34cm,baseline=0pt]
+  \fill[black!8] (0,3.6056) -- (3.6056,0) -- (3.6056,7.2111) -- cycle;
+  \draw[thick] (0,3.6056) -- (3.6056,0) -- (3.6056,7.2111) -- cycle;
+  \draw[->] (0,0) -- (4.41,0) node[above]{$P$};
+  \draw[->] (0,0) -- (0,8.81) node[left]{$Q$};
+  \foreach \p/\q in {2/2,2/4,2/5,3/2,3/3,3/5,3/6} \fill[black!30] (\p,\q) circle (1.5pt);
+  \foreach \p/\q in {3/4,1/3,2/3,1/4,3/1} \fill (\p,\q) circle (2.3pt);
+  \node[left=1pt]  at (0,3.6056) {$\sqrt{13}$};
+  \node[below=1pt] at (3.6056,0) {$\sqrt{13}$};
+  \node[above=2pt] at (3.6056,7.2111) {$2\sqrt{13}$};
+  \node at (1.80,-3.40) {$n = 13$};
+\end{tikzpicture}
+\hspace{2em}
+\begin{tikzpicture}[x=0.66cm,y=0.34cm,baseline=0pt]
+  \fill[black!8] (0,4.3589) -- (4.3589,0) -- (4.3589,8.7178) -- cycle;
+  \draw[thick] (0,4.3589) -- (4.3589,0) -- (4.3589,8.7178) -- cycle;
+  \draw[->] (0,0) -- (5.16,0) node[above]{$P$};
+  \draw[->] (0,0) -- (0,10.32) node[left]{$Q$};
+  \foreach \p/\q in {1/4,1/5,2/4,2/6,3/3,3/4,3/6,3/7,4/2,4/4,4/5,4/6,4/7,4/8} \fill[black!30] (\p,\q) circle (1.5pt);
+  \foreach \p/\q in {4/3,2/5,3/2,3/5,2/3,4/1} \fill (\p,\q) circle (2.3pt);
+  \node[left=1pt]  at (0,4.3589) {$\sqrt{19}$};
+  \node[below=1pt] at (4.3589,0) {$\sqrt{19}$};
+  \node[above=2pt] at (4.3589,8.7178) {$2\sqrt{19}$};
+  \node at (2.18,-3.40) {$n = 19$};
+\end{tikzpicture}
+\end{center}
+
+We can think of this as a dynamical system. What is surprising is that the
+values of $(P,Q)$ always lie in the shaded triangle. Hence there are only
+finitely many of them.
+
+\begin{center}
+\colorbox{black!8}{%
+\begin{minipage}{0.93\textwidth}
+\begin{lemma}\label{finite}
+For $i \geq 1$ the pair $(P_i, Q_i)$ lies in the triangle:
+\[
+  0 < P_i < \sqrt n
+  \qquad\text{and}\qquad
+  \sqrt n - P_i \;<\; Q_i \;<\; \sqrt n + P_i .
 \]
 \end{lemma}
+\end{minipage}}
+\end{center}
 
 \begin{proof}
-Put $A = M(b_0)\cdots M(b_m)$. Pure periodicity says $\alpha = A\cdot\alpha$, so $\alpha$ is a fixed point of $A$; the fixed-point equation has rational coefficients and $\alpha$ is a quadratic irrational, so the other root is $\bar\alpha$. By symmetry of the factors, the reversed period has matrix $A^\top$, and the number $\beta = [\,\overline{b_m;\ldots,b_0}\,]$ satisfies $\beta = A^\top\cdot\beta$. By Lemma~\ref{fixed} the fixed points of $A^\top$ are $-1/\alpha$ and $-1/\bar\alpha$. Now $\alpha > 1$ gives $-1/\alpha \in (-1,0)$, while $\bar\alpha \in (-1,0)$ gives $-1/\bar\alpha > 1$. A purely periodic continued fraction with positive partial quotients exceeds $1$, so $\beta \neq -1/\alpha$, leaving $\beta = -1/\bar\alpha$.
+Induction on $i$. The base case is trivial, so suppose
+\[
+  0 < P_i < \sqrt n
+  \qquad\text{and}\qquad
+  \sqrt n - P_i \;<\; Q_i \;<\; \sqrt n + P_i .
+\]
+Two consequences, used throughout. The left half gives
+$Q_i > \sqrt n - P_i > 0$. The right half says $P_i + \sqrt n > Q_i$, that is
+$\alpha_i > 1$, so $a_i = \lfloor \alpha_i \rfloor \geq 1$.
+
+\smallskip
+\noindent\emph{Step 1: $Q_i < \sqrt n + P_{i+1}$.}\ \ Rearrange the recurrence
+$P_{i+1} = a_iQ_i - P_i$ of Lemma~\ref{pq}:
+\[
+  a_i\,Q_i \;=\; P_i + P_{i+1} .
+\]
+Since $a_i \geq 1$ and $Q_i > 0$ we may drop the $a_i$, and since
+$P_i < \sqrt n$ we may enlarge the right-hand side:
+\[
+  Q_i \;\leq\; a_iQ_i \;=\; P_i + P_{i+1} \;<\; \sqrt n + P_{i+1} .
+\]
+
+\smallskip
+\noindent\emph{Step 2: $0 < \sqrt n - P_{i+1} < Q_i$.}\ \ Multiply
+$\alpha_i = a_i + \varepsilon_{i+1}$ by $Q_i$. By Lemma~\ref{pq} the left side
+is $P_i + \sqrt n$, and by Step 1 the term $a_iQ_i$ is $P_i + P_{i+1}$, so
+\[
+  \varepsilon_{i+1}\,Q_i \;=\; (P_i + \sqrt n) - (P_i + P_{i+1})
+    \;=\; \sqrt n - P_{i+1} .
+\]
+Now $0 < \varepsilon_{i+1} < 1$ and $Q_i > 0$ give the claim.
+
+\smallskip
+\noindent\emph{Step 3: $0 < P_{i+1} < \sqrt n$.}\ \ Steps 1 and 2 together put
+$Q_i$ strictly between two numbers:
+\[
+  \sqrt n - P_{i+1} \;<\; Q_i \;<\; \sqrt n + P_{i+1} .
+\]
+If $P_{i+1}$ were $\leq 0$ the right number would not exceed the left, and no
+such $Q_i$ could exist. So $P_{i+1} > 0$; and $P_{i+1} < \sqrt n$ by Step 2.
+
+\smallskip
+\noindent\emph{Step 4: the bounds for $Q_{i+1}$.}\ \ By Lemma~\ref{pq},
+\[
+  Q_i\,Q_{i+1} \;=\; n - P_{i+1}^2
+    \;=\; (\sqrt n - P_{i+1})(\sqrt n + P_{i+1}) .
+\]
+So $Q_i$ and $Q_{i+1}$ are a pair of factors of that product, and each bound on
+$Q_i$ from Step 3 becomes the opposite bound on $Q_{i+1}$: from
+$Q_i < \sqrt n + P_{i+1}$ we get $Q_{i+1} > \sqrt n - P_{i+1}$, and from
+$Q_i > \sqrt n - P_{i+1}$ we get $Q_{i+1} < \sqrt n + P_{i+1}$.
+\end{proof}
+
+\section{M\"obius transformations}
+
+We already know that the fraction $1/2$ is the same as the fraction $2/4$, and
+more generally that
+\[
+  \frac{x}{y} \;=\; \frac{\lambda x}{\lambda y} \qquad (\lambda \neq 0) .
+\]
+In particular, if $xy' = x'y$ then taking $\lambda = y'/y$ we have
+\[
+  \lambda x \;=\; \frac{xy'}{y} \;=\; \frac{x'y}{y} \;=\; x' ,
+  \qquad
+  \lambda y \;=\; \frac{yy'}{y} \;=\; y' ,
+\]
+so
+\[
+  \frac{x'}{y'} \;=\; \frac{\lambda x}{\lambda y} \;=\; \frac{x}{y} .
+\]
+
+This allows us to define fractions as equivalence classes of pairs of integers:
+\[
+  \mathbb{Q} \;=\; \bigl\{ (x,y) \in \mathbb{Z} \times \mathbb{Z}
+    \;:\; y \neq 0 \bigr\} \big/ \sim ,
+  \qquad
+  (x,y) \sim (x',y') \iff x y' = y x' .
+\]
+Let us now add a \emph{point at infinity}:
+\[
+  \widehat{\mathbb{Q}} \;=\; \mathbb{Q} \cup \{\infty\} .
+\]
+A \emph{point} is an equivalence class, written $[x : y]$. There are two kinds
+of class:
+\[
+  \begin{array}{r@{\quad}l}
+    y \neq 0 : & [x : y] \;=\; [x/y : 1] ,
+      \qquad\text{an ordinary fraction;}\\[4pt]
+    y = 0 :    & [x : 0] \;=\; [1 : 0] ,
+      \qquad\text{one new point, written } \infty .
+  \end{array}
+\]
+
+\begin{definition}
+Let $A = \begin{pmatrix} r & s \\ u & v\end{pmatrix}$ with $\det A \neq 0$. Its
+\emph{M\"obius transformation} acts on $\widehat{\mathbb{Q}}$ by matrix
+multiplication:
+\[
+  A \cdot [x : y] \;=\; [\,rx + sy \;:\; ux + vy\,] .
+\]
+\end{definition}
+
+\noindent
+This is well defined on classes:
+\[
+  A \cdot [\lambda x : \lambda y]
+    \;=\; [\,\lambda(rx+sy) \;:\; \lambda(ux+vy)\,]
+    \;=\; [\,rx+sy \;:\; ux+vy\,]
+    \;=\; A \cdot [x : y] .
+\]
+
+For example
+\[
+  J \;=\; \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix} ,
+  \qquad
+  J \cdot [x : y] \;=\; [\,y : x\,] ,
+\]
+is the map $z \mapsto 1/z$. It sends $0 = [0:1]$ to $[1:0] = \infty$, and
+$\infty$ back to $0$.
+
+More generally:
+\[
+  A \cdot [x : 1] \;=\; [\,rx+s \;:\; ux+v\,]
+    \;=\; \left[\,\frac{rx+s}{ux+v} \;:\; 1\,\right] ,
+\]
+And $\infty$ is sent to the fraction $r/u$:
+\[
+  A\cdot\infty \;=\; A\cdot[1:0] \;=\; [\,r:u\,] ,
+\]
+which is $\infty$ again when $u = 0$.
+
+That last step of the first display divides by $ux+v$. At most one $x$ has
+$ux+v = 0$, namely $x = -v/u$:
+\[
+  A \cdot \left[\,-\frac{v}{u} \;:\; 1\,\right]
+    \;=\; \left[\,\frac{su-rv}{u} \;:\; 0\,\right]
+    \;=\; \infty .
+\]
+
+So $\infty$ just behaves like an ordinary point.
+
+
+
+\section{Conjugating the algorithm}
+
+Every complete quotient $\alpha_i = (P_i + \sqrt n)/Q_i$ lives in
+$\mathbb{Q}(\sqrt n)$, so we may conjugate it. Since conjugation is a field
+automorphism, applying it to $\alpha_i = a_i + 1/\alpha_{i+1}$ --- in which the
+$a_i$ are rational, hence fixed --- gives
+\[
+  \bar\alpha_i \;=\; a_i + \frac{1}{\bar\alpha_{i+1}} .
+\]
+For $i \geq 1$ Lemma~\ref{finite} gives $0 < \sqrt n - P_i < Q_i$, so
+\[
+  \bar\alpha_i \;=\; \frac{P_i - \sqrt n}{Q_i} \;\in\; (-1,0) .
+\]
+Now put
+\[
+  \beta_i \;=\; -\frac{1}{\bar\alpha_i}
+    \;=\; \frac{Q_i}{\sqrt n - P_i}
+    \;=\; \frac{Q_i\,(\sqrt n + P_i)}{n - P_i^2}
+    \;=\; \frac{P_i + \sqrt n}{Q_{i-1}} \;>\; 1 ,
+\]
+the last step by $Q_{i-1}Q_i = n - P_i^2$.
+
+\begin{center}
+\colorbox{black!8}{%
+\begin{minipage}{0.93\textwidth}
+\begin{lemma}\label{back}
+For $i \geq 1$,
+\[
+  \beta_{i+1} \;=\; a_i + \frac{1}{\beta_i} ,
+  \qquad
+  a_i \;=\; \lfloor \beta_{i+1} \rfloor .
+\]
+\end{lemma}
+\end{minipage}}
+\end{center}
+
+\begin{proof}
+$1/\bar\alpha_{i+1} = \bar\alpha_i - a_i$, so
+\[
+  \beta_{i+1} \;=\; a_i - \bar\alpha_i \;=\; a_i + \frac{1}{\beta_i} ,
+\]
+and $\beta_i > 1$.
+\end{proof}
+
+\section{Proof of Theorem~\ref{periodic}}
+
+\begin{proof}
+By Lemma~\ref{basis} the representation $\alpha_i = P_i/Q_i + (1/Q_i)\sqrt n$
+is unique, so $\alpha_i$ determines $P_i$ and $Q_i$. By Lemma~\ref{finite} there are finitely many pairs available
+for $i \geq 1$, so $\alpha_j = \alpha_k$ for some $1 \leq j < k$. Choose such a
+pair with $k$ least, and among those $j$ least.
+
+Suppose $j \geq 2$. Then $P_j = P_k$ and $Q_j = Q_k$, hence
+$Q_{j-1} = (n - P_j^2)/Q_j = Q_{k-1}$ and $\beta_j = \beta_k$. By
+Lemma~\ref{back}, $a_{j-1} = \lfloor\beta_j\rfloor = \lfloor\beta_k\rfloor
+= a_{k-1}$, and so
+\[
+  \alpha_{j-1} \;=\; a_{j-1} + \frac{1}{\alpha_j}
+    \;=\; a_{k-1} + \frac{1}{\alpha_k}
+    \;=\; \alpha_{k-1} ,
+\]
+contradicting the minimality of $k$. So $j = 1$, and with $L = k - 1$,
+\[
+  \alpha_{L+1} \;=\; \alpha_1 .
+\]
 \end{proof}
 
 \section{Proof of Theorem~\ref{main}}
 
 \begin{proof}
-Set $\alpha = a_0 + \sqrt n$. Then $\alpha > 1$, and $\bar\alpha = a_0 - \sqrt n$ lies in $(-1,0)$ because $a_0 = \lfloor\sqrt n\rfloor$ and $n$ is not a square. So $\alpha$ is reduced, and by Theorem~\ref{galois} its expansion is purely periodic.
-
-Its partial quotients are readable off those of $\sqrt n$. Indeed $\lfloor \alpha\rfloor = 2a_0$, and $\alpha - 2a_0 = \sqrt n - a_0$, so after the first term $\alpha$ and $\sqrt n$ have the same complete quotients. Writing $L$ for the period,
+$P_{L+1} = P_1$ and $Q_{L+1} = Q_1$, so
 \[
-  \alpha \;=\; [\,\overline{2a_0;\ a_1, a_2, \ldots, a_{L-1}}\,] ,
+  Q_L \;=\; \frac{n - P_{L+1}^2}{Q_{L+1}}
+    \;=\; \frac{n - P_1^2}{Q_1} \;=\; Q_0 \;=\; 1 ,
 \]
-and reading this back for $\sqrt n$ shows that its block is $a_1, \ldots, a_{L-1}, 2a_0$. That is the closing term.
-
-For the palindrome, consider the first complete quotient of $\sqrt n$,
+and $P_1 = a_0Q_0 - P_0 = a_0$. Now:
 \[
-  \alpha_1 \;=\; \frac{1}{\sqrt n - a_0} \;=\; -\frac{1}{\bar\alpha}.
+  \beta_{L+1} \;=\; \frac{P_{L+1} + \sqrt n}{Q_L} \;=\; a_0 + \sqrt n
+    \;=\; \beta_1 ,
+  \qquad
+  a_L \;=\; \lfloor \beta_{L+1} \rfloor \;=\; 2a_0 .
 \]
-On the one hand it is visibly $[\,\overline{a_1; a_2, \ldots, a_{L-1}, 2a_0}\,]$. On the other, Lemma~\ref{revlemma} applied to $\alpha$ gives
-\[
-  -\frac{1}{\bar\alpha} \;=\; [\,\overline{a_{L-1};\ a_{L-2}, \ldots, a_1,\ 2a_0}\,].
-\]
-Continued fraction expansions are unique, so the two sequences agree term by term:
-\[
-  a_1 = a_{L-1}, \quad a_2 = a_{L-2}, \quad \ldots
-\]
-which is the assertion.
-\end{proof}
 
-\begin{corollary}
-$B = M(a_1)M(a_2)\cdots M(a_{L-1})$ is a symmetric matrix.
-\end{corollary}
-
-\begin{proof}
-$B^\top$ is the product in reverse order, which by Theorem~\ref{main} is the same product.
+Expand $\beta_1 = a_0 + \sqrt n$ in two ways. Its integer part is $2a_0$ and
+\[
+  \beta_1 - 2a_0 \;=\; \sqrt n - a_0 \;=\; \frac{1}{\alpha_1} ,
+\]
+so $\beta_1 = [\,2a_0;\, a_1, a_2, a_3, \ldots\,]$, which is
+\[
+  \beta_1 \;=\; [\,\overline{2a_0;\ a_1, a_2, \ldots, a_{L-1}}\,] .
+\]
+The other way is Lemma~\ref{back} run downwards from $\beta_{L+1} = \beta_1$:
+\[
+  \beta_1 \;=\; a_L + \cfrac{1}{a_{L-1} + \cfrac{1}{\ddots
+    + \cfrac{1}{a_1 + \cfrac{1}{\beta_1}}}}
+  \;=\; [\,\overline{2a_0;\ a_{L-1}, a_{L-2}, \ldots, a_1}\,] .
+\]
+Continued fraction expansions are unique, so
+\[
+  a_i \;=\; a_{L-i} \qquad (1 \leq i \leq L-1) .
+\]
 \end{proof}
 
 \section{Checks and a consequence}

@@ -1,0 +1,35 @@
+What does it mean to be a mediocre mathematician in the age of AI?
+
+Well, one thing. You can easily ask questions, like, what are the continued fraction expansions of sqrt(n) for various n? The "greats" all calculated these by hand: Euler, Legendre, Lagrange, Fermat, Galois.... I just used Claude.
+
+√7 = [2; 1, 1, 1, 4]
+√13 = [3; 1, 1, 1, 1, 6]
+√19 = [4; 2, 1, 3, 1, 2, 8]
+√31 = [5; 1, 1, 3, 5, 3, 1, 1, 10]
+√61 = [7; 1, 4, 3, 1, 2, 2, 1, 3, 4, 1, 14]
+√94 = [9; 1, 2, 3, 1, 1, 5, 1, 8, 1, 5, 1, 1, 3, 2, 1, 18]
+
+It turns out every continued fraction of sqrt(n) is of the form:
+
+[a0; a1, a2, ... aL, 2a0]
+
+where the sequence after the semicolon repeats itself indefinitely and the sequence a1, a2, ..., aL is a palindrome.
+
+The palindrome part of our examples:
+
+1, 1, 1
+1, 1, 1, 1
+2, 1, 3, 1, 2
+1, 1, 3, 5, 3, 1, 1
+1, 4, 3, 1, 2, 2, 1, 3, 4, 1
+1, 2, 3, 1, 1, 5, 1, 8, 1, 5, 1, 1, 3, 2, 1
+
+This is surprisingly "fiddly" to prove, even though it is only "elementary" techniques.
+
+I have five research agents writing papers for me autonomously. And begging me to publish them. But I don't understand what they've written.
+
+If a theorem lies proven in an paper from the 18th century in a dusty old box in the basement of a poorly funded government library then is it really true?
+
+What about a paper that you carefully read (or even one that you wrote yourself) and have since forgotten the details of?
+
+There's no real way to know the length of the continued fraction expansion of sqrt(n) for any given n but the "probability density" does appear to have a nice shape. It looks roughly exponential but its not.

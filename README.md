@@ -22,10 +22,12 @@ figures with the source kept.
 | `band.py` | The n ∈ [300k, 400k) band: periods, exponential and Weibull fits, KS tests. |
 | `band_plot.py` / `period-distribution-A.pdf` | Panel A of `period-distribution.pdf`, redrawn. |
 | `method.tex` / `.pdf` | **Start here.** How it was computed, and what distribution L(n)/√n has. |
+| `matrices.py` / `matrices.tex` / `.pdf` | The whole theory as Möbius transformations. M(a) = Tᵃ·J, so [1,1;0,1] is the alphabet; the trichotomy hyperbolic / parabolic / elliptic by tr²−4det; tr(period word) = 2x = 2cosh R or 2sinh R by the parity of L; the palindrome as conjugacy to the transpose; and where the Lévy shortfall in `analyse.py` comes from. |
 | `musings.tex` / `.pdf` | Robin Langer, 14 September 2026. The companion piece this work extends — Archimedes → continued fractions → Pell → Sturmian. Also lives in `~/git/stream/`. |
 | `data/periods.npz` | n, L(n), R(n) for all 99,683 non-squares below 10⁵. |
 | `period-histogram.pdf` | The recomputed figure — 2 pages, 8 panels. |
 | `distribution.pdf` | Two disjoint bands of n plotted together, showing the law drifts. |
+| `lean/Palindrome.lean` | **Legendre's theorem, formalised in Lean 4.** 954 lines, no sorries, verified by `#print axioms`. Includes Lagrange periodicity, the palindrome, `a_L = 2a₀`, the matrix side, and the bridge to Mathlib's `GenContFract`. See `lean/README.md`. |
 | `original/` | The 14 September originals, for comparison: `period-histogram.pdf`, `period-distribution.pdf`, and the `period-histogram.txt` write-up. Kept unmodified. |
 
 ## Reproducing
@@ -45,6 +47,11 @@ L(n)/√n is not a fixed distribution. It is roughly exponential with rate ≈2.
 through the bulk, has a lighter-than-exponential tail beyond t ≈ 1.4, and it
 drifts with n — which is why the fit in `learned-curve.pdf` failed to transfer
 between bands.
+
+Part of that drift is now accounted for: the palindrome forces the last partial
+quotient of every period to be 2a₀ ≈ 2√n, which inflates R by log(2a₀)/L ~
+log n/√n. Removing that one term moves R/L from 1.33 to 1.21 on n ∈ [10⁵,10⁶),
+against the Lévy prediction 1.187. See `matrices.tex` §7.
 
 ## Validation
 

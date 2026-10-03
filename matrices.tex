@@ -1,0 +1,353 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[most]{tcolorbox}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\Mat}[4]{\begin{pmatrix} #1 & #2 \\ #3 & #4\end{pmatrix}}
+\newcommand{\T}{\Mat{1}{1}{0}{1}}
+
+\title{Continued fractions as M\"obius transformations\\[0.4em]\large the trichotomy, and why $\protect\T$ is both the degenerate case and the alphabet}
+\author{Robin Langer}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.5em}
+
+\section{A continued fraction is a composition of M\"obius transformations}
+
+A \emph{M\"obius transformation} is a map
+\[
+  z \;\longmapsto\; \frac{az+b}{cz+d}, \qquad ad-bc \neq 0 ,
+\]
+of $\widehat{\mathbb{C}} = \mathbb{C}\cup\{\infty\}$ to itself. Substituting one into another and clearing denominators shows that \emph{composition corresponds to matrix multiplication}: the assignment
+\[
+  \Mat{a}{b}{c}{d} \;\longmapsto\; \left(z \mapsto \frac{az+b}{cz+d}\right)
+\]
+is a group homomorphism $GL_2(\mathbb{C}) \to \operatorname{M\ddot{o}b}$. Its kernel is the scalar matrices, since $\lambda$ cancels from $(\lambda a z + \lambda b)/(\lambda c z + \lambda d)$. So M\"obius transformations are $PGL_2$, and any invariant of a transformation must be invariant under both conjugation and rescaling.
+
+Now take the continued fraction of $\sqrt 7 = [\,2;\overline{1,1,1,4}\,]$, that is
+\[
+  \sqrt 7 \;=\; 2 + \cfrac{1}{1+\cfrac{1}{1+\cfrac{1}{1+\cfrac{1}{4+\ddots}}}} .
+\]
+Every layer is the same map $f_a(z) = a + 1/z$, so the expansion is the composition $f_2 f_1 f_1 f_1 f_4 \cdots$. And $f_a(z) = (az+1)/(z+0)$, so
+\[
+  f_a \;\longleftrightarrow\; M(a) = \Mat{a}{1}{1}{0}.
+\]
+That is where the $M(a)$ of \texttt{palindrome.tex} comes from: it is not a device, it is $f_a$ written in coordinates. A continued fraction is a word in the alphabet $\{M(a)\}$, and the value $[a_0;a_1,\ldots]$ is the limit of $M(a_0)M(a_1)\cdots$ applied to $\infty$.
+
+\subsection*{Periodicity is a fixed point}
+
+Fixed points come out of the definition. If $q \neq 0$, the fixed points of $A = \Mat{p}{p'}{q}{q'}$ are the roots of
+\begin{equation}\label{fix}
+  q\,x^2 + (q'-p)\,x - p' \;=\; 0 ,
+\end{equation}
+a quadratic whose discriminant is
+\[
+  (q'-p)^2 + 4qp' \;=\; (p+q')^2 - 4(pq'-p'q) \;=\; \tr(A)^2 - 4\det(A) .
+\]
+Write $\Delta(A)$ for this. Note that $\Delta$ is not quite the right object: rescaling $A$ by $\lambda$ multiplies it by $\lambda^2$. The genuine invariant of the \emph{transformation} is $\tr(A)^2/\det(A)$, and normalising $\det A = 1$ leaves $\tr(A)^2$, which is why signs of traces never matter below.
+
+For $\sqrt 7$: the period is $1,1,1,4$, and saying it repeats says that the complete quotient
+\[
+  \alpha_1 \;=\; \frac{1}{\sqrt7-2} \;=\; \frac{2+\sqrt7}{3}
+\]
+is returned unchanged by $f_1f_1f_1f_4$. That composite is
+\[
+  A \;=\; M(1)M(1)M(1)M(4) \;=\; \Mat{14}{3}{9}{2},
+\]
+and \eqref{fix} reads $9x^2-12x-3=0$, that is $3x^2-4x-1=0$, with roots $(2\pm\sqrt7)/3$. Its discriminant is $144+108 = 252 = 16^2-4$, in agreement with $\Delta(A)=\tr^2-4\det$.
+
+\begin{tcolorbox}[colback=blue!6, colframe=blue!45!black, arc=2mm]
+``$\sqrt7$ has period $4$'' and ``$(2+\sqrt7)/3$ is a fixed point of $\protect\Mat{14}{3}{9}{2}$'' are the same sentence. Everything in this note follows from replacing the first formulation by the second and then asking the questions a M\"obius transformation invites.
+\end{tcolorbox}
+
+\subsection*{$T$ is the alphabet}
+
+\begin{proposition}\label{alphabet}
+Let $T = \T$ and $J = \Mat{0}{1}{1}{0}$, i.e.\ $z\mapsto z+1$ and $z \mapsto 1/z$. Then
+\[
+  M(a) \;=\; T^{a} J \qquad\text{for every } a .
+\]
+\end{proposition}
+
+\begin{proof}
+$T^a = \Mat{1}{a}{0}{1}$, and right multiplication by $J$ swaps columns.
+\end{proof}
+
+This is not a coincidence but a restatement of the algorithm. The continued fraction algorithm makes exactly two gestures: subtract the integer part, which is iterating $T^{-1}$, and invert the remainder, which is $J$. So $T$ and $J$ \emph{are} the algorithm, in coordinates.
+
+\begin{tcolorbox}[colback=blue!6, colframe=blue!45!black, arc=2mm]
+$T = \T$ is not a curiosity at the edge of the theory. It is the \emph{alphabet}. Every continued fraction is a word in translations $T^{a}$ interleaved with a single flip, and the period of $\sqrt n$ is one such word.
+\end{tcolorbox}
+
+And yet $T$ is also the one transformation the theory has nothing to say about, because $\Delta(T) = 0$. The rest of this note is that coincidence.
+
+\section{The trichotomy: the classification of M\"obius transformations}
+
+The three cases below are not specific to continued fractions. They are the standard classification of M\"obius transformations, obtained by conjugating to a normal form.
+
+\begin{proposition}\label{normal}
+A M\"obius transformation other than the identity has one or two fixed points. If two, conjugating them to $0$ and $\infty$ puts it in the form $z \mapsto kz$ for a unique $k \neq 0,1$ (up to $k \leftrightarrow 1/k$), and $\tr^2/\det = k + 2 + 1/k$. If one, conjugating it to $\infty$ puts the map in the form
+\[
+  z \;\longmapsto\; z+1 ,
+\]
+and $\tr^2/\det = 4$.
+\end{proposition}
+
+So $T$ is not an example of the degenerate case: \emph{$T$ is its normal form}. Every M\"obius transformation with a single fixed point, anywhere, is conjugate to $z\mapsto z+1$. Equivalently: ``$A$ is not diagonalisable'' and ``$A$ has one fixed point'' are the same statement, because diagonalisable means conjugate to $z\mapsto kz$, which means two fixed points.
+
+Specialise to $A \in SL_2(\mathbb{Z})$, so $\det A = 1$ and $\Delta(A) = \tr(A)^2-4$. Because $\tr A$ is now an \emph{integer}, exactly three cases arise.
+
+\begin{center}
+\begin{tabular}{lllll}
+\toprule
+$|\tr A|$ & $\Delta$ & name & normal form & fixed points \\
+\midrule
+$>2$ & $>0$ & hyperbolic & $z \mapsto kz$, $k>0$ & two, real quadratic, conjugate \\
+$=2$ & $=0$ & parabolic  & $z \mapsto z+1$ & one, rational (or $\infty$) \\
+$<2$ & $<0$ & elliptic   & $z \mapsto e^{i\theta}z$ & two, complex conjugates \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Each row is a statement about continued fractions, and the three statements together are the reason this project has the shape it has.
+
+\subsection*{The same three cases as isometries of the hyperbolic plane}
+
+A M\"obius transformation with real coefficients preserves the upper half-plane $\mathbb{H}$, and the maps so arising are exactly its orientation-preserving isometries. The trichotomy is then geometric, and this is where the names come from.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+ & as an isometry of $\mathbb{H}$ & in the modular surface $\mathbb{H}/SL_2(\mathbb{Z})$ \\
+\midrule
+hyperbolic & translation along a geodesic axis & a closed geodesic \\
+parabolic  & shear fixing one boundary point, & the cusp \\
+           & preserving horocycles; \textbf{no axis} & \\
+elliptic   & rotation about an interior point & the cone points, orders $2$ and $3$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The translation length $\ell$ of a hyperbolic isometry satisfies $|\tr| = 2\cosh(\ell/2)$. Proposition~\ref{trace} below is that formula: the regulator $R(n)$ is \emph{half the translation length} of the period word, and the period $L(n)$ counts how its axis crosses the tessellation of $\mathbb{H}$ by copies of the fundamental domain. For $\sqrt7$: $\tr = 16$, $R = \log(8+3\sqrt7) = 2.7687$, $\ell = 5.5373$, and $2\cosh(2.7687) = 16$.
+
+That the coding of a geodesic by its crossings of the tessellation reproduces the continued fraction is Series' theorem. It is also why a ratio like $L/R$ --- crossings per unit hyperbolic length --- converges to a constant at all: the geodesic flow on the modular surface is ergodic, and the Gauss map is its Poincar\'e section. \S8 is about the correction term to that constant.
+
+\subsection*{Hyperbolic: the periodic case}
+
+$A$ has real eigenvalues $\varepsilon, 1/\varepsilon$ with $\varepsilon > 1$, and its fixed points are a conjugate pair of real quadratic irrationals. These are the numbers with an eventually periodic continued fraction. This row is Lagrange's theorem, and all of \texttt{period.py}, \texttt{palindrome.tex} and the $99{,}683$ non-squares below $10^5$ live here.
+
+\subsection*{Parabolic: the case the project excludes}
+
+$\Delta = 0$ means \eqref{fix} has a double root, which is rational. Up to sign, $A$ is conjugate in $SL_2(\mathbb{Z})$ to a power of $T$, and \emph{the fixed point is a cusp}.
+
+\begin{lemma}
+For every $p/q \in \mathbb{Q}$ there is $G \in SL_2(\mathbb{Z})$ with $G\cdot\infty = p/q$, and then $GTG^{-1}$ is parabolic and fixes $p/q$. Conversely every parabolic element of $SL_2(\mathbb{Z})$ other than $\pm I$ arises this way.
+\end{lemma}
+
+\begin{proof}
+Choose $u,v$ with $pu+qv=1$ and put $G = \Mat{p}{-v}{q}{u}$, of determinant $1$. Conjugation preserves the trace, so $\tr(GTG^{-1})=2$ and $\Delta=0$. For the converse, a parabolic element has a unique fixed point, rational by \eqref{fix} with $\Delta=0$; conjugate it to $\infty$ and a matrix in $SL_2(\mathbb{Z})$ fixing $\infty$ with trace $2$ is $T^k$.
+\end{proof}
+
+Three worked cases from \texttt{matrices.py}:
+\[
+  \tfrac01:\ \Mat{1}{0}{-1}{1}, \qquad
+  \tfrac31:\ \Mat{-2}{9}{-1}{4}, \qquad
+  \tfrac{2}{5}:\ \Mat{-9}{4}{-25}{11},
+\]
+all of trace $2$.
+
+This row is where the perfect squares went. Throughout this repository $n$ is assumed to be a non-square; the $316$ squares below $10^5$ are silently discarded, with the reason usually given as ``$\sqrt n$ is then rational''. The matrix statement is sharper:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+ & hyperbolic & parabolic \\
+\midrule
+fixed point       & quadratic irrational   & rational \\
+continued fraction & infinite, periodic    & finite; Euclid halts \\
+eigenvalues       & $\varepsilon, 1/\varepsilon$ & $1,1$ \\
+diagonalisable    & yes                    & \textbf{no} \\
+$\log\varepsilon$ & $R(n) > 0$             & $0$ \\
+unit rank of the field & $1$               & $0$ \\
+Pell $x^2-ny^2=1$ & infinitely many solutions & only $(\pm1,0)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{tcolorbox}[colback=blue!6, colframe=blue!45!black, arc=2mm]
+$T$ fails to be diagonalisable for exactly the reason the continued fraction terminates. In the hyperbolic case the two fixed points are $\alpha$ and $\bar\alpha$, and the algorithm is the passage between them; the palindrome argument is built on their being \emph{distinct} and oppositely placed. Parabolic is the collision $\alpha = \bar\alpha$. A repeated eigenvalue with a one-dimensional eigenspace and a repeated root of the fixed-point equation are the same degeneracy, seen from two sides.
+\end{tcolorbox}
+
+This also reads the other way. The obstruction in \texttt{cube-roots.tex} was that the two remaining conjugates of $\sqrt[3]{n}$ are complex, so there is no interval to confine $\bar\alpha$ to. Here the obstruction is that there is only \emph{one} conjugate. Both are failures of the same requirement: two distinct real fixed points, comparably placed.
+
+\subsection*{Elliptic: torsion, and the complete list of alternative digits}
+
+$|\tr A| \le 1$ forces $A$ to have finite order, and since $\tr A \in \{-1,0,1\}$ together with $\pm I$, the orders occurring in $SL_2(\mathbb{Z})$ are exactly $1,2,3,4,6$. Computed:
+
+\begin{center}
+\begin{tabular}{lrrrl}
+\toprule
+$A$ & $\tr$ & $\Delta$ & order & fixed points in \\
+\midrule
+$I$ & $2$ & $0$ & $1$ & --- \\
+$-I$ & $-2$ & $0$ & $2$ & --- \\
+$S = \Mat{0}{-1}{1}{0}$    & $0$  & $-4$ & $4$ & $\mathbb{Q}(i)$ \\
+$ST = \Mat{0}{-1}{1}{1}$   & $1$  & $-3$ & $6$ & $\mathbb{Q}(\omega)$ \\
+$(ST)^2 = \Mat{-1}{-1}{1}{0}$ & $-1$ & $-3$ & $3$ & $\mathbb{Q}(\omega)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+In $\mathbb{H}$ these are the rotations: $S$ fixes $i$ and $ST$ fixes a primitive sixth root of unity, and modulo $\pm I$ they have orders $2$ and $3$ --- the two cone points of the modular orbifold. The orders $4$ and $6$ in $SL_2(\mathbb{Z})$ become $2$ and $3$ in $PSL_2(\mathbb{Z})$, which is the group that actually acts, since scalars act trivially.
+
+A complex number has no continued fraction over $\mathbb{Z}$ at all, so this row is invisible from inside the real theory. But it is the row that explains a choice made in \texttt{cube-roots.tex}.
+
+\begin{tcolorbox}[colback=green!5, colframe=green!40!black, arc=2mm]
+The elliptic fixed-point fields of $SL_2(\mathbb{Z})$ are $\mathbb{Q}(i)$ and $\mathbb{Q}(\omega)$, and \emph{nothing else}: the only negative values of $\tr^2-4$ over integer traces are $-4$ and $-3$. So Hurwitz's continued fraction over $\mathbb{Z}[i]$ (1887) and the Eisenstein continued fraction of \texttt{cube-roots.tex}~\S7 are not two ideas among many. They are the complete list of rings of digits that $SL_2(\mathbb{Z})$ offers. $\mathbb{Z}[i]$ and $\mathbb{Z}[\omega]$ are the only imaginary quadratic rings whose unit group is larger than $\{\pm1\}$, which is the same statement as $S$ having order $4$ and $ST$ order $6$.
+\end{tcolorbox}
+
+\section{The trace is the regulator}
+
+Let $L$ be the period of $\sqrt n$ and $A = M(a_1)M(a_2)\cdots M(a_L)$ the matrix of one period. Since $\det M(a) = -1$,
+\[
+  \det A = (-1)^L .
+\]
+So $A$ is in $SL_2(\mathbb{Z})$ exactly when $L$ is even. The two cases are the two Pell equations, and they are also the two hyperbolic functions.
+
+\begin{proposition}\label{trace}
+With $(x,y)$ the fundamental solution of $x^2 - ny^2 = (-1)^L$ and $R = \log(x+y\sqrt n)$,
+\[
+  \tr A \;=\; 2x \;=\;
+  \begin{cases}
+    2\cosh R, & L \text{ even } (\det A = +1),\\[2pt]
+    2\sinh R, & L \text{ odd } \ (\det A = -1).
+  \end{cases}
+\]
+\end{proposition}
+
+\begin{proof}
+The eigenvalues of $A$ multiply to $\det A = (-1)^L$ and the larger is $\varepsilon = x+y\sqrt n = e^R$, because $A$ fixes the complete quotient $\alpha_1$ and acts on $\mathbb{Z}[\sqrt n]$ by multiplication by the fundamental unit. For $L$ even the pair is $(e^R, e^{-R})$, summing to $2\cosh R$; for $L$ odd it is $(e^R, -e^{-R})$, summing to $2\sinh R$. Either way the sum is $x+y\sqrt n + x - y\sqrt n = 2x$ on expanding $\varepsilon^{\pm1}$.
+\end{proof}
+
+Verified exactly in \texttt{matrices.py} for $n$ up to $1621$ (period $79$, trace a $39$-digit integer):
+
+\begin{center}
+\begin{tabular}{rrrrr}
+\toprule
+$n$ & $L$ & $\det A$ & $\tr A = 2x$ & $x^2-ny^2$ \\
+\midrule
+$2$   & $1$  & $-1$ & $2$                   & $-1$ \\
+$7$   & $4$  & $+1$ & $16$                  & $+1$ \\
+$13$  & $5$  & $-1$ & $36$                  & $-1$ \\
+$46$  & $12$ & $+1$ & $48670$               & $+1$ \\
+$61$  & $11$ & $-1$ & $59436$               & $-1$ \\
+$151$ & $20$ & $+1$ & $3456296080$          & $+1$ \\
+$421$ & $37$ & $-1$ & $88084891393642836$   & $-1$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{tcolorbox}[colback=blue!6, colframe=blue!45!black, arc=2mm]
+Three things this repository tracks separately are one thing. The \emph{parity of the period}, the \emph{solvability of $x^2-ny^2=-1$}, and the \emph{determinant of the period word} are the same invariant, namely $(-1)^L$; and that invariant decides whether the trace is $2\cosh R$ or $2\sinh R$. The $11.52\%$ of $n<10^5$ with odd period reported in the README are exactly the $n$ whose period word lies in $GL_2(\mathbb{Z}) \setminus SL_2(\mathbb{Z})$.
+\end{tcolorbox}
+
+\section{The palindrome as a statement about conjugacy}
+
+$M(a)$ is symmetric, so transposing a product reverses it:
+\[
+  \bigl(M(a_1)\cdots M(a_L)\bigr)^{\!\top} \;=\; M(a_L)\cdots M(a_1).
+\]
+Hence $A^\top$ is the matrix of the reversed period, and the palindrome theorem says precisely that the reversed period is a cyclic rotation of the original --- equivalently that \emph{$A$ is conjugate to $A^\top$ by a product of the $M(a_i)$}. Checked for $n=7,13,46,151$ in \texttt{matrices.py}; e.g.\ $n=7$, period $1,1,1,4$:
+\[
+  A = \Mat{14}{3}{9}{2}, \qquad A^\top = \Mat{14}{9}{3}{2} = M(4)M(1)M(1)M(1).
+\]
+Every matrix in $SL_2$ is conjugate to its transpose over the rationals, so the content is entirely in the conjugating element being \emph{integral and a word in the same alphabet}. Lemma~\ref{fixed} of \texttt{palindrome.tex} --- that the fixed points of $A$ and $A^\top$ correspond under $x\mapsto -1/x$ --- is the fixed-point shadow of this.
+
+Hyperbolic conjugacy classes in $SL_2(\mathbb{Z})$ correspond to closed geodesics on the modular surface, of length $2R$; a class conjugate to its own transpose is what Sarnak calls a \emph{reciprocal} geodesic, one invariant under an orientation-reversing involution. Legendre's palindrome theorem is the assertion that the principal cycle of discriminant $4n$ is always reciprocal.
+
+\section{Why one dimension is exactly the right number}
+
+The boxed claim at the end of \texttt{cube-roots.tex} was that a continued fraction ``is a one-dimensional device \ldots\ and it can express only a rank-one unit group''. In the $2\times2$ picture that stops being a slogan.
+
+\begin{proposition}
+Let $A \in SL_2(\mathbb{Z})$ be hyperbolic with fixed points generating the real quadratic field $K$ and order $\mathcal{O}$. Then the centraliser of $A$ in $SL_2(\mathbb{Z})$ is $\{\pm1\}\times\langle A_0\rangle \cong \mathbb{Z}/2 \times \mathbb{Z}$ for some $A_0$, and it is isomorphic to the norm-one unit group $\mathcal{O}^{1}$.
+\end{proposition}
+
+The rank is $1$ on both sides, and that matching is the whole reason the algorithm works. Dirichlet gives $\operatorname{rank}\mathcal{O}^\times = r_1+r_2-1 = 1$ for a real quadratic field; the continued fraction produces a \emph{cyclic} object, a period defined up to rotation, and a cyclic object has rank $1$. Supply and demand agree.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+field & unit rank & period must be & device \\
+\midrule
+$\mathbb{Q}$ ($n$ a square)       & $0$ & nothing; finite & parabolic, $T$ \\
+$\mathbb{Q}(\sqrt n)$             & $1$ & a circle & continued fraction \\
+$\mathbb{Q}(\sqrt[3]{n})$         & $1$ & a circle & open (Hermite) \\
+$\mathbb{Q}(\omega,\sqrt[3]{n})$  & $2$ & a torus  & none of dimension $1$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Rows one and two are the trichotomy. Row three is the irritating one: the rank \emph{is} $1$, so a one-dimensional device is not ruled out by counting --- which is why Hermite's problem is hard rather than impossible. What fails for row three is not the rank but the ordering, as \texttt{cube-roots.tex}~\S3 shows. Row four is ruled out by counting, and that is a genuine impossibility rather than an open problem.
+
+\section{A measured consequence: where the L\'evy shortfall comes from}
+
+\texttt{analyse.py} predicts $L/R \to 1/\lambda$ with $\lambda = \pi^2/(12\log 2) = 1.186569$, on the grounds that the complete quotients of a typical continued fraction are Gauss-distributed. The data disagree by about $10\%$, and in the matrix language the reason is visible: the period word is not a typical word, because Proposition~\ref{alphabet} plus the palindrome force its last letter to be $T^{2a_0}J$ with $2a_0 \approx 2\sqrt n$. One letter of the word is enormous by construction.
+
+Its contribution to $R$ is $\log(2a_0)/L$ per letter. Removing it:
+
+\begin{center}
+\begin{tabular}{rrrrr}
+\toprule
+band & $R/L$ & excess over $\lambda$ & $\log(2a_0)/L$ & $R/L$ less that letter \\
+\midrule
+$[2,10^3)$        & $1.5025$ & $0.3160$ & $0.6415$ & $1.0084$ \\
+$[10^3,10^4)$     & $1.4861$ & $0.2995$ & $0.4418$ & $1.1411$ \\
+$[10^4,10^5)$     & $1.4306$ & $0.2440$ & $0.2937$ & $1.2094$ \\
+$[10^5,10^6)$     & $1.3275$ & $0.1409$ & $0.1536$ & $1.2071$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Two things to read off. First, the excess tracks $\log(2a_0)/L$ closely in the top band ($0.141$ against $0.154$), so the single forced letter accounts for most of the discrepancy. Second, and this is the point for the README's claim that the law \emph{drifts with $n$}: the excess decays like $\log n / L \sim \log n/\sqrt n$, which is slow. Part of the drift documented in \texttt{distribution.pdf} is therefore not a deep fact about the distribution of $L(n)/\sqrt n$ --- it is one oversized partial quotient, mandated by the palindrome, contaminating the regulator at order $\log n/\sqrt n$.
+
+Honesty about what remains: the trimmed value settles near $1.207$, not $\lambda = 1.187$, a residual excess of $1.7\%$. The period's remaining quotients really are slightly larger than Gauss-typical. That is a separate effect and this note does not explain it.
+
+\section{Summary}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+ & hyperbolic & parabolic & elliptic \\
+\midrule
+$\Delta = \tr^2-4\det$ & $>0$ & $=0$ & $<0$ \\
+M\"obius normal form   & $z\mapsto kz$, $k>0$ & $z \mapsto z+1$ & $z \mapsto e^{i\theta}z$ \\
+isometry of $\mathbb{H}$ & translation & shear at a cusp & rotation \\
+model                  & $M(a)$ words & $T=\T$ & $S$, $ST$ \\
+fixed points           & real quadratic & rational & $\mathbb{Q}(i)$, $\mathbb{Q}(\omega)$ \\
+continued fraction     & infinite, periodic & finite & none over $\mathbb{Z}$ \\
+diagonalisable         & yes & \textbf{no} & yes over $\mathbb{C}$ \\
+regulator              & $R>0$ & $0$ & --- \\
+unit rank              & $1$ & $0$ & $0$ \\
+in this repository     & the $99{,}683$ & the $316$ squares & \texttt{cube-roots}~\S7 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The answer to ``what about $\T$'' is that it occupies both ends of the theory at once. It is the degenerate case, the one matrix with a repeated eigenvalue, where the period collapses and Euclid halts. And it is the generator: $M(a) = T^aJ$, so every period of every $\sqrt n$ is spelled in it. The theory of periodic continued fractions is the study of which \emph{words} in $T$ are hyperbolic, conducted in a language whose only letter is not.
+
+\end{document}

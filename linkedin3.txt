@@ -1,0 +1,17 @@
+While I was at the supermarket Claude proved the following in Lean:
+
+1) Legendre's palindrome theorem: for every non-square n, the continued fraction of √n is [a0; a1, ..., aL, 2a0] repeating, and a1, ..., aL is a palindrome.
+
+2) The derivation theorem. Take the 0-1 sequence of a slope α, look at the gaps between consecutive 1s, and read off a new 0-1 sequence. You get the sequence of slope 1/α mod 1.
+
+3) For every non-square n, deriving the sequence of slope √n − ⌊√n⌋ exactly L times gives back that sequence with its first letter removed, where L is the period of the continued fraction. My notes had this for n = 2 and n = 7.
+
+4) The orbit of an irrational rotation is dense in [0,1).
+
+Not proved:
+
+5) The forward direction of Morse-Hedlund. For irrational α in (0,1) and ρ in [0,1), the sequence ⌊(k+1)α + ρ⌋ − ⌊kα + ρ⌋ has exactly m+1 distinct blocks of length m, for every m. This one is on paper. It is next.
+
+6) The reverse of Morse-Hedlund. If a sequence has exactly m+1 distinct blocks of length m for every m, it is the coding of an irrational rotation. This one is not on paper either.
+
+7) Lagrange's hard half for a general quadratic irrational.

@@ -1,0 +1,580 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{xcolor}
+\definecolor{cA}{HTML}{1F4E8C}
+\definecolor{cB}{HTML}{B3261E}
+\newcommand{\seq}[1]{\texttt{\small #1}}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\Cp}{\mathcal{C}^{+}}
+\usepackage{parskip}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{plain}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+
+\title{Sturmian sequences of $\sqrt n$: the proofs}
+\author{Robin Langer}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2em}
+
+This is the proof-dense companion to \texttt{sturmian.tex}. Every claim made
+there is either proved here or listed in \S10 as unproved. Two claims that
+\texttt{sturmian.tex} states for $n = 2$ and $n = 7$ alone are proved for every
+$n$ in \S8, and one statement there is false as written; \S6 gives the
+counterexample and the repair.
+
+\section{Codings}
+
+Fix an irrational $\alpha \in (0,1)$. Write $\{y\}$ for $y - \lfloor y \rfloor$
+and, for $x \in [0,1)$,
+\[
+  x_k \;=\; \{x + k\alpha\} , \qquad k \geq 0 .
+\]
+
+\begin{definition}
+The \emph{lower} and \emph{upper codings} of $x$ are the sequences
+\[
+  \C(\alpha,x)_k \;=\;
+  \begin{cases} 1 & x_k \in [1-\alpha,\,1) \\ 0 & \text{otherwise,}\end{cases}
+  \qquad\qquad
+  \Cp(\alpha,x)_k \;=\;
+  \begin{cases} 1 & x_k \in (1-\alpha,\,1) \text{ or } x_k = 0 \\ 0 & \text{otherwise.}\end{cases}
+\]
+\end{definition}
+
+The two codings read the same circle with the same rotation and differ only in
+which endpoint of the arc of length $\alpha$ carries the letter $1$.
+
+\begin{lemma}\label{lem:mech}
+For $x \in [0,1)$,
+\[
+  \C(\alpha,x)_k \;=\; \lfloor (k+1)\alpha + x \rfloor - \lfloor k\alpha + x \rfloor ,
+  \qquad
+  \Cp(\alpha,x)_k \;=\; \lceil (k+1)\alpha + x \rceil - \lceil k\alpha + x \rceil .
+\]
+\end{lemma}
+
+\begin{proof}
+Put $m = \lfloor k\alpha + x\rfloor$ and $f = x_k$, so $k\alpha + x = m + f$ and
+$(k+1)\alpha + x = m + f + \alpha$ with $f + \alpha \in [0,2)$. Hence
+$\lfloor (k+1)\alpha+x\rfloor - m = \lfloor f + \alpha \rfloor$, which is $1$
+exactly when $f \geq 1-\alpha$.
+
+For the second, $\lceil m + f \rceil = m$ when $f = 0$ and $m+1$ otherwise, so
+$\lceil m+f+\alpha\rceil - \lceil m+f\rceil = 1$ exactly when $f = 0$ or
+$f + \alpha > 1$.
+\end{proof}
+
+So $\C(\alpha,x)$ is the sequence of \texttt{sturmian.tex} \S2 with $\rho = x$.
+
+\begin{lemma}\label{lem:lowup}
+$\C(\alpha,x)$ and $\Cp(\alpha,x)$ are equal unless $x_{k_0} = 0$ for some
+$k_0 \geq 0$, which happens for at most one $k_0$. In that case they differ
+exactly at the positions $k_0 - 1$ and $k_0$, where they read \seq{10} and
+\seq{01}.
+\end{lemma}
+
+\begin{proof}
+The letter rules differ only at $x_k \in \{0,\, 1-\alpha\}$. If $x_k = 1-\alpha$
+then $x_{k+1} = 0$, and if $x_{k_0} = 0$ with $k_0 \geq 1$ then
+$x_{k_0 - 1} = 1 - \alpha$. Two indices with $x_k = 0$ would give
+$(j-k)\alpha \in \mathbb{Z}$.
+\end{proof}
+
+\begin{lemma}\label{lem:count}
+For $x \in [0,1)$ and $N \geq 1$ the number of $1$s among the first $N$ letters
+of $\C(\alpha,x)$ is $\lfloor N\alpha + x\rfloor$.
+\end{lemma}
+
+\begin{proof}
+Sum Lemma~\ref{lem:mech} over $k < N$ and use $\lfloor x \rfloor = 0$.
+\end{proof}
+
+\begin{corollary}\label{cor:slope}
+The density of $1$s in $\C(\alpha,x)$ is $\alpha$. The same holds for
+$\Cp(\alpha,x)$.
+\end{corollary}
+
+\begin{proof}
+$\lfloor N\alpha + x\rfloor / N \to \alpha$. The upper coding differs in at
+most two positions.
+\end{proof}
+
+The density is called the \emph{slope}. It is a property of the sequence alone,
+so two codings that are equal as sequences have equal slopes. Every use of
+``solve for $\alpha$'' below rests on this corollary.
+
+\begin{lemma}\label{lem:shift}
+$\C(\alpha,x)_{k+1} = \C(\alpha,\{x+\alpha\})_k$, and likewise for $\Cp$.
+\end{lemma}
+
+\begin{proof}
+$\{x + (k+1)\alpha\} = \{\{x+\alpha\} + k\alpha\}$.
+\end{proof}
+
+\section{The orbit is dense}
+
+\begin{lemma}\label{lem:dense}
+For irrational $\alpha$ and any $x \in [0,1)$, the set $\{x_k : k \geq 0\}$ is
+dense in $[0,1)$.
+\end{lemma}
+
+\begin{proof}
+Let $\varepsilon > 0$. By Dirichlet there are integers $q \geq 1$ and $p$ with
+$|q\alpha - p| < 1/q < \varepsilon$; put $\delta = |q\alpha - p| > 0$. The
+points $x_0,\, x_q,\, x_{2q},\, \ldots$ differ consecutively by $\pm\delta$
+modulo $1$, with a fixed sign, so the first $\lceil 1/\delta\rceil + 1$ of them
+meet every interval of length $\delta$. Take $\delta < \varepsilon$.
+\end{proof}
+
+\begin{corollary}\label{cor:inj}
+$x \mapsto \C(\alpha,x)$ is injective on $[0,1)$.
+\end{corollary}
+
+\begin{proof}
+Let $x < y$ and suppose the codings agree. By Lemma~\ref{lem:count},
+$\lfloor N\alpha + x\rfloor = \lfloor N\alpha+y\rfloor$ for every $N \geq 1$.
+Choose $N$ with $\{N\alpha + x\} > 1 - (y-x)$; then
+$N\alpha + x < \lceil N\alpha+x\rceil \leq N\alpha + y$.
+\end{proof}
+
+\section{Complexity}
+
+\begin{definition}
+A \emph{factor} of length $m$ of a sequence $\ell$ is a block
+$\ell_k \ell_{k+1}\cdots \ell_{k+m-1}$. Let $F_\ell(m)$ be the number of
+distinct factors of length $m$. The sequence is \emph{Sturmian} when
+$F_\ell(m) = m+1$ for every $m \geq 1$.
+\end{definition}
+
+\begin{theorem}\label{thm:complexity}
+$F_{\C(\alpha,x)}(m) = m+1$ for every $m \geq 1$.
+\end{theorem}
+
+\begin{proof}
+For $j \geq 1$ and $t \in [0,1)$,
+\[
+  \lfloor t + j\alpha \rfloor \;=\; \lfloor j\alpha \rfloor +
+  \begin{cases} 1 & t \geq \{-j\alpha\} \\ 0 & t < \{-j\alpha\} ,\end{cases}
+\]
+because $t + j\alpha = \lfloor j\alpha\rfloor + (\{j\alpha\} + t)$ with
+$\{j\alpha\} + t \in [0,2)$, and $\{j\alpha\} + t \geq 1$ exactly when
+$t \geq 1 - \{j\alpha\} = \{-j\alpha\}$.
+
+Let $w$ be the factor of length $m$ at position $k$. By Lemma~\ref{lem:shift}
+its letters are $w_j = \C(\alpha,x_k)_j$ for $j < m$, so by
+Lemma~\ref{lem:count} the partial sums of $w$ give $\lfloor x_k + j\alpha\rfloor$
+for every $j \leq m$. By the display, $w$ therefore determines, for each
+$j \in \{1,\ldots,m\}$, whether $x_k \geq \{-j\alpha\}$; and conversely those
+$m$ comparisons determine $w$.
+
+The $m$ points $\{-j\alpha\}$, $1 \leq j \leq m$, are distinct and lie in
+$(0,1)$, so they cut $[0,1)$ into $m+1$ intervals of positive length. Factors
+of length $m$ are in bijection with those intervals that contain some $x_k$, and
+by Lemma~\ref{lem:dense} every one of them does.
+\end{proof}
+
+\begin{corollary}\label{cor:complexityup}
+$F_{\Cp(\alpha,x)}(m) = m+1$ for every $m \geq 1$.
+\end{corollary}
+
+\begin{proof}
+The same proof with $\lceil\cdot\rceil$ for $\lfloor\cdot\rfloor$: the
+comparisons become $x_k > \{-j\alpha\}$ and the intervals are half-open at the
+other end.
+\end{proof}
+
+For the Fibonacci sequence of \texttt{sturmian.tex} \S1 and $m = 3$ the four
+intervals are cut by $\{-\alpha\}, \{-2\alpha\}, \{-3\alpha\}$ with
+$\alpha = 1/\varphi$, and the four factors are \seq{101}, \seq{011}, \seq{110},
+\seq{010}. That is the table in \S1.
+
+\section{Gaps}
+
+Write
+\[
+  \frac{1}{\alpha} \;=\; a_1 + \beta, \qquad a_1 = \lfloor 1/\alpha\rfloor \geq 1,
+  \qquad \beta = \{1/\alpha\} \in (0,1) .
+\]
+Then $a_1 \alpha < 1 < (a_1+1)\alpha$, which is the inequality of
+\texttt{sturmian.tex} \S3.
+
+Let $I = [1-\alpha, 1)$, the arc carrying the letter $1$, and coordinatise it by
+\[
+  x \;=\; (1-\alpha) + \alpha u , \qquad u \in [0,1) .
+\]
+
+\begin{theorem}\label{thm:return}
+Let $x \in I$ with coordinate $u$. The least $t \geq 1$ with
+$\{x + t\alpha\} \in I$ is
+\[
+  t \;=\; \begin{cases} a_1 + 1 & u < \beta \\ a_1 & u \geq \beta, \end{cases}
+\]
+and the coordinate of $\{x+t\alpha\}$ is $\{u + 1 - \beta\}$.
+\end{theorem}
+
+\begin{proof}
+$x + \alpha \in [1, 1+\alpha)$, so $\{x+\alpha\} = x + \alpha - 1 = \alpha u$,
+and for $s \geq 1$,
+\[
+  \{x + s\alpha\} \;=\; \alpha(u + s - 1)
+  \qquad\text{as long as } \alpha(u+s-1) < 1 .
+\]
+Now $\alpha(u+s-1) < 1 \iff s - 1 < 1/\alpha - u = a_1 + \beta - u$, and
+$\alpha(u+s-1) \geq 1-\alpha \iff u + s \geq a_1 + \beta$. So
+$\{x+s\alpha\} \in I$ exactly when
+\[
+  a_1 + \beta - u \;\leq\; s \;<\; a_1 + \beta - u + 1 ,
+\]
+whose unique integer solution is $s = \lceil a_1 + \beta - u\rceil$. For
+$u < \beta$ that is $a_1+1$ and for $u \geq \beta$ it is $a_1$; in both cases
+$s$ is the least such $t$ because the displayed formula for
+$\{x+s\alpha\}$ is valid and below $1-\alpha$ for all smaller $s$.
+
+The new coordinate is $(\alpha(u+t-1) - (1-\alpha))/\alpha = u + t - 1/\alpha$,
+which is $u+1-\beta$ when $t = a_1+1$ and $u - \beta$ when $t = a_1$.
+\end{proof}
+
+\begin{corollary}\label{cor:gaps}
+In $\C(\alpha,x)$ the gap between consecutive $1$s is $a_1$ or $a_1+1$, so the
+number of $0$s between them is $a_1 - 1$ or $a_1$.
+\end{corollary}
+
+\begin{definition}
+Let $k_0 < k_1 < k_2 < \cdots$ be the positions of the $1$s of $\ell$. The
+\emph{derived sequence} $\ell'$ is
+\[
+  \ell'_i \;=\; \begin{cases}
+    1 & \text{$a_1$ zeros lie between the $i$th and $(i{+}1)$th $1$} \\
+    0 & \text{$a_1 - 1$ do.}
+  \end{cases}
+\]
+\end{definition}
+
+By Theorem~\ref{thm:return}, $\ell'_i = 1$ exactly when the coordinate $u_i$ of
+$x_{k_i}$ satisfies $u_i < \beta$, and
+\[
+  u_{i+1} \;=\; \{u_i + 1 - \beta\} .
+\]
+
+\begin{lemma}[block decomposition]\label{lem:blocks}
+Define $\tau_a(1) = \seq{1}\,\seq{0}^a$ and $\tau_a(0) = \seq{1}\,\seq{0}^{a-1}$.
+Then
+\[
+  \ell \;=\; \seq{0}^{k_0} \cdot \tau_{a_1}(\ell') .
+\]
+\end{lemma}
+
+\begin{proof}
+The $i$th block of $\ell$ starting at $k_i$ is a $1$ followed by the zeros
+before the next $1$, of which there are $a_1$ if $\ell'_i = 1$ and $a_1-1$ if
+$\ell'_i = 0$.
+\end{proof}
+
+Deriving and $\tau_{a_1}$ are inverse to each other up to the prefix
+$\seq{0}^{k_0}$. That prefix is the only reason a shift appears anywhere below.
+
+\section{The derivation theorem}
+
+\begin{theorem}\label{thm:derive}
+Let $u_0$ be the coordinate of $x_{k_0}$, the first $1$. Then
+\[
+  \C(\alpha,x)' \;=\; \Cp(\beta,\, \{-u_0\}) ,
+  \qquad\qquad
+  \Cp(\alpha,x)' \;=\; \C(\beta,\, 1 - u_0) .
+\]
+\end{theorem}
+
+\begin{proof}
+For the lower coding put $v_i = \{-u_i\}$. By Theorem~\ref{thm:return},
+$v_{i+1} = \{v_i + \beta\}$, so $v_i = \{v_0 + i\beta\}$. And
+\[
+  \ell'_i = 1 \iff u_i \in [0,\beta)
+  \iff -u_i \in (-\beta, 0]
+  \iff v_i \in (1-\beta,1) \text{ or } v_i = 0 ,
+\]
+which is the letter rule of $\Cp(\beta, v_0)$.
+
+For the upper coding the arc is $I^+ = (1-\alpha,1]$, coordinatised by
+$u \in (0,1]$ with $u = 1$ meaning $x \equiv 0$. The computation of
+Theorem~\ref{thm:return} is unchanged except that $\{x+s\alpha\} \in I^+$ reads
+$u + s > a_1 + \beta$ and $u + s - 1 \leq a_1 + \beta$, so
+$t = a_1 + 1$ exactly when $u \leq \beta$. Put $v_i = 1 - u_i \in [0,1)$; then
+$v_{i+1} = \{v_i + \beta\}$ and
+\[
+  \ell'_i = 1 \iff u_i \leq \beta \iff v_i \geq 1 - \beta ,
+\]
+which is the letter rule of $\C(\beta, v_0)$.
+\end{proof}
+
+Deriving sends the slope $\alpha$ to $\beta = \{1/\alpha\}$ and exchanges the
+two codings. The exchange is invisible for all but countably many $x$
+(Lemma~\ref{lem:lowup}), and it is exactly what makes the statement of
+Theorem~\ref{thm:derive} an equality rather than an equality off a small set.
+
+\begin{corollary}\label{cor:derivesturmian}
+The derived sequence of a coding is a coding, hence Sturmian, and its slope is
+$\{1/\alpha\}$.
+\end{corollary}
+
+\begin{corollary}\label{cor:gauss}
+The slopes of $\ell, \ell', \ell'', \ldots$ are the orbit of $\alpha$ under the
+Gauss map $\alpha \mapsto \{1/\alpha\}$, so the block widths $a_1$ encountered
+are the partial quotients of $\alpha = [\,0;\, a_1, a_2, a_3, \ldots\,]$.
+\end{corollary}
+
+\section{Morse and Hedlund}
+
+One direction is Theorem~\ref{thm:complexity}: every coding with irrational
+slope is Sturmian. The statement in \texttt{sturmian.tex} \S2 asserts the
+converse in the form
+\[
+  \ell_k \;=\; \lfloor (k+1)\alpha + \rho\rfloor - \lfloor k\alpha + \rho\rfloor,
+  \qquad \rho \in [0,1) ,
+\]
+that is, $\ell = \C(\alpha,\rho)$. In that form it is false.
+
+Let $\alpha = 1/\varphi = (\sqrt 5 - 1)/2$ and let $c = \C(\alpha,\alpha)$, the
+Fibonacci sequence. Let $\seq{1}c$ be $c$ with a $1$ prefixed.
+
+\begin{theorem}\label{thm:counterex}
+$\seq{1}c = \Cp(\alpha,0)$. It is Sturmian, and there is no $x \in [0,1)$ with
+$\seq{1}c = \C(\alpha', x)$ for any irrational $\alpha' \in (0,1)$.
+\end{theorem}
+
+\begin{proof}
+$\Cp(\alpha,0)_0 = 1$ because $x_0 = 0$, and
+$\Cp(\alpha,0)_{k+1} = \Cp(\alpha,\alpha)_k = \C(\alpha,\alpha)_k$ by
+Lemma~\ref{lem:shift} and Lemma~\ref{lem:lowup}, the orbit of $\alpha$ missing
+$0$. So $\seq{1}c = \Cp(\alpha,0)$, and it is Sturmian by
+Corollary~\ref{cor:complexityup}.
+
+By Lemma~\ref{lem:count} the first $N-1$ letters of $c$ carry
+$\lfloor (N-1)\alpha + \alpha\rfloor = \lfloor N\alpha\rfloor$ ones, so the first
+$N$ letters of $\seq{1}c$ carry $1 + \lfloor N\alpha\rfloor$.
+
+Suppose $\seq{1}c = \C(\alpha',x)$. The slopes agree by
+Corollary~\ref{cor:slope}, so $\alpha' = \alpha$, and Lemma~\ref{lem:count}
+gives $\lfloor N\alpha + x\rfloor = 1 + \lfloor N\alpha \rfloor$ for every
+$N \geq 1$. Since $x \in [0,1)$ this forces $\{N\alpha\} + x \geq 1$ for every
+$N \geq 1$. By Lemma~\ref{lem:dense} there is $N$ with $\{N\alpha\} < 1-x$.
+\end{proof}
+
+The repair is to admit both codings.
+
+\begin{theorem}[Morse and Hedlund]\label{thm:mh}
+A sequence is Sturmian if and only if it is $\C(\alpha,x)$ or $\Cp(\alpha,x)$
+for some irrational $\alpha \in (0,1)$ and some $x \in [0,1)$.
+\end{theorem}
+
+The forward implication is Theorem~\ref{thm:complexity} and
+Corollary~\ref{cor:complexityup}. \textbf{The converse is not proved here.}
+It is classical, and the route that fits this document is to run \S4 and \S5
+backwards:
+
+\begin{enumerate}
+\item $F_\ell(1) = 2$, so both letters occur. $F_\ell(2) = 3$, so exactly one
+  word of length $2$ is absent, and it is $\seq{00}$ or $\seq{11}$: were
+  $\seq{01}$ absent, every $1$ would precede every $0$ and
+  $\ell = \seq{1}^p\seq{0}^\infty$, whose complexity is $p+1$ for all
+  $m > p$. \emph{Proved.}
+\item The lengths of the maximal blocks of $0$s take exactly two values, and
+  they are consecutive, say $a-1$ and $a$. \emph{Not proved here.} This is
+  balancedness, and the classical proof is a minimal-counterexample induction
+  producing a palindrome $w$ with $\seq{0}w\seq{0}$ and $\seq{1}w\seq{1}$ both
+  factors.
+\item Given step 2, Lemma~\ref{lem:blocks} applies verbatim: $\ell$ factors as
+  $\seq{0}^{k_0}\tau_a(\ell')$ with $\ell'$ a sequence over
+  $\{\seq{0},\seq{1}\}$. \emph{Proved.}
+\item $\ell'$ is again Sturmian, and both of its letters occur: a single block
+  length would make $\ell$ eventually periodic, which caps complexity.
+  \emph{The second half is proved; that $F_{\ell'}(m) = m+1$ is not.}
+\item Iterating produces $a_1, a_2, a_3, \ldots \geq 1$ and hence an irrational
+  $\alpha = [\,0;\,a_1,a_2,\ldots\,]$, and the nested prefixes
+  $\tau_{a_1}\tau_{a_2}\cdots\tau_{a_j}$ together with the shifts $k_0, k_1,
+  \ldots$ pin a single $x$. \emph{Not proved here.} This is the Ostrowski
+  representation of $x$ and needs a convergence argument.
+\end{enumerate}
+
+\section{The substitution}
+
+For $a_1 = 1$ the two blocks are $\tau_1(1) = \seq{10}$ and $\tau_1(0) = \seq{1}$,
+so $\tau_1$ is the substitution $\sigma$ of \texttt{sturmian.tex} \S1:
+\[
+  \sigma(1) = \seq{10}, \qquad \sigma(0) = \seq{1} .
+\]
+
+\begin{theorem}\label{thm:fib}
+Let $\alpha = 1/\varphi$ and $c = \C(\alpha,\alpha)$. Then $c' = c$,
+$\sigma(c) = c$, and $c = \lim_j \sigma^j(\seq{1})$.
+\end{theorem}
+
+\begin{proof}
+$1/\alpha = \varphi = 1 + 1/\varphi$, so $a_1 = 1$ and $\beta = \alpha$. The
+first $1$ of $c$ is at $k_0 = 0$, where $x_0 = \alpha$ has coordinate
+$u_0 = (\alpha - (1-\alpha))/\alpha = 2 - 1/\alpha = 1 - \alpha$. So
+$\{-u_0\} = \alpha$ and Theorem~\ref{thm:derive} gives
+$c' = \Cp(\alpha,\alpha) = \C(\alpha,\alpha) = c$, the middle equality by
+Lemma~\ref{lem:lowup}. Lemma~\ref{lem:blocks} with $k_0 = 0$ then reads
+$c = \tau_1(c') = \sigma(c)$.
+
+$\sigma(\seq{1}) = \seq{10}$ begins with $\seq{1}$, and if $\sigma^j(\seq{1})$ is a
+prefix of $\sigma^{j+1}(\seq{1})$ then applying $\sigma$ keeps it so; hence the
+limit exists. It is a prefix of every $\sigma$-fixed sequence beginning with
+$\seq{1}$, and $c$ is one.
+\end{proof}
+
+The converse computation of \texttt{sturmian.tex} \S6 is now legitimate. Suppose
+$\ell$ is a coding whose blocks are $\seq{1}$ and $\seq{10}$, so $a_1 = 1$, and
+suppose $\ell' = \ell$. By Corollary~\ref{cor:slope} the slopes agree, so
+$\beta = \alpha$, and
+\[
+  \frac{1}{\alpha} \;=\; 1 + \alpha, \qquad \alpha^2 + \alpha - 1 = 0,
+  \qquad \alpha = \frac{\sqrt 5 - 1}{2} .
+\]
+
+\section{Square roots}
+
+Write $\alpha_0 = \alpha$ and $\alpha_{j+1} = \{1/\alpha_j\}$ for the tails of
+the continued fraction, and $a_{j+1} = \lfloor 1/\alpha_j \rfloor$ for its
+partial quotients. Let $\ell^{(j)}$ be the $j$th derived sequence of $\ell$.
+
+\begin{theorem}\label{thm:tails}
+Let $\ell = \C(\alpha, 0)$. For every $j \geq 1$,
+\[
+  \ell^{(j)} \;=\;
+  \begin{cases}
+    \Cp(\alpha_j,\, \alpha_j) & j \text{ odd} \\
+    \C(\alpha_j,\, \alpha_j) & j \text{ even.}
+  \end{cases}
+\]
+\end{theorem}
+
+\begin{proof}
+Let $\gamma$ be irrational in $(0,1)$, $a = \lfloor 1/\gamma\rfloor$ and
+$\gamma' = \{1/\gamma\}$.
+
+In $\C(\gamma,0)$ the first $1$ is at $k_0 = a$: for $k \leq a$ we have
+$k\gamma \leq a\gamma < 1$ so $x_k = k\gamma$, and $k\gamma \geq 1-\gamma$ holds
+first at $k = a$ because $(a+1)\gamma > 1$. Its coordinate is
+\[
+  u_0 \;=\; \frac{a\gamma - (1-\gamma)}{\gamma} \;=\; a + 1 - \frac{1}{\gamma}
+  \;=\; 1 - \gamma' ,
+\]
+so $\{-u_0\} = \gamma'$ and Theorem~\ref{thm:derive} gives
+$\C(\gamma,0)' = \Cp(\gamma',\gamma')$. With $\gamma = \alpha$ this is the case
+$j = 1$.
+
+In $\C(\gamma,\gamma)$ and in $\Cp(\gamma,\gamma)$ the first $1$ is at
+$k_0 = a-1$, by the same count applied to $x_k = (k+1)\gamma$; the value
+$x_{k_0} = a\gamma$ and the coordinate $u_0 = 1 - \gamma'$ are as above. So
+Theorem~\ref{thm:derive} gives
+\[
+  \C(\gamma,\gamma)' = \Cp(\gamma',\gamma') , \qquad
+  \Cp(\gamma,\gamma)' = \C(\gamma',\gamma') ,
+\]
+the second because $1 - u_0 = \gamma'$. Induction on $j$.
+\end{proof}
+
+\begin{corollary}\label{cor:cycle}
+If the continued fraction of $\alpha$ is purely periodic with period $L$, then
+$\ell = \C(\alpha,0)$ satisfies
+\[
+  \ell^{(L)} \;=\; \C(\alpha,\alpha) \;=\; \ell_1 \ell_2 \ell_3 \cdots ,
+\]
+the sequence $\ell$ with its first letter removed.
+\end{corollary}
+
+\begin{proof}
+$\alpha_L = \alpha$, so Theorem~\ref{thm:tails} gives $\C(\alpha,\alpha)$ or
+$\Cp(\alpha,\alpha)$, and those are equal by Lemma~\ref{lem:lowup} because the
+orbit $\{(k+1)\alpha\}$ never meets $0$. Lemma~\ref{lem:shift} identifies
+$\C(\alpha,\alpha)$ with the shift of $\ell$.
+\end{proof}
+
+\begin{corollary}\label{cor:cycleconv}
+Conversely, if $\ell^{(L)}$ is a shift of $\ell$ then $\alpha_L = \alpha$, so
+the continued fraction of $\alpha$ is purely periodic with period dividing $L$.
+\end{corollary}
+
+\begin{proof}
+Shifting does not change the density, so Corollary~\ref{cor:slope} gives
+$\alpha_L = \alpha$.
+\end{proof}
+
+Now take $n$ a non-square, $a_0 = \lfloor \sqrt n\rfloor$ and
+$\alpha = \sqrt n - a_0$. If $\sqrt n = [\,a_0;\ \overline{a_1,\ldots,a_L}\,]$
+then $\alpha = [\,0;\ \overline{a_1,\ldots,a_L}\,]$, purely periodic, since the
+tails of $\alpha$ are the tails of $\sqrt n$ from index $1$. Pure periodicity is
+Legendre's theorem, formalised in \texttt{lean/Palindrome.lean} as
+\texttt{purely\_periodic}.
+
+\begin{corollary}
+For every non-square $n$, the sequence $\ell = \C(\sqrt n - a_0,\, 0)$ returns
+to itself with one letter removed after exactly $L$ derivations, where $L$ is
+the period of the continued fraction of $\sqrt n$.
+\end{corollary}
+
+\texttt{sturmian.tex} observes this for $n = 2$ and $n = 7$. For $n = 2$,
+$\alpha = \sqrt 2 - 1$, $a_1 = 2$, $\beta = \alpha$ and $L = 1$: one derivation
+returns the shift. For $n = 7$, $\alpha = \sqrt 7 - 2$ and the four tails are
+\[
+  \sqrt 7 - 2, \quad \frac{\sqrt 7 - 1}{3}, \quad \frac{\sqrt 7 - 1}{2},
+  \quad \frac{\sqrt 7 - 2}{3}, \quad \sqrt 7 - 2 ,
+\]
+with partial quotients $1, 1, 1, 4$, which is the table of \S5 there. Every row
+of that table is Sturmian by Corollary~\ref{cor:derivesturmian} and
+Theorem~\ref{thm:complexity}. The intercept of each row equals its own slope,
+by Theorem~\ref{thm:tails}.
+
+\section{Lagrange}
+
+\begin{theorem}
+If the continued fraction of $\alpha$ is eventually periodic then $\alpha$ is a
+quadratic irrational.
+\end{theorem}
+
+\begin{proof}
+Let $\alpha_m = \alpha_{m+L}$. Each tail is a M\"obius image of the next,
+$\alpha_j = 1/(a_{j+1} + \alpha_{j+1})$, so composing $L$ of them gives
+integers $p,q,r,s$ with
+\[
+  \alpha_m \;=\; \frac{p\,\alpha_{m+L} + q}{r\,\alpha_{m+L} + s}
+  \;=\; \frac{p\,\alpha_m + q}{r\,\alpha_m + s} ,
+\]
+hence $r\alpha_m^2 + (s-p)\alpha_m - q = 0$ with $(r,s-p,q) \neq 0$. So
+$\alpha_m$ is a quadratic irrational, and composing $m$ further M\"obius maps
+with integer coefficients keeps $\alpha$ in $\mathbb{Q}(\alpha_m)$.
+\end{proof}
+
+The converse --- every quadratic irrational has an eventually periodic
+continued fraction --- is \textbf{not proved here}. For $\alpha = \sqrt n - a_0$
+it is \texttt{purely\_periodic} in \texttt{lean/Palindrome.lean}, by way of
+reduced forms $(P+\sqrt D)/Q$ and the finiteness of the reduced set. The general
+case needs the preperiod, and neither \texttt{sturmian.tex} nor the Lean
+development has it.
+
+\section{What is not proved here}
+
+\begin{enumerate}
+\item The converse half of Theorem~\ref{thm:mh}: steps 2, 4 and 5 of the list in
+  \S6. Step 2 is balancedness; step 5 is an Ostrowski convergence argument.
+\item Lagrange's theorem for a general quadratic irrational (\S9). The case
+  $\sqrt n - \lfloor \sqrt n\rfloor$ is formalised.
+\item Nothing else. Every other assertion of \texttt{sturmian.tex} is proved
+  above, and the numbers in its tables --- the slopes, the four derived
+  sequences of $n = 7$, the gap lists for $n = 2$ and $n = 7$, the four factors
+  of length $3$ --- have been checked in exact arithmetic in
+  $\mathbb{Q}(\sqrt n)$.
+\end{enumerate}
+
+\end{document}

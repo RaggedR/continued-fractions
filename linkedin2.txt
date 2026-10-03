@@ -1,0 +1,7 @@
+Here's some notes I wrote up for myself on Sturmian sequences and derived Sturmian sequences and how they relate to continued fractions.
+
+The "sliding window" definition seems like the more important one. Claude assures me that getting from the Morse-Hedlund definition to the "sliding window" definition is relatively straightforeward but the reverse is more difficult.
+
+As for Lagrange's theorem, proving that a repeating continued fraction gives a quadratic irrational is the easy half. The other half — every quadratic irrational repeats — is the hard one.
+
+Claude wants to verify all the proofs in Lean. Does that give me an excuse not to read them?
