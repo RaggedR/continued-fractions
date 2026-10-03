@@ -2610,6 +2610,191 @@ theorem rightSpecial_chain (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) {m :
   rw [hw, Set.mem_singleton_iff] at h1 hv
   rw [h1, hv]
 
+/-! ### Dropping a prefix, and uniqueness -/
+
+/-- Drop the first `d` letters.  `tail` is `d = 1`. -/
+def drop {n : ℕ} (d : ℕ) (u : Fin (d + n) → ℕ) : Fin n → ℕ :=
+  fun t => u ⟨d + (t : ℕ), by omega⟩
+
+lemma drop_window (d n j : ℕ) :
+    drop d (window ℓ (d + n) j) = window ℓ n (j + d) := by
+  funext t
+  simp only [drop, window]
+  rw [show j + d + (t : ℕ) = j + (d + (t : ℕ)) by omega]
+
+lemma drop_mem_factors {n d : ℕ} {u : Fin (d + n) → ℕ}
+    (hu : u ∈ factors ℓ (d + n)) : drop d u ∈ factors ℓ n := by
+  obtain ⟨k, hk⟩ := mem_factors_iff.1 hu
+  refine mem_factors_iff.2 ⟨k + d, fun t => ?_⟩
+  have h := hk ⟨d + (t : ℕ), by omega⟩
+  simp only [drop]
+  rw [show k + d + (t : ℕ) = k + (d + (t : ℕ)) by omega]
+  exact h
+
+lemma snoc_drop {n : ℕ} (d b : ℕ) (u : Fin (d + n) → ℕ) :
+    (Fin.snoc (drop d u) b : Fin (n + 1) → ℕ)
+      = drop d (Fin.snoc u b : Fin (d + n + 1) → ℕ) := by
+  funext s
+  refine Fin.lastCases ?_ ?_ s
+  · have he : (⟨d + ((Fin.last n : Fin (n + 1)) : ℕ), by omega⟩ : Fin (d + n + 1))
+        = Fin.last (d + n) := by
+      apply Fin.ext; simp
+    simp only [drop, Fin.snoc_last, he, Fin.snoc_last]
+  · intro t
+    have he : (⟨d + ((t.castSucc : Fin (n + 1)) : ℕ), by omega⟩ : Fin (d + n + 1))
+        = (⟨d + (t : ℕ), by omega⟩ : Fin (d + n)).castSucc := by
+      apply Fin.ext; simp
+    simp only [drop, Fin.snoc_castSucc, he, Fin.snoc_castSucc]
+
+/-- **`lem:rschain`, in the form the bridge uses.**  A drop of a right-special
+factor is right-special. -/
+lemma drop_rightSpecial {n d : ℕ} {u : Fin (d + n) → ℕ}
+    (hu : u ∈ rightSpecial ℓ (d + n)) : drop d u ∈ rightSpecial ℓ n := by
+  obtain ⟨h0, h1⟩ := hu
+  refine ⟨?_, ?_⟩
+  · show (Fin.snoc (drop d u) 0 : Fin (n + 1) → ℕ) ∈ factors ℓ (n + 1)
+    rw [snoc_drop]
+    exact drop_mem_factors h0
+  · show (Fin.snoc (drop d u) 1 : Fin (n + 1) → ℕ) ∈ factors ℓ (n + 1)
+    rw [snoc_drop]
+    exact drop_mem_factors h1
+
+lemma rightSpecial_unique (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) {n : ℕ}
+    {u v : Fin n → ℕ} (hu : u ∈ rightSpecial ℓ n) (hv : v ∈ rightSpecial ℓ n) :
+    u = v := by
+  obtain ⟨w, hw⟩ :=
+    Set.ncard_eq_one.1 ((isSturmian_iff_ncard_rightSpecial hbb).1 hS n)
+  rw [hw, Set.mem_singleton_iff] at hu hv
+  rw [hu, hv]
+
+/-! ### Matching `ℓ'`-windows give matching `ℓ`-windows -/
+
+/-- Which block, counted from `i`, contains the offset `r`. -/
+lemma exists_block_rel (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (i r : ℕ) :
+    ∃ t, onesPos ℓ (i + t) ≤ onesPos ℓ i + r
+      ∧ onesPos ℓ i + r < onesPos ℓ (i + t + 1) := by
+  have hmono := onesPos_strictMono hbb hS
+  have hk0 : onesPos ℓ 0 ≤ onesPos ℓ i + r := by
+    have := hmono.monotone (show 0 ≤ i by omega)
+    omega
+  obtain ⟨j, hj1, hj2⟩ := exists_block hbb hS hk0
+  have hij : i ≤ j := by
+    by_contra hc
+    push Not at hc
+    have := hmono.monotone (show j + 1 ≤ i by omega)
+    omega
+  refine ⟨j - i, ?_, ?_⟩
+  · rw [show i + (j - i) = j by omega]; exact hj1
+  · rw [show i + (j - i) + 1 = j + 1 by omega]; exact hj2
+
+/-- Matching derived letters give matching block starts. -/
+lemma onesPos_add_eq (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) {i i' m : ℕ}
+    (h : ∀ t, t < m →
+      deriveSeq ℓ (blockMax ℓ) (i + t) = deriveSeq ℓ (blockMax ℓ) (i' + t)) :
+    ∀ t, t ≤ m →
+      onesPos ℓ (i + t) + onesPos ℓ i' = onesPos ℓ (i' + t) + onesPos ℓ i := by
+  intro t
+  induction t with
+  | zero =>
+      intro _
+      simp only [Nat.add_zero]
+      omega
+  | succ n ih =>
+      intro hn
+      have hb1 := onesPos_block_length hbb hS h11 (i + n)
+      have hb2 := onesPos_block_length hbb hS h11 (i' + n)
+      have hd := h n (by omega)
+      have hih := ih (by omega)
+      rw [show i + (n + 1) = i + n + 1 by omega, show i' + (n + 1) = i' + n + 1 by omega,
+          hb1, hb2, hd]
+      omega
+
+/-- **The bridge, letter by letter.**  Over `m` matching blocks and `a` letters
+more, `ℓ` reads the same from both block starts. -/
+theorem block_letter_eq (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) {i i' m : ℕ}
+    (h : ∀ t, t < m →
+      deriveSeq ℓ (blockMax ℓ) (i + t) = deriveSeq ℓ (blockMax ℓ) (i' + t))
+    {r : ℕ} (hr : onesPos ℓ i + r < onesPos ℓ (i + m) + blockMax ℓ) :
+    ℓ (onesPos ℓ i + r) = ℓ (onesPos ℓ i' + r) := by
+  obtain ⟨t, ht1, ht2⟩ := exists_block_rel hbb hS i r
+  have hsum := onesPos_add_eq hbb hS h11 h
+  have htm : t ≤ m := by
+    by_contra hc
+    push Not at hc
+    have hmono := onesPos_strictMono hbb hS
+    have h1 := onesPos_block_length hbb hS h11 (i + m)
+    have h2 : onesPos ℓ (i + m + 1) ≤ onesPos ℓ (i + t) :=
+      hmono.monotone (by omega)
+    omega
+  have hst := hsum t htm
+  rcases Nat.eq_zero_or_pos (onesPos ℓ i + r - onesPos ℓ (i + t)) with hj | hj
+  · have e1 : onesPos ℓ i + r = onesPos ℓ (i + t) := by omega
+    have e2 : onesPos ℓ i' + r = onesPos ℓ (i' + t) := by omega
+    rw [e1, e2, one_onesPos hbb hS, one_onesPos hbb hS]
+  · have hgap' : onesPos ℓ (i' + t) + (onesPos ℓ i + r - onesPos ℓ (i + t))
+        < onesPos ℓ (i' + t + 1) := by
+      rcases Nat.lt_or_ge t m with htlt | htge
+      · have hs1 := hsum (t + 1) (by omega)
+        rw [show i + (t + 1) = i + t + 1 by omega,
+            show i' + (t + 1) = i' + t + 1 by omega] at hs1
+        omega
+      · have htm' : t = m := by omega
+        subst htm'
+        have hb := onesPos_block_length hbb hS h11 (i' + t)
+        omega
+    have hA : ℓ (onesPos ℓ (i + t) + (onesPos ℓ i + r - onesPos ℓ (i + t))) = 0 :=
+      onesPos_block_zero hbb (by omega) (by omega)
+    have hB : ℓ (onesPos ℓ (i' + t) + (onesPos ℓ i + r - onesPos ℓ (i + t))) = 0 :=
+      onesPos_block_zero hbb (by omega) hgap'
+    rw [show onesPos ℓ (i + t) + (onesPos ℓ i + r - onesPos ℓ (i + t))
+        = onesPos ℓ i + r by omega] at hA
+    rw [show onesPos ℓ (i' + t) + (onesPos ℓ i + r - onesPos ℓ (i + t))
+        = onesPos ℓ i' + r by omega] at hB
+    rw [hA, hB]
+
+/-! ### `lem:bridge`, the direction the uniqueness half needs -/
+
+/-- A right-special factor of `ℓ'` of length `m` gives a right-special factor
+of `ℓ`: the window over the `m` blocks and `a` letters more. -/
+theorem rightSpecial_of_blockWindow (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) {i i' m : ℕ}
+    (h : ∀ t, t < m →
+      deriveSeq ℓ (blockMax ℓ) (i + t) = deriveSeq ℓ (blockMax ℓ) (i' + t))
+    (hsh : deriveSeq ℓ (blockMax ℓ) (i + m) = 0)
+    (hlo : deriveSeq ℓ (blockMax ℓ) (i' + m) = 1) :
+    window ℓ (onesPos ℓ (i + m) + blockMax ℓ - onesPos ℓ i) (onesPos ℓ i)
+      ∈ rightSpecial ℓ (onesPos ℓ (i + m) + blockMax ℓ - onesPos ℓ i) := by
+  have hmono := onesPos_strictMono hbb hS
+  have hmi : onesPos ℓ i ≤ onesPos ℓ (i + m) := hmono.monotone (by omega)
+  have hmi' : onesPos ℓ i' ≤ onesPos ℓ (i' + m) := hmono.monotone (by omega)
+  have hsum := onesPos_add_eq hbb hS h11 h m le_rfl
+  set n := onesPos ℓ (i + m) + blockMax ℓ - onesPos ℓ i with hn
+  have hA : onesPos ℓ i + n = onesPos ℓ (i + m) + blockMax ℓ := by omega
+  have hB : onesPos ℓ i' + n = onesPos ℓ (i' + m) + blockMax ℓ := by omega
+  have hw : window ℓ n (onesPos ℓ i) = window ℓ n (onesPos ℓ i') := by
+    funext r
+    simp only [window]
+    exact block_letter_eq hbb hS h11 h (r := (r : ℕ)) (by have := r.2; omega)
+  have h1 : ℓ (onesPos ℓ i + n) = 1 := by
+    have hb := onesPos_block_length hbb hS h11 (i + m)
+    have he : onesPos ℓ i + n = onesPos ℓ (i + m + 1) := by rw [hb, hsh]; omega
+    rw [he]
+    exact one_onesPos hbb hS _
+  have h0 : ℓ (onesPos ℓ i' + n) = 0 := by
+    have hb := onesPos_block_length hbb hS h11 (i' + m)
+    have hge2 : 2 ≤ blockMax ℓ := (blocks hbb hS h11).1
+    have hz : ℓ (onesPos ℓ (i' + m) + blockMax ℓ) = 0 :=
+      onesPos_block_zero hbb (by omega) (by rw [hb, hlo]; omega)
+    rw [hB]; exact hz
+  refine ⟨?_, ?_⟩
+  · rw [hw]
+    have hm := window_mem_extBy (ℓ := ℓ) n (onesPos ℓ i')
+    rwa [h0] at hm
+  · have hm := window_mem_extBy (ℓ := ℓ) n (onesPos ℓ i)
+    rwa [h1] at hm
+
 end MorseHedlund
 
 /-! ## §8 The tower
@@ -3029,6 +3214,9 @@ end Substitution
 #print axioms Sturmian.eventuallyPeriodic_of_deriveSeq
 #print axioms Sturmian.rightSpecial_deriveSeq_nonempty
 #print axioms Sturmian.rightSpecial_chain
+#print axioms Sturmian.drop_rightSpecial
+#print axioms Sturmian.block_letter_eq
+#print axioms Sturmian.rightSpecial_of_blockWindow
 #print axioms Sturmian.return_time
 #print axioms Sturmian.ones_succ_eq
 #print axioms Sturmian.derived_eq
