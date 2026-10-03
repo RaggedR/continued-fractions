@@ -2002,6 +2002,216 @@ theorem not_both_rightSpecial (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (j
   rw [hu, Set.mem_singleton_iff] at h0 h1
   exact zeros_ne_oneZeros j (h0.trans h1.symm)
 
+/-! ### The interior block lengths -/
+
+def blockLens (ℓ : ℕ → ℕ) : Set ℕ := {j | oneZerosOne j ∈ factors ℓ (j + 2)}
+
+lemma oneZeros_mem_of_blockLens {j t : ℕ} (hj : j ∈ blockLens ℓ) (ht : t ≤ j) :
+    oneZeros t ∈ factors ℓ (t + 1) := by
+  obtain ⟨k, h1, h2, -⟩ := (mem_factors_oneZerosOne_iff j).1 hj
+  exact (mem_factors_oneZeros_iff t).2 ⟨k, h1, fun i hi => h2 i (by omega)⟩
+
+lemma zeros_mem_of_blockLens {j t : ℕ} (hj : j ∈ blockLens ℓ) (ht : t ≤ j) :
+    zeros t ∈ factors ℓ t := by
+  obtain ⟨k, -, h2, -⟩ := (mem_factors_oneZerosOne_iff j).1 hj
+  exact (mem_factors_zeros_iff t).2 ⟨k + 1, fun i hi => h2 i (by omega)⟩
+
+lemma zerosOne_mem_of_blockLens {j t : ℕ} (hj : j ∈ blockLens ℓ) (ht : t ≤ j) :
+    zerosOne t ∈ factors ℓ (t + 1) := by
+  obtain ⟨k, -, h2, h3⟩ := (mem_factors_oneZerosOne_iff j).1 hj
+  refine (mem_factors_zerosOne_iff t).2 ⟨k + 1 + (j - t), fun i hi => ?_, ?_⟩
+  · rw [show k + 1 + (j - t) + i = k + 1 + (j - t + i) by omega]
+    exact h2 _ (by omega)
+  · rw [show k + 1 + (j - t) + t = k + 1 + j by omega]
+    exact h3
+
+/-- Two interior block lengths differ by at most one.  This is the boundedness
+paragraph of `prop:blocks` and its later display at once. -/
+theorem blockLens_le (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    {j s : ℕ} (hj : j ∈ blockLens ℓ) (hs : s ∈ blockLens ℓ) : s ≤ j + 1 := by
+  by_contra hcon
+  push Not at hcon
+  refine not_both_rightSpecial hb hS j ?_ ?_
+  · exact (rightSpecial_zeros_iff j).2
+      ⟨zeros_mem_of_blockLens hs (by omega), zerosOne_mem_of_blockLens hs (by omega)⟩
+  · exact (rightSpecial_oneZeros_iff j).2
+      ⟨oneZeros_mem_of_blockLens hs (by omega), hj⟩
+
+/-- The next `1` strictly after `k`, and only `0`s before it. -/
+lemma exists_next_one (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (k : ℕ) :
+    ∃ d, 0 < d ∧ ℓ (k + d) = 1 ∧ ∀ i, 0 < i → i < d → ℓ (k + i) = 0 := by
+  classical
+  have hex : ∃ d, 0 < d ∧ ℓ (k + d) = 1 := by
+    obtain ⟨k', hk', h1⟩ := exists_one_ge hb hS (k + 1)
+    exact ⟨k' - k, by omega, by rw [show k + (k' - k) = k' by omega]; exact h1⟩
+  refine ⟨Nat.find hex, (Nat.find_spec hex).1, (Nat.find_spec hex).2, fun i hi0 hid => ?_⟩
+  have hne : ℓ (k + i) ≠ 1 := fun h => Nat.find_min hex hid ⟨hi0, h⟩
+  have := hb (k + i)
+  omega
+
+lemma blockLens_nonempty (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
+    (blockLens ℓ).Nonempty := by
+  obtain ⟨k, -, hk1⟩ := exists_one_ge hb hS 0
+  obtain ⟨d, hd0, hd1, hd2⟩ := exists_next_one hb hS k
+  refine ⟨d - 1, (mem_factors_oneZerosOne_iff (d - 1)).2 ⟨k, hk1, fun i hi => ?_, ?_⟩⟩
+  · rw [show k + 1 + i = k + (i + 1) by omega]
+    exact hd2 (i + 1) (by omega) (by omega)
+  · rw [show k + 1 + (d - 1) = k + d by omega]
+    exact hd1
+
+/-- `11` absent forces every interior block to be nonempty. -/
+lemma one_le_of_mem_blockLens (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0)
+    {j : ℕ} (hj : j ∈ blockLens ℓ) : 1 ≤ j := by
+  rcases Nat.eq_zero_or_pos j with rfl | h
+  · obtain ⟨k, h1, -, h3⟩ := (mem_factors_oneZerosOne_iff 0).1 hj
+    have h4 : ℓ (k + 1) = 1 := by simpa using h3
+    have h5 := h11 k h1
+    omega
+  · exact h
+
+/-! ### `a`, the longest block -/
+
+lemma blockLens_bddAbove (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
+    BddAbove (blockLens ℓ) := by
+  obtain ⟨j, hj⟩ := blockLens_nonempty hb hS
+  exact ⟨j + 1, fun s hs => blockLens_le hb hS hj hs⟩
+
+noncomputable def blockMax (ℓ : ℕ → ℕ) : ℕ := sSup (blockLens ℓ)
+
+theorem blockMax_mem (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
+    blockMax ℓ ∈ blockLens ℓ :=
+  Nat.sSup_mem (blockLens_nonempty hb hS) (blockLens_bddAbove hb hS)
+
+theorem le_blockMax (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) {s : ℕ}
+    (hs : s ∈ blockLens ℓ) : s ≤ blockMax ℓ :=
+  le_csSup (blockLens_bddAbove hb hS) hs
+
+/-- Every interior block length is `a - 1` or `a`. -/
+theorem blockLens_subset (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
+    blockLens ℓ ⊆ {blockMax ℓ - 1, blockMax ℓ} := by
+  intro s hs
+  have h1 := le_blockMax hb hS hs
+  have h2 := blockLens_le hb hS hs (blockMax_mem hb hS)
+  simp only [Set.mem_insert_iff, Set.mem_singleton_iff]
+  omega
+
+/-- A second block length forces `a ≥ 2`. -/
+theorem two_le_blockMax (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0)
+    (hne : ∃ s ∈ blockLens ℓ, s ≠ blockMax ℓ) : 2 ≤ blockMax ℓ := by
+  obtain ⟨s, hs, hsne⟩ := hne
+  have h1 := le_blockMax hb hS hs
+  have h2 := blockLens_le hb hS hs (blockMax_mem hb hS)
+  have h3 := one_le_of_mem_blockLens h11 hs
+  omega
+
+/-! ### A single block length is periodic -/
+
+/-- A single interior block length makes the gap after every `1` equal to
+`a + 1`, hence `ℓ` eventually periodic.  `11` absent is not needed. -/
+theorem exists_mem_blockLens_ne (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
+    ∃ s ∈ blockLens ℓ, s ≠ blockMax ℓ := by
+  by_contra hcon
+  push Not at hcon
+  set a := blockMax ℓ with ha
+  have key : ∀ k, ℓ k = 1 →
+      ℓ (k + (a + 1)) = 1 ∧ ∀ i, 0 < i → i < a + 1 → ℓ (k + i) = 0 := by
+    intro k hk
+    obtain ⟨d, hd0, hd1, hd2⟩ := exists_next_one hbb hS k
+    have hmem : d - 1 ∈ blockLens ℓ := by
+      refine (mem_factors_oneZerosOne_iff (d - 1)).2 ⟨k, hk, fun i hi => ?_, ?_⟩
+      · rw [show k + 1 + i = k + (i + 1) by omega]
+        exact hd2 (i + 1) (by omega) (by omega)
+      · rw [show k + 1 + (d - 1) = k + d by omega]
+        exact hd1
+    have hda : d = a + 1 := by have := hcon _ hmem; omega
+    refine ⟨by rw [← hda]; exact hd1, fun i hi0 hid => hd2 i hi0 (by omega)⟩
+  obtain ⟨k₀, -, hk₀⟩ := exists_one_ge hbb hS 0
+  have hA : ∀ t, ℓ (k₀ + t * (a + 1)) = 1 := by
+    intro t
+    induction t with
+    | zero => simpa using hk₀
+    | succ n ih =>
+        rw [show k₀ + (n + 1) * (a + 1) = k₀ + n * (a + 1) + (a + 1) by ring]
+        exact (key _ ih).1
+  have hsplit : ∀ k, k₀ ≤ k →
+      k = k₀ + ((k - k₀) / (a + 1)) * (a + 1) + (k - k₀) % (a + 1) := by
+    intro k hk
+    have h := Nat.div_add_mod (k - k₀) (a + 1)
+    rw [Nat.mul_comm] at h
+    omega
+  have hB : ∀ k, k₀ ≤ k → (ℓ k = 1 ↔ (k - k₀) % (a + 1) = 0) := by
+    intro k hk
+    have hs := hsplit k hk
+    have hrlt : (k - k₀) % (a + 1) < a + 1 := Nat.mod_lt _ (by omega)
+    have hAt := hA ((k - k₀) / (a + 1))
+    constructor
+    · intro h1
+      by_contra hr
+      have h0 := (key _ hAt).2 ((k - k₀) % (a + 1)) (by omega) hrlt
+      rw [← hs] at h0
+      omega
+    · intro h1
+      rw [h1, Nat.add_zero] at hs
+      rw [← hs] at hAt
+      exact hAt
+  refine not_eventuallyPeriodic hS ⟨k₀, a + 1, by omega, fun k hk => ?_⟩
+  have hmod : (k + (a + 1) - k₀) % (a + 1) = (k - k₀) % (a + 1) := by
+    rw [show k + (a + 1) - k₀ = (k - k₀) + (a + 1) by omega, Nat.add_mod_right]
+  have e1 := hB k hk
+  have e2 := hB (k + (a + 1)) (by omega)
+  rw [hmod] at e2
+  by_cases hp : (k - k₀) % (a + 1) = 0
+  · rw [e2.2 hp, e1.2 hp]
+  · have g1 : ℓ k ≠ 1 := fun h => hp (e1.1 h)
+    have g2 : ℓ (k + (a + 1)) ≠ 1 := fun h => hp (e2.1 h)
+    have := hbb k
+    have := hbb (k + (a + 1))
+    omega
+
+theorem blockMax_sub_one_mem (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
+    blockMax ℓ - 1 ∈ blockLens ℓ := by
+  obtain ⟨s, hs, hsne⟩ := exists_mem_blockLens_ne hbb hS
+  have h1 := le_blockMax hbb hS hs
+  have h2 := blockLens_le hbb hS hs (blockMax_mem hbb hS)
+  have he : s = blockMax ℓ - 1 := by omega
+  rwa [he] at hs
+
+/-- **`prop:blocks`.**  `a ≥ 2`, and the interior blocks have lengths `a-1` and
+`a`, both occurring. -/
+theorem blocks (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) :
+    2 ≤ blockMax ℓ ∧ blockLens ℓ = {blockMax ℓ - 1, blockMax ℓ} := by
+  refine ⟨two_le_blockMax hbb hS h11 (exists_mem_blockLens_ne hbb hS), ?_⟩
+  refine Set.Subset.antisymm (blockLens_subset hbb hS) ?_
+  intro s hs
+  simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hs
+  rcases hs with rfl | rfl
+  · exact blockMax_sub_one_mem hbb hS
+  · exact blockMax_mem hbb hS
+
+/-- **`prop:blocks`, last clause.**  The block before the first `1` has length
+at most `a`.  `blockMax` is the largest *interior* length, so this is a lemma
+rather than the definitional triviality it is in the paper. -/
+theorem initial_block_le (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) {k₀ : ℕ}
+    (hk₀ : ℓ k₀ = 1) (hlt : ∀ i, i < k₀ → ℓ i = 0) : k₀ ≤ blockMax ℓ := by
+  by_contra hcon
+  push Not at hcon
+  have ha2 : 2 ≤ blockMax ℓ := (blocks hbb hS h11).1
+  obtain ⟨b, hbe⟩ : ∃ b, blockMax ℓ = b + 1 := ⟨blockMax ℓ - 1, by omega⟩
+  refine not_both_rightSpecial hbb hS b ?_ ?_
+  · refine (rightSpecial_zeros_iff b).2 ⟨?_, ?_⟩
+    · exact (mem_factors_zeros_iff (b + 2)).2
+        ⟨0, fun i hi => by simpa using hlt i (by omega)⟩
+    · refine (mem_factors_zerosOne_iff (b + 1)).2 ⟨k₀ - (b + 1), fun i hi => ?_, ?_⟩
+      · exact hlt _ (by omega)
+      · rw [show k₀ - (b + 1) + (b + 1) = k₀ by omega]; exact hk₀
+  · refine (rightSpecial_oneZeros_iff b).2 ⟨?_, ?_⟩
+    · exact oneZeros_mem_of_blockLens (blockMax_mem hbb hS) (by omega)
+    · have h := blockMax_sub_one_mem hbb hS
+      rwa [show blockMax ℓ - 1 = b by omega] at h
+
 end MorseHedlund
 
 /-! ## §8 The tower
@@ -2419,6 +2629,9 @@ end Substitution
 #print axioms Sturmian.exists_one_ge
 #print axioms Sturmian.not_both_rightSpecial
 #print axioms Sturmian.mem_factors_oneZerosOne_iff
+#print axioms Sturmian.blockLens_le
+#print axioms Sturmian.blocks
+#print axioms Sturmian.initial_block_le
 #print axioms Sturmian.return_time
 #print axioms Sturmian.ones_succ_eq
 #print axioms Sturmian.derived_eq

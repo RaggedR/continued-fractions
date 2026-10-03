@@ -4,11 +4,12 @@
 3 October 2026 and is now §7 of `all-the-proofs.tex`. `lean/PLAN.md` Phase 9 is
 the remaining work and it is now pure formalisation.
 
-Phase 9 has started, in `Sturmian.lean` §6.1: `lem:rs`, `cor:onesp`,
-`lem:evper`, and the pair of words `prop:blocks` runs on. The proposition
-itself is not formalised; `PLAN.md` lists what it still needs, and the first
-item is subword closure of `factors`, which discharges every occurrence
-deduction in the proof at once.
+Phase 9 is underway in `Sturmian.lean` §6.1. `lem:rs`, `cor:onesp`,
+`lem:evper` and **all of step 2** are formalised — `blocks` is `prop:blocks`.
+Steps 3, 1, 4 and 5 remain, in that order; `PLAN.md` has the brief and records
+the two places the Lean route diverges from the paper's (`blockLens_le`
+collapses two paragraphs, and the initial-block clause swaps from definition
+to lemma).
 
 ## What step 5 turned out to be
 
