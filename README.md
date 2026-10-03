@@ -30,14 +30,14 @@ figures with the source kept.
 | `lean/` | **The Lean 4 formalisation**, five files, no sorries, every headline theorem checked with `#print axioms`. `lean/README.md` has the file sizes and theorem count; `lean/PLAN.md` has the phase-by-phase status. |
 | `sturmian.tex` / `.pdf` | The Sturmian side: codings of an irrational rotation, derived sequences, and the tower of derivations of √n. Assertion-dense — written to be checked, and it was. |
 | `all-the-proofs.tex` / `.pdf` | Proofs of everything `sturmian.tex` asserts, plus the corrections it needed. This is what `lean/Sturmian.lean` and `lean/Lagrange.lean` formalise. |
-| `step5_check.py` | The numerics behind `all-the-proofs.tex` §7, asserting rather than printing: the factor bound over 3,022,668 factors, the block decomposition, and the recovery of the intercept as `x = sup_N (S(N) − Nα)`. |
+| `step5_check.py` | The numerics behind `all-the-proofs.tex` §7, asserting rather than printing: the factor bound, the block decomposition over 3,024,000 windows starting at position 0, and the recovery of the intercept as `x = sup_N (S(N) − Nα)`. |
 | `papers/` | Scans of Euler 1767, Lagrange 1770 and Legendre 1798, with an article-level index of where each theorem actually is. |
 | `original/` | The 14 September originals, for comparison: `period-histogram.pdf`, `period-distribution.pdf`, and the `period-histogram.txt` write-up. Kept unmodified. |
 
-`all-the-proofs.tex` is complete: §6 step 5, the last gap, is proved in §7
-(3 October 2026). `HANDOVER.md` is the brief for what is left, which is Lean
-Phase 9 — formalising the converse of Morse–Hedlund (§6) and step 5 (§7).
-Steps 1 to 4 of the converse are done; step 5 has no Lean yet.
+`all-the-proofs.tex` is complete, and so is the Lean: `isSturmian_iff_mechanical`
+closes the converse of Morse–Hedlund, and §11 reads "Nothing". Formalising §7
+turned up one gap in it, in `prop:bound`'s `s = a` case, repaired by `lem:recur`;
+`HANDOVER.md` records that and what the Lean route did differently.
 
 ## The Lean formalisation
 
@@ -51,7 +51,7 @@ apart once, so there is one copy.
 | file | contents |
 |---|---|
 | `Palindrome.lean` | Legendre's palindrome theorem for √n: Lagrange periodicity, the palindrome, `a_L = 2a₀`, the matrix side, and the bridge to Mathlib's `GenContFract`. |
-| `Sturmian.lean` | `all-the-proofs.tex` §§1–8: codings, density, complexity, right-special factors, gaps, the derivation theorem, Morse–Hedlund with steps 1–4 of its converse, the tower, the substitution. |
+| `Sturmian.lean` | `all-the-proofs.tex` §§1–8: codings, density, complexity, right-special factors, gaps, the derivation theorem, Morse–Hedlund and its converse, the tower, the substitution. |
 | `Lagrange.lean` | §9: Euler's half of Lagrange's theorem — eventually periodic ⟹ quadratic irrational. |
 | `Quadratic.lean` | §9: Lagrange's half — every quadratic irrational has an eventually periodic continued fraction. Generalises `Palindrome.lean` off `Q = 1`. |
 | `SqrtN.lean` | The √n instances of the tower and of Euler, joining the files. |

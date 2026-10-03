@@ -9,25 +9,21 @@ Three further files formalise `../all-the-proofs.tex`; they are documented in
 | file | lines | contents |
 |---|---|---|
 | `Palindrome.lean` | 953 | Legendre's palindrome theorem, §§1–5 of `../palindrome.tex` |
-| `Sturmian.lean` | 3536 | `../all-the-proofs.tex` §§1–8: codings, density, complexity, right-special factors, gaps, derivation, Morse–Hedlund, the tower, the substitution |
+| `Sturmian.lean` | 4524 | `../all-the-proofs.tex` §§1–8: codings, density, complexity, right-special factors, gaps, derivation, Morse–Hedlund **and its converse**, the tower, the substitution |
 | `Lagrange.lean` | 212 | §9: Euler's half of Lagrange's theorem, for an abstract tail sequence |
 | `Quadratic.lean` | 544 | §9: **Lagrange's own half** — the continued fraction of every quadratic irrational is eventually periodic |
 | `SqrtN.lean` | 127 | `√n` instances of the tower (§8) and of Euler (§9), joining the files |
 
 `Palindrome`, `Lagrange` and `Sturmian` are mutually independent; `Quadratic`
 imports `Palindrome`, and `SqrtN` imports the other three. Together they
-formalise `../all-the-proofs.tex` apart from §§6–7, the converse of
-Morse–Hedlund.  That converse is proved in the paper; what is formalised of it
-so far is §6.1: **steps 1 to 4** of the converse — `step_one`, `blocks`,
-`onesPos_block_length` and `isSturmian_deriveSeq` — on `lem:rs`, `cor:onesp`,
-`lem:evper`, `lem:aper`, `lem:rschain` and `lem:bridge`.  `PLAN.md` Phase 9 is
-the rest: step 5 (§7), the letter-exchange normalisation, and the assembly
-into `thm:mh`.
+formalise the whole of `../all-the-proofs.tex`.
 
-The two headlines of `Sturmian.lean` are `sqrt_tower_period` (for every
-non-square `n`, exactly `L` derivations return the sequence with its first
-letter removed) and `fib_sturmian_not_code` (a Sturmian sequence that is not a
-lower mechanical coding — a refutation of `../sturmian.tex` §2).
+The three headlines of `Sturmian.lean` are `isSturmian_iff_mechanical`
+(Morse–Hedlund both ways), `sqrt_tower_period` (for every non-square `n`,
+exactly `L` derivations return the sequence with its first letter removed) and
+`fib_sturmian_not_code` (a Sturmian sequence that is not a lower mechanical
+coding — a refutation of `../sturmian.tex` §2).  The last is why the first has
+to offer two codings and not one.
 
 ## The theorems
 

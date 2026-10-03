@@ -145,6 +145,17 @@ theorem sum_code (hα0 : 0 < α) (hα1 : α < 1) (hx0 : 0 ≤ x) (hx1 : x < 1) (
   simp only [Nat.cast_zero, zero_mul, zero_add]
   rw [Int.floor_eq_zero_iff.mpr (Set.mem_Ico.mpr ⟨hx0, hx1⟩), sub_zero]
 
+/-- **`lem:countup`.**  The `1`s of the upper coding, counted by the ceiling.
+No constraint on `x`: the telescope leaves `⌈x⌉` behind rather than `0`. -/
+theorem sum_codeUp (hα0 : 0 < α) (hα1 : α < 1) (N : ℕ) :
+    ∑ k ∈ Finset.range N, (codeUp α x k : ℤ) = ⌈(N : ℝ) * α + x⌉ - ⌈x⌉ := by
+  have key : ∀ k ∈ Finset.range N, (codeUp α x k : ℤ)
+      = (fun j : ℕ => ⌈(j : ℝ) * α + x⌉) (k + 1) - (fun j : ℕ => ⌈(j : ℝ) * α + x⌉) k := by
+    intro k _
+    simpa using codeUp_eq_sub_ceil (x := x) hα0 hα1 k
+  rw [Finset.sum_congr rfl key, Finset.sum_range_sub (fun j : ℕ => ⌈(j : ℝ) * α + x⌉) N]
+  simp
+
 /-! ### Lemma 1.5 — the shift -/
 
 theorem code_succ (α x : ℝ) (k : ℕ) :
@@ -748,6 +759,47 @@ def factors (ℓ : ℕ → ℕ) (m : ℕ) : Set (Fin m → ℕ) :=
 lemma factors_code (α x : ℝ) (m : ℕ) :
     factors (code α x) m = {w : Fin m → ℕ | ∃ k : ℕ, w = factor α x m k} := rfl
 
+/-! ### The letter exchange
+
+§7 normalises so that `11` is absent, and `step_one` delivers `00` **or** `11`.
+Exchanging the letters converts one into the other, and the exchange is a
+bijection on words, so it preserves the factor count. -/
+
+/-- `0` and `1` swapped. -/
+def exch (ℓ : ℕ → ℕ) : ℕ → ℕ := fun k => 1 - ℓ k
+
+lemma exch_exch {ℓ : ℕ → ℕ} (hb : ∀ k, ℓ k ≤ 1) : exch (exch ℓ) = ℓ := by
+  funext k; have := hb k; simp only [exch]; omega
+
+lemma factors_exch (ℓ : ℕ → ℕ) (m : ℕ) :
+    factors (exch ℓ) m = (fun w : Fin m → ℕ => fun j => 1 - w j) '' factors ℓ m := by
+  ext w
+  constructor
+  · rintro ⟨k, rfl⟩
+    exact ⟨fun j : Fin m => ℓ (k + (j : ℕ)), ⟨k, rfl⟩, rfl⟩
+  · rintro ⟨v, ⟨k, rfl⟩, rfl⟩
+    exact ⟨k, rfl⟩
+
+lemma ncard_factors_exch {ℓ : ℕ → ℕ} (hb : ∀ k, ℓ k ≤ 1) (m : ℕ) :
+    (factors (exch ℓ) m).ncard = (factors ℓ m).ncard := by
+  rw [factors_exch]
+  refine Set.InjOn.ncard_image ?_
+  rintro v ⟨k, rfl⟩ v' ⟨k', rfl⟩ h
+  funext j
+  have hj := congrFun h j
+  simp only at hj
+  have h1 := hb (k + (j : ℕ))
+  have h2 := hb (k' + (j : ℕ))
+  omega
+
+/-- The identity in the proof of `cor:complexityup`, as sequences. -/
+lemma exch_code {β : ℝ} (hβ1 : β < 1) (y : ℝ) : exch (code β y) = codeUp (1 - β) (-y) := by
+  funext k
+  have h := codeUp_add_code_reflect (α := 1 - β) (by linarith) (-y) k
+  simp only [show (1 : ℝ) - (1 - β) = β by ring, neg_neg] at h
+  simp only [exch]
+  omega
+
 /-- **Theorem 3.1**, in the language of `factors`. -/
 theorem ncard_factors_code (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x : ℝ) (m : ℕ) :
     (factors (code α x) m).ncard = m + 1 := by
@@ -759,30 +811,12 @@ theorem ncard_factors_codeUp (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 
   have hβ : Irrational (1 - α) := by
     have h := Irrational.intCast_sub hα 1
     simpa using h
-  have hcompl : ∀ k : ℕ, codeUp α x k = 1 - code (1 - α) (-x) k := by
-    intro k
+  have hcompl : codeUp α x = exch (code (1 - α) (-x)) := by
+    funext k
     have h := codeUp_add_code_reflect hα0 x k
+    simp only [exch]
     omega
-  have himg : factors (codeUp α x) m
-      = (fun w : Fin m → ℕ => fun j => 1 - w j) '' factors (code (1 - α) (-x)) m := by
-    ext w
-    constructor
-    · rintro ⟨k, rfl⟩
-      refine ⟨fun j : Fin m => code (1 - α) (-x) (k + (j : ℕ)), ⟨k, rfl⟩, ?_⟩
-      funext j
-      simp only [hcompl]
-    · rintro ⟨v, ⟨k, rfl⟩, rfl⟩
-      exact ⟨k, by funext j; simp only [hcompl]⟩
-  have hinj : Set.InjOn (fun w : Fin m → ℕ => fun j => 1 - w j)
-      (factors (code (1 - α) (-x)) m) := by
-    rintro v ⟨k, rfl⟩ v' ⟨k', rfl⟩ h
-    funext j
-    have hj := congrFun h j
-    simp only at hj
-    have h1 := code_le_one (1 - α) (-x) (k + j)
-    have h2 := code_le_one (1 - α) (-x) (k' + j)
-    omega
-  rw [himg, Set.InjOn.ncard_image hinj]
+  rw [hcompl, ncard_factors_exch (fun k => code_le_one (1 - α) (-x) k)]
   exact ncard_factors_code hβ (by linarith) (by linarith) (-x) m
 
 /-! ### Sturmian sequences
@@ -799,6 +833,12 @@ theorem isSturmian_code (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x
 
 theorem isSturmian_codeUp (hα : Irrational α) (hα0 : 0 < α) (hα1 : α < 1) (x : ℝ) :
     IsSturmian (codeUp α x) := fun m _ => ncard_factors_codeUp hα hα0 hα1 x m
+
+lemma exch_le_one (ℓ : ℕ → ℕ) (k : ℕ) : exch ℓ k ≤ 1 := Nat.sub_le 1 (ℓ k)
+
+/-- The letter exchange preserves being Sturmian. -/
+theorem isSturmian_exch {ℓ : ℕ → ℕ} (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
+    IsSturmian (exch ℓ) := fun m hm => (ncard_factors_exch hb m).trans (hS m hm)
 
 /-! ### Right-special factors — `../all-the-proofs.tex` §6 `lem:rs`
 
@@ -2463,6 +2503,93 @@ theorem eventuallyPeriodic_of_rightSpecial_empty (hbb : ∀ k, ℓ k ≤ 1) {m :
     rw [show j + (k - j) + 0 = k by omega, show i + (k - j) + 0 = k + (i - j) by omega] at h
     exact h.symm
 
+/-! ### `lem:recur` — recurrence
+
+`prop:bound` decomposes a factor as `0^s τ_a(u') q`, and for `s = a` it reads
+the block to the left of `u'`.  A factor sitting in the run of zeros before the
+first `1` has no block to its left, so the occurrence is moved past the run.
+`Δ_α` depends on the word and not on where it sits, which is what makes the
+move free. -/
+
+/-- The sequence from `N` on. -/
+def shift (ℓ : ℕ → ℕ) (N : ℕ) : ℕ → ℕ := fun i => ℓ (N + i)
+
+lemma factors_shift_subset (N m : ℕ) : factors (shift ℓ N) m ⊆ factors ℓ m := by
+  rintro w ⟨k, rfl⟩
+  exact ⟨N + k, by funext j; simp [shift, Nat.add_assoc]⟩
+
+lemma eventuallyPeriodic_of_shift {N : ℕ} (h : EventuallyPeriodic (shift ℓ N)) :
+    EventuallyPeriodic ℓ := by
+  obtain ⟨q, p, hp, hper⟩ := h
+  refine ⟨N + q, p, hp, fun k hk => ?_⟩
+  have h := hper (k - N) (by omega)
+  simp only [shift] at h
+  rwa [show N + (k - N + p) = k + p by omega, show N + (k - N) = k by omega] at h
+
+/-- One letter means constant. -/
+lemma eventuallyPeriodic_of_ncard_factors_one (h : (factors ℓ 1).ncard = 1) :
+    EventuallyPeriodic ℓ := by
+  obtain ⟨w, hw⟩ := Set.ncard_eq_one.1 h
+  refine ⟨0, 1, one_pos, fun k _ => ?_⟩
+  have h1 : (fun j : Fin 1 => ℓ (k + 1 + (j : ℕ))) ∈ factors ℓ 1 := ⟨k + 1, rfl⟩
+  have h2 : (fun j : Fin 1 => ℓ (k + (j : ℕ))) ∈ factors ℓ 1 := ⟨k, rfl⟩
+  rw [hw, Set.mem_singleton_iff] at h1 h2
+  have h3 := congrFun (h1.trans h2.symm) ⟨0, one_pos⟩
+  simpa using h3
+
+/-- **`lem:recur`.**  Every window of a Sturmian sequence recurs beyond every
+bound. -/
+theorem exists_window_ge (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (m k N : ℕ) :
+    ∃ p, N ≤ p ∧ window ℓ m p = window ℓ m k := by
+  rcases Nat.eq_zero_or_pos m with rfl | hm
+  · exact ⟨N, le_rfl, by funext j; exact j.elim0⟩
+  by_contra hcon
+  push Not at hcon
+  set tl := shift ℓ N with htl
+  have hbtl : ∀ i, tl i ≤ 1 := fun i => hbb _
+  have hnot : window ℓ m k ∉ factors tl m := by
+    rintro ⟨j, hj⟩
+    refine hcon (N + j) (by omega) ?_
+    funext t
+    have h := congrFun hj t
+    simp only [window, htl, shift] at h ⊢
+    rw [show N + j + (t : ℕ) = N + (j + (t : ℕ)) by omega]
+    exact h.symm
+  have hss : factors tl m ⊂ factors ℓ m := by
+    refine Set.ssubset_iff_subset_ne.2 ⟨factors_shift_subset N m, fun he => ?_⟩
+    exact hnot (by rw [he]; exact window_mem m k)
+  have hlt : (factors tl m).ncard < m + 1 := by
+    have h := Set.ncard_lt_ncard hss (factors_finite hbb m)
+    rwa [hS m hm] at h
+  have hstep : ∀ j, (factors tl (j + 1)).ncard
+      = (factors tl j).ncard + (rightSpecial tl j).ncard := ncard_factors_succ hbtl
+  have hzero : ∃ j, j < m ∧ (rightSpecial tl j).ncard = 0 := by
+    by_contra hc
+    push Not at hc
+    have key : ∀ j, j ≤ m → j + 1 ≤ (factors tl j).ncard := by
+      intro j
+      induction j with
+      | zero => intro _; rw [ncard_factors_zero]
+      | succ i ih =>
+          intro hi
+          have h1 := ih (by omega)
+          have h2 := hc i (by omega)
+          have h3 := hstep i
+          omega
+    have := key m le_rfl
+    omega
+  obtain ⟨j, hjm, hrj⟩ := hzero
+  refine not_eventuallyPeriodic hS (eventuallyPeriodic_of_shift (N := N) ?_)
+  rcases Nat.eq_zero_or_pos j with rfl | hj1
+  · refine eventuallyPeriodic_of_ncard_factors_one ?_
+    have h := hstep 0
+    rw [ncard_factors_zero, hrj] at h
+    omega
+  · have hfin : (rightSpecial tl j).Finite :=
+      (factors_finite hbtl j).subset
+        (Set.inter_subset_left.trans (extBy_subset (ℓ := tl) j 0))
+    exact eventuallyPeriodic_of_rightSpecial_empty hbtl hj1 ((Set.ncard_eq_zero hfin).1 hrj)
+
 /-! ### Periodicity transfers up the derivation -/
 
 lemma onesPos_strictMono (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
@@ -3090,6 +3217,857 @@ theorem isSturmian_deriveSeq (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
 
 end MorseHedlund
 
+/-! ## §6.2 Step 5 — `../all-the-proofs.tex` §7
+
+`Δ_α(u) = |u|₁ − α|u|` takes a length and a weight, not a word.  Every use in
+§7 needs only those two numbers, so `τ_a` never has to be built as a word —
+the same dodge §6.1 uses. -/
+
+section Step5
+
+variable {ℓ : ℕ → ℕ}
+
+/-- `Δ_α` of a word of length `n` carrying `w` ones. -/
+noncomputable def dev (α : ℝ) (n w : ℕ) : ℝ := (w : ℝ) - α * n
+
+/-- **`lem:dev`.**  `τ_a(u')` has length `a|u'| + |u'|₁` and weight `|u'|`, so
+one level down the deviation is scaled by `−α`. -/
+lemma dev_tau {α β : ℝ} {a : ℕ} (h : α * ((a : ℝ) + β) = 1) (m W : ℕ) :
+    dev α (a * m + W) m = -α * dev β m W := by
+  have hab : α * (a : ℝ) + α * β = 1 := by linear_combination h
+  simp only [dev]
+  push_cast
+  linear_combination (-(m : ℝ)) * hab
+
+/-! ### The window decomposition
+
+`u = 0^s τ_a(u') q`.  Positions, not words: `τ_a(u')` is the stretch from one
+block start to another, and `u'` enters only through its length `m` and its
+weight `cnt ℓ' i m`. -/
+
+/-- The span of `m` blocks: `|τ_a(u')| = a|u'| + |u'|₁`. -/
+lemma onesPos_span (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) (i : ℕ) : ∀ m,
+    onesPos ℓ (i + m)
+      = onesPos ℓ i + (blockMax ℓ * m + cnt (deriveSeq ℓ (blockMax ℓ)) i m) := by
+  intro m
+  induction m with
+  | zero => simp [cnt]
+  | succ p ih =>
+      have hb := onesPos_block_length hbb hS h11 (i + p)
+      have hd := deriveSeq_le_one hbb hS h11 (i + p)
+      rw [show i + (p + 1) = (i + p) + 1 by omega, hb, ih, cnt, Nat.mul_succ]
+      split_ifs with h <;> omega
+
+/-- One `1` per block. -/
+lemma cnt_block (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (j q : ℕ) (hq : 0 < q)
+    (hle : onesPos ℓ j + q ≤ onesPos ℓ (j + 1)) : cnt ℓ (onesPos ℓ j) q = 1 := by
+  obtain ⟨p, rfl⟩ : ∃ p, q = 1 + p := ⟨q - 1, by omega⟩
+  rw [cnt_add, cnt_one_of _ (one_onesPos hbb hS j)]
+  have hz : cnt ℓ (onesPos ℓ j + 1) p = 0 := by
+    refine cnt_eq_zero _ (fun t ht => ?_)
+    have h := onesPos_block_zero (ℓ := ℓ) hbb (i := j) (j := 1 + t) (by omega) (by omega)
+    rw [show onesPos ℓ j + (1 + t) = onesPos ℓ j + 1 + t by omega] at h
+    exact h
+  omega
+
+/-- `m` blocks carry `m` ones. -/
+lemma cnt_blocks (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) (i : ℕ) : ∀ m,
+    cnt ℓ (onesPos ℓ i) (blockMax ℓ * m + cnt (deriveSeq ℓ (blockMax ℓ)) i m) = m := by
+  intro m
+  induction m with
+  | zero => simp [cnt]
+  | succ p ih =>
+      have hspan := onesPos_span hbb hS h11 i p
+      have hb := onesPos_block_length hbb hS h11 (i + p)
+      have hd := deriveSeq_le_one hbb hS h11 (i + p)
+      have hsplit : blockMax ℓ * (p + 1) + cnt (deriveSeq ℓ (blockMax ℓ)) i (p + 1)
+          = (blockMax ℓ * p + cnt (deriveSeq ℓ (blockMax ℓ)) i p)
+            + (blockMax ℓ + deriveSeq ℓ (blockMax ℓ) (i + p)) := by
+        rw [cnt, Nat.mul_succ]; split_ifs with h <;> omega
+      rw [hsplit, cnt_add, ih, ← hspan]
+      have hone := cnt_block (ℓ := ℓ) hbb hS (i + p)
+        (blockMax ℓ + deriveSeq ℓ (blockMax ℓ) (i + p)) (by
+          have := (blocks hbb hS h11).1; omega) (by omega)
+      omega
+
+/-- Zeros from `k` to the next block start. -/
+lemma cnt_zeros (hbb : ∀ k, ℓ k ≤ 1) {j k s : ℕ} (hjk : onesPos ℓ j < k)
+    (hs : k + s ≤ onesPos ℓ (j + 1)) : cnt ℓ k s = 0 := by
+  refine cnt_eq_zero _ (fun t ht => ?_)
+  have h := onesPos_block_zero (ℓ := ℓ) hbb (i := j) (j := k + t - onesPos ℓ j)
+    (by omega) (by omega)
+  rwa [show onesPos ℓ j + (k + t - onesPos ℓ j) = k + t by omega] at h
+
+/-! ### Counting under the exchange -/
+
+lemma cnt_le (ℓ : ℕ → ℕ) (k : ℕ) : ∀ n, cnt ℓ k n ≤ n := by
+  intro n
+  induction n with
+  | zero => simp [cnt]
+  | succ p ih => rw [cnt]; split_ifs <;> omega
+
+lemma cnt_exch (hb : ∀ k, ℓ k ≤ 1) (k : ℕ) : ∀ n, cnt (exch ℓ) k n = n - cnt ℓ k n := by
+  intro n
+  induction n with
+  | zero => simp [cnt]
+  | succ p ih =>
+      have h1 := hb (k + p)
+      have h2 := cnt_le ℓ k p
+      rw [cnt, cnt, ih]
+      simp only [exch]
+      split_ifs <;> omega
+
+/-- **The decomposition.**  A window of length `n` at `k`, past the first `1`,
+is `0^s τ_a(u') q` with `s ≤ a` and `q ≤ a`, where `q` is empty or opens with
+the `1` of its block.  `s = a` makes the block to the left of `u'` the long
+one, which is what `prop:bound`'s lower bound reads. -/
+theorem exists_decomp (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) {k : ℕ} (hk : onesPos ℓ 0 < k) (n : ℕ) :
+    ∃ s i m q : ℕ,
+      s ≤ blockMax ℓ ∧ q ≤ blockMax ℓ ∧
+      n = s + (blockMax ℓ * m + cnt (deriveSeq ℓ (blockMax ℓ)) i m) + q ∧
+      cnt ℓ k n = m + min q 1 ∧
+      (s = blockMax ℓ → 0 < i ∧ deriveSeq ℓ (blockMax ℓ) (i - 1) = 1) := by
+  classical
+  have ha2 : 2 ≤ blockMax ℓ := (blocks hbb hS h11).1
+  obtain ⟨j, hj1, hj2⟩ := exists_block hbb hS (le_of_lt hk)
+  obtain ⟨i, hik, hs0le, hcnt0, hleft⟩ :
+      ∃ i, k ≤ onesPos ℓ i ∧ onesPos ℓ i - k ≤ blockMax ℓ
+        ∧ cnt ℓ k (onesPos ℓ i - k) = 0
+        ∧ (onesPos ℓ i - k = blockMax ℓ →
+            0 < i ∧ deriveSeq ℓ (blockMax ℓ) (i - 1) = 1) := by
+    by_cases hkj : k = onesPos ℓ j
+    · refine ⟨j, by omega, by omega, ?_, fun hc => absurd hc (by omega)⟩
+      rw [show onesPos ℓ j - k = 0 by omega]
+      rfl
+    · have hb := onesPos_block_length hbb hS h11 j
+      have hd := deriveSeq_le_one hbb hS h11 j
+      refine ⟨j + 1, by omega, by omega,
+        cnt_zeros hbb (j := j) (by omega) (by omega), fun hc => ⟨by omega, ?_⟩⟩
+      rw [Nat.add_sub_cancel]
+      omega
+  set s0 := onesPos ℓ i - k with hs0
+  have hks : k + s0 = onesPos ℓ i := by omega
+  by_cases hn : n ≤ s0
+  · refine ⟨n, i, 0, 0, by omega, by omega, by simp [cnt], ?_, fun hc => hleft (by omega)⟩
+    have h := cnt_add (ℓ := ℓ) k n (s0 - n)
+    rw [show n + (s0 - n) = s0 by omega, hcnt0] at h
+    omega
+  · set n' := n - s0 with hn'
+    have hn'1 : 0 < n' := by omega
+    obtain ⟨t, ht1, ht2⟩ := exists_block_rel hbb hS i (n' - 1)
+    have hspant := onesPos_span hbb hS h11 i t
+    have hcntk : cnt ℓ k n = cnt ℓ (onesPos ℓ i) n' := by
+      have h := cnt_add (ℓ := ℓ) k s0 n'
+      rw [show s0 + n' = n by omega, hcnt0, hks] at h
+      omega
+    have hspant1 : onesPos ℓ (i + t + 1)
+        = onesPos ℓ i + (blockMax ℓ * (t + 1)
+            + cnt (deriveSeq ℓ (blockMax ℓ)) i (t + 1)) := by
+      have h := onesPos_span hbb hS h11 i (t + 1)
+      rwa [show i + (t + 1) = i + t + 1 by omega] at h
+    by_cases heq : onesPos ℓ (i + t + 1) = onesPos ℓ i + n'
+    · refine ⟨s0, i, t + 1, 0, hs0le, by omega, by omega, ?_, fun hc => hleft hc⟩
+      rw [hcntk, show n' = blockMax ℓ * (t + 1)
+            + cnt (deriveSeq ℓ (blockMax ℓ)) i (t + 1) by omega,
+        cnt_blocks hbb hS h11 i (t + 1)]
+      simp
+    · have hb := onesPos_block_length hbb hS h11 (i + t)
+      have hd := deriveSeq_le_one hbb hS h11 (i + t)
+      refine ⟨s0, i, t, onesPos ℓ i + n' - onesPos ℓ (i + t), hs0le, by omega,
+        by omega, ?_, fun hc => hleft hc⟩
+      rw [hcntk, show n' = (blockMax ℓ * t + cnt (deriveSeq ℓ (blockMax ℓ)) i t)
+            + (onesPos ℓ i + n' - onesPos ℓ (i + t)) by omega,
+        cnt_add, cnt_blocks hbb hS h11 i t, ← hspant,
+        cnt_block hbb hS (i + t) (onesPos ℓ i + n' - onesPos ℓ (i + t))
+          (by omega) (by omega)]
+      omega
+
+/-! ### The tower
+
+`step_one` delivers `00` **or** `11` absent, and §6.1 runs on the `11` branch,
+so a level that comes out the other way is exchanged.  `β j` is the slope of
+the raw derived sequence at level `j`; the exchange is what separates it from
+`α (j+1)`.  The slopes are a hypothesis, as in `tower_eq`: `lem:slope` supplies
+them, and nothing below needs to know how. -/
+
+/-- A tower of normalised Sturmian sequences with their slopes. -/
+structure Tower (L : ℕ → ℕ → ℕ) (α β : ℕ → ℝ) : Prop where
+  binary : ∀ j k, L j k ≤ 1
+  sturmian : ∀ j, IsSturmian (L j)
+  noOneOne : ∀ j k, L j k = 1 → L j (k + 1) = 0
+  pos : ∀ j, 0 < α j
+  lt_one : ∀ j, α j < 1
+  /-- `α(a + β) = 1` — the continued fraction step. -/
+  slope : ∀ j, α j * ((blockMax (L j) : ℝ) + β j) = 1
+  /-- The level below, exchanged or not. -/
+  below : ∀ j,
+    (L (j + 1) = deriveSeq (L j) (blockMax (L j)) ∧ β j = α (j + 1))
+      ∨ (L (j + 1) = exch (deriveSeq (L j) (blockMax (L j))) ∧ β j = 1 - α (j + 1))
+
+/-- The bound transfers from the stored level to the raw derived sequence. -/
+lemma dev_derive_of_dev {L : ℕ → ℕ → ℕ} {α β : ℕ → ℝ} (hT : Tower L α β)
+    (j i m : ℕ) (hIH : |dev (α (j + 1)) m (cnt (L (j + 1)) i m)| < 1) :
+    |dev (β j) m (cnt (deriveSeq (L j) (blockMax (L j))) i m)| < 1 := by
+  rcases hT.below j with ⟨hL, hb⟩ | ⟨hL, hb⟩
+  · rw [hb, ← hL]; exact hIH
+  · have hbin : ∀ k, deriveSeq (L j) (blockMax (L j)) k ≤ 1 := fun k =>
+      deriveSeq_le_one (hT.binary j) (hT.sturmian j) (hT.noOneOne j) k
+    have hle := cnt_le (deriveSeq (L j) (blockMax (L j))) i m
+    have hcnt : cnt (L (j + 1)) i m
+        = m - cnt (deriveSeq (L j) (blockMax (L j))) i m := by
+      rw [hL, cnt_exch hbin]
+    rw [hcnt] at hIH
+    have hneg : dev (1 - α (j + 1)) m (cnt (deriveSeq (L j) (blockMax (L j))) i m)
+        = -dev (α (j + 1)) m (m - cnt (deriveSeq (L j) (blockMax (L j))) i m) := by
+      simp only [dev]
+      rw [Nat.cast_sub hle]
+      ring
+    rw [hb, hneg, abs_neg]
+    exact hIH
+
+/-- **`prop:bound`.**  `|Δ_α(u)| < 1` for every factor, at every level.  The
+induction is on the length of the word and runs down the levels: `a ≥ 2` makes
+`|τ_a(u')| ≥ 2|u'|`, so it descends even though the level changes. -/
+theorem dev_lt_one {L : ℕ → ℕ → ℕ} {α β : ℕ → ℝ} (hT : Tower L α β) :
+    ∀ n j k, |dev (α j) n (cnt (L j) k n)| < 1 := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+    intro j k
+    rcases Nat.eq_zero_or_pos n with rfl | hn
+    · simp [dev, cnt]
+    obtain ⟨p, hp, hwin⟩ :=
+      exists_window_ge (hT.binary j) (hT.sturmian j) n k (onesPos (L j) 0 + 1)
+    have hcnteq : cnt (L j) p n = cnt (L j) k n :=
+      cnt_congr n (fun t ht => by simpa [window] using congrFun hwin ⟨t, ht⟩)
+    rw [← hcnteq]
+    obtain ⟨s, i, m, q, hsa, hqa, hnsum, hcntp, hleft⟩ :=
+      exists_decomp (hT.binary j) (hT.sturmian j) (hT.noOneOne j)
+        (show onesPos (L j) 0 < p by omega) n
+    have ha2 : 2 ≤ blockMax (L j) :=
+      (blocks (hT.binary j) (hT.sturmian j) (hT.noOneOne j)).1
+    have hmul : 2 * m ≤ blockMax (L j) * m := Nat.mul_le_mul_right m ha2
+    have habs := dev_derive_of_dev hT j i m (ih m (by omega) (j + 1) i)
+    have hA0 := hT.pos j
+    have hA1 := hT.lt_one j
+    have hsl := hT.slope j
+    have hB0 : 0 < β j := by
+      rcases hT.below j with ⟨-, hb⟩ | ⟨-, hb⟩
+      · rw [hb]; exact hT.pos (j + 1)
+      · rw [hb]; linarith [hT.lt_one (j + 1)]
+    have hB1 : β j < 1 := by
+      rcases hT.below j with ⟨-, hb⟩ | ⟨-, hb⟩
+      · rw [hb]; exact hT.lt_one (j + 1)
+      · rw [hb]; linarith [hT.pos (j + 1)]
+    have hAa : α j * (blockMax (L j) : ℝ) < 1 := by nlinarith [mul_pos hA0 hB0]
+    have hDB : s = blockMax (L j) →
+        dev (β j) m (cnt (deriveSeq (L j) (blockMax (L j))) i m) < β j := by
+      intro hs
+      obtain ⟨hi0, hone⟩ := hleft hs
+      have hcnt1 : cnt (deriveSeq (L j) (blockMax (L j))) (i - 1) (1 + m)
+          = 1 + cnt (deriveSeq (L j) (blockMax (L j))) i m := by
+        rw [cnt_add, cnt_one_of _ hone, show i - 1 + 1 = i by omega]
+      have h := dev_derive_of_dev hT j (i - 1) (m + 1)
+        (ih (m + 1) (by omega) (j + 1) (i - 1))
+      rw [show m + 1 = 1 + m from by omega, hcnt1, abs_lt] at h
+      simp only [dev] at h ⊢
+      push_cast at h
+      linarith [h.2]
+    have hexp : dev (α j) n (cnt (L j) p n)
+        = (min q 1 : ℝ)
+          - α j * (dev (β j) m (cnt (deriveSeq (L j) (blockMax (L j))) i m)
+                    + (s : ℝ) + (q : ℝ)) := by
+      rw [hcntp, hnsum]
+      simp only [dev]
+      push_cast
+      linear_combination (-(m : ℝ)) * hsl
+    rw [abs_lt] at habs ⊢
+    rw [hexp]
+    have hs' : (s : ℝ) ≤ (blockMax (L j) : ℝ) := Nat.cast_le.2 hsa
+    have hq' : (q : ℝ) ≤ (blockMax (L j) : ℝ) := Nat.cast_le.2 hqa
+    have hs0 : (0 : ℝ) ≤ (s : ℝ) := Nat.cast_nonneg s
+    have hq0 : (0 : ℝ) ≤ (q : ℝ) := Nat.cast_nonneg q
+    set D := dev (β j) m (cnt (deriveSeq (L j) (blockMax (L j))) i m) with hDdef
+    -- the lower bound splits on whether `s` fills the block
+    have hlow : α j * (D + (s : ℝ) + (q : ℝ)) < min (q : ℝ) 1 + 1 := by
+      by_cases hqz : q = 0
+      · have hqeq : (q : ℝ) = 0 := by rw [hqz]; norm_num
+        have hmin : min (q : ℝ) 1 = 0 := by rw [hqeq]; norm_num
+        rw [hmin]
+        by_cases hs : s = blockMax (L j)
+        · have hDlt := hDB hs
+          have hscast : (s : ℝ) = (blockMax (L j) : ℝ) := by rw [hs]
+          have hx : D + (s : ℝ) + (q : ℝ) < (blockMax (L j) : ℝ) + β j := by
+            rw [hqeq, hscast]; linarith
+          linarith [mul_lt_mul_of_pos_left hx hA0, hsl]
+        · have hslt : (s : ℝ) + 1 ≤ (blockMax (L j) : ℝ) := by
+            have h : s + 1 ≤ blockMax (L j) := by omega
+            exact_mod_cast h
+          have hx : D + (s : ℝ) + (q : ℝ) < (blockMax (L j) : ℝ) := by
+            rw [hqeq]; linarith [habs.2]
+          linarith [mul_lt_mul_of_pos_left hx hA0, hAa]
+      · have hq1 : (1 : ℝ) ≤ (q : ℝ) := by
+          have h : 1 ≤ q := by omega
+          exact_mod_cast h
+        have hmin : min (q : ℝ) 1 = 1 := min_eq_right hq1
+        rw [hmin]
+        by_cases hs : s = blockMax (L j)
+        · have hDlt := hDB hs
+          have hscast : (s : ℝ) = (blockMax (L j) : ℝ) := by rw [hs]
+          have hx : D + (s : ℝ) + (q : ℝ)
+              < ((blockMax (L j) : ℝ) + β j) + (blockMax (L j) : ℝ) := by
+            rw [hscast]; linarith
+          linarith [mul_lt_mul_of_pos_left hx hA0, hsl, hAa]
+        · have hslt : (s : ℝ) + 1 ≤ (blockMax (L j) : ℝ) := by
+            have h : s + 1 ≤ blockMax (L j) := by omega
+            exact_mod_cast h
+          have hx : D + (s : ℝ) + (q : ℝ)
+              < (blockMax (L j) : ℝ) + (blockMax (L j) : ℝ) := by linarith [habs.2]
+          linarith [mul_lt_mul_of_pos_left hx hA0, hAa]
+    have hhigh : min (q : ℝ) 1 - α j * (D + (s : ℝ) + (q : ℝ)) < 1 := by
+      by_cases hqz : q = 0
+      · have hqeq : (q : ℝ) = 0 := by rw [hqz]; norm_num
+        have hmin : min (q : ℝ) 1 = 0 := by rw [hqeq]; norm_num
+        rw [hmin]
+        have hx : (-1 : ℝ) < D + (s : ℝ) + (q : ℝ) := by rw [hqeq]; linarith [habs.1]
+        linarith [mul_lt_mul_of_pos_left hx hA0]
+      · have hq1 : (1 : ℝ) ≤ (q : ℝ) := by
+          have h : 1 ≤ q := by omega
+          exact_mod_cast h
+        have hmin : min (q : ℝ) 1 = 1 := min_eq_right hq1
+        rw [hmin]
+        have hx : (0 : ℝ) < D + (s : ℝ) + (q : ℝ) := by linarith [habs.1]
+        linarith [mul_lt_mul_of_pos_left hx hA0]
+    exact ⟨by linarith, hhigh⟩
+
+/-! ### `thm:step5` — the intercept is a formula
+
+`lem:mech` says `ℓ = C(α,x)` exactly when `⌊Nα + x⌋ = S(N)` for every `N`,
+which is the linear condition `x ∈ ⋂_N [D(N), D(N)+1)`.  So the intercept is
+`sup_N D(N)`, and `prop:bound` is what makes the intersection nonempty. -/
+
+/-- `D(N) = S(N) − Nα`. -/
+noncomputable def devPre (α : ℝ) (ℓ : ℕ → ℕ) (N : ℕ) : ℝ := dev α N (cnt ℓ 0 N)
+
+lemma devPre_zero (α : ℝ) (ℓ : ℕ → ℕ) : devPre α ℓ 0 = 0 := by simp [devPre, dev, cnt]
+
+lemma devPre_sub (ℓ : ℕ → ℕ) (α : ℝ) {M N : ℕ} (h : M ≤ N) :
+    devPre α ℓ N - devPre α ℓ M = dev α (N - M) (cnt ℓ M (N - M)) := by
+  have hc := cnt_add (ℓ := ℓ) 0 M (N - M)
+  rw [show M + (N - M) = N by omega, Nat.zero_add] at hc
+  simp only [devPre, dev, hc]
+  rw [Nat.cast_sub h, Nat.cast_add]
+  ring
+
+lemma eq_code_of_floor {ℓ : ℕ → ℕ} {α x : ℝ} (hα0 : 0 < α) (hα1 : α < 1)
+    (hb : ∀ k, ℓ k ≤ 1)
+    (h : ∀ N : ℕ, ⌊(N : ℝ) * α + x⌋ = (cnt ℓ 0 N : ℤ)) : ℓ = code α x := by
+  funext k
+  have h1 := code_eq_sub_floor (α := α) (x := x) hα0 hα1 k
+  rw [show ((k : ℝ) + 1) = ((k + 1 : ℕ) : ℝ) by push_cast; ring, h (k + 1), h k] at h1
+  have hc : cnt ℓ 0 (k + 1) = cnt ℓ 0 k + (if ℓ k = 1 then 1 else 0) := by
+    rw [cnt]; simp
+  have hbk := hb k
+  have hck := code_le_one α x k
+  rw [hc] at h1
+  push_cast at h1
+  split_ifs at h1 <;> omega
+
+lemma eq_codeUp_of_ceil {ℓ : ℕ → ℕ} {α x : ℝ} (hα0 : 0 < α) (hα1 : α < 1)
+    (hb : ∀ k, ℓ k ≤ 1)
+    (h : ∀ N : ℕ, ⌈(N : ℝ) * α + x⌉ = (cnt ℓ 0 N : ℤ) + ⌈x⌉) : ℓ = codeUp α x := by
+  funext k
+  have h1 := codeUp_eq_sub_ceil (α := α) (x := x) hα0 hα1 k
+  rw [show ((k : ℝ) + 1) = ((k + 1 : ℕ) : ℝ) by push_cast; ring, h (k + 1), h k] at h1
+  have hc : cnt ℓ 0 (k + 1) = cnt ℓ 0 k + (if ℓ k = 1 then 1 else 0) := by
+    rw [cnt]; simp
+  have hbk := hb k
+  have hck := codeUp_le_one α x k
+  rw [hc] at h1
+  push_cast at h1
+  split_ifs at h1 <;> omega
+
+/-- **`thm:step5`.**  Three cases, not two: `C(α,x)` when the supremum is
+attained, `C⁺(α,x)` when it is not and `x < 1`, and `C⁺(α,0)` when it is not
+and `x = 1`.  `thm:counterex` lives in the third. -/
+theorem step5 {L : ℕ → ℕ → ℕ} {α β : ℕ → ℝ} (hT : Tower L α β) :
+    ∃ x : ℝ, 0 ≤ x ∧ x < 1 ∧ (L 0 = code (α 0) x ∨ L 0 = codeUp (α 0) x) := by
+  classical
+  have hA0 := hT.pos 0
+  have hA1 := hT.lt_one 0
+  have hb : ∀ k, L 0 k ≤ 1 := hT.binary 0
+  have habs : ∀ M N : ℕ, |devPre (α 0) (L 0) M - devPre (α 0) (L 0) N| < 1 := by
+    have hdev : ∀ M N : ℕ, M ≤ N →
+        |devPre (α 0) (L 0) N - devPre (α 0) (L 0) M| < 1 := by
+      intro M N h
+      rw [devPre_sub (L 0) (α 0) h]
+      exact dev_lt_one hT (N - M) 0 M
+    intro M N
+    rcases Nat.le_total M N with h | h
+    · rw [abs_sub_comm]; exact hdev M N h
+    · exact hdev N M h
+  have hne : (Set.range (devPre (α 0) (L 0))).Nonempty := ⟨_, ⟨0, rfl⟩⟩
+  have hbdd : BddAbove (Set.range (devPre (α 0) (L 0))) := by
+    refine ⟨1, ?_⟩
+    rintro y ⟨N, rfl⟩
+    have h := habs N 0
+    rw [devPre_zero, abs_lt] at h
+    linarith [h.2]
+  set x := sSup (Set.range (devPre (α 0) (L 0))) with hxdef
+  have hle : ∀ N, devPre (α 0) (L 0) N ≤ x := fun N => le_csSup hbdd ⟨N, rfl⟩
+  have hx0 : 0 ≤ x := by have h := hle 0; rwa [devPre_zero] at h
+  have hub : ∀ N, x ≤ devPre (α 0) (L 0) N + 1 := by
+    intro N
+    refine csSup_le hne ?_
+    rintro y ⟨M, rfl⟩
+    have h := habs M N
+    rw [abs_lt] at h
+    linarith [h.2]
+  have hx1 : x ≤ 1 := by have h := hub 0; rwa [devPre_zero, zero_add] at h
+  by_cases hatt : ∃ N₀, devPre (α 0) (L 0) N₀ = x
+  · obtain ⟨N₀, hN₀⟩ := hatt
+    refine ⟨x, hx0, ?_, Or.inl ?_⟩
+    · have h := habs N₀ 0
+      rw [devPre_zero, abs_lt] at h
+      linarith [h.2]
+    · refine eq_code_of_floor hA0 hA1 hb (fun N => ?_)
+      have h1 := hle N
+      have h2 : x - devPre (α 0) (L 0) N < 1 := by
+        have h := habs N₀ N
+        rw [abs_lt] at h
+        linarith [h.2]
+      simp only [devPre, dev] at h1 h2
+      rw [Int.floor_eq_iff]
+      constructor <;> push_cast <;> linarith
+  · push Not at hatt
+    have hlt : ∀ N, devPre (α 0) (L 0) N < x := fun N => lt_of_le_of_ne (hle N) (hatt N)
+    by_cases hone : x = 1
+    · refine ⟨0, le_rfl, one_pos, Or.inr ?_⟩
+      refine eq_codeUp_of_ceil hA0 hA1 hb (fun N => ?_)
+      have h1 := hlt N
+      have h2 := hub N
+      rw [hone] at h1 h2
+      simp only [devPre, dev] at h1 h2
+      simp only [Int.ceil_zero, add_zero, add_zero]
+      rw [Int.ceil_eq_iff]
+      constructor <;> push_cast <;> linarith
+    · have hxlt : x < 1 := lt_of_le_of_ne hx1 hone
+      have hxpos : 0 < x :=
+        lt_of_le_of_ne hx0 (fun h => hatt 0 (by rw [devPre_zero, ← h]))
+      refine ⟨x, hx0, hxlt, Or.inr ?_⟩
+      refine eq_codeUp_of_ceil hA0 hA1 hb (fun N => ?_)
+      have hceilx : ⌈x⌉ = 1 := by
+        rw [Int.ceil_eq_iff]
+        constructor <;> push_cast <;> linarith
+      have h1 := hlt N
+      have h2 := hub N
+      simp only [devPre, dev] at h1 h2
+      rw [hceilx, Int.ceil_eq_iff]
+      constructor <;> push_cast <;> linarith
+
+/-! ### `lem:slope` — the slopes exist
+
+`β ↦ 1/(a + β)` has `|derivative| ≤ 1/a² ≤ 1/4` for `a ≥ 2`, and complementing
+is an isometry, so the levels below pin `α` to an interval of length `4^{-d}`.
+Irrationality is not proved here: it is cheaper at the end, where a rational
+slope makes the coding periodic. -/
+
+/-- Identity, or the complement when the level was exchanged. -/
+def eps (b : Bool) (y : ℝ) : ℝ := if b then 1 - y else y
+
+lemma eps_dist (b : Bool) (u v : ℝ) : |eps b u - eps b v| = |u - v| := by
+  unfold eps
+  split_ifs
+  · rw [show 1 - u - (1 - v) = -(u - v) by ring, abs_neg]
+  · rfl
+
+lemma eps_mem_of_le_one (b : Bool) {y : ℝ} (h0 : 0 ≤ y) (h1 : y ≤ 1) :
+    0 ≤ eps b y ∧ eps b y ≤ 1 := by
+  unfold eps
+  split_ifs <;> constructor <;> linarith
+
+lemma eps_mem (b : Bool) {y : ℝ} (h0 : 0 < y) (h1 : y ≤ 1 / 2) :
+    0 ≤ eps b y ∧ eps b y ≤ 1 :=
+  eps_mem_of_le_one b h0.le (by linarith)
+
+/-- The `d`-fold approximant to the slope at level `j`. -/
+noncomputable def approx (a : ℕ → ℕ) (e : ℕ → Bool) : ℕ → ℕ → ℝ
+  | 0, _ => 1 / 2
+  | (d + 1), j => 1 / ((a j : ℝ) + eps (e j) (approx a e d (j + 1)))
+
+lemma approx_pos_le {a : ℕ → ℕ} {e : ℕ → Bool} (ha : ∀ j, 2 ≤ a j) :
+    ∀ d j, 0 < approx a e d j ∧ approx a e d j ≤ 1 / 2 := by
+  intro d
+  induction d with
+  | zero => intro j; constructor <;> norm_num [approx]
+  | succ p ih =>
+      intro j
+      obtain ⟨h0, h1⟩ := ih (j + 1)
+      obtain ⟨he0, he1⟩ := eps_mem (e j) h0 h1
+      have ha2 : (2 : ℝ) ≤ (a j : ℝ) := by exact_mod_cast ha j
+      have hden : (2 : ℝ) ≤ (a j : ℝ) + eps (e j) (approx a e p (j + 1)) := by linarith
+      simp only [approx]
+      exact ⟨div_pos one_pos (by linarith), by rw [div_le_iff₀ (by linarith)]; linarith⟩
+
+lemma approx_diff {a : ℕ → ℕ} {e : ℕ → Bool} (ha : ∀ j, 2 ≤ a j) :
+    ∀ d j, |approx a e (d + 1) j - approx a e d j| ≤ (1 / 4 : ℝ) ^ d := by
+  intro d
+  induction d with
+  | zero =>
+      intro j
+      obtain ⟨h0, h1⟩ := approx_pos_le (e := e) ha 1 j
+      obtain ⟨h0', h1'⟩ := approx_pos_le (e := e) ha 0 j
+      rw [pow_zero, abs_le]
+      constructor <;> linarith
+  | succ p ih =>
+      intro j
+      have hA : (2 : ℝ) ≤ (a j : ℝ) := by exact_mod_cast ha j
+      obtain ⟨h0a, h1a⟩ := approx_pos_le (e := e) ha (p + 1) (j + 1)
+      obtain ⟨h0b, h1b⟩ := approx_pos_le (e := e) ha p (j + 1)
+      obtain ⟨e0a, e1a⟩ := eps_mem (e j) h0a h1a
+      obtain ⟨e0b, e1b⟩ := eps_mem (e j) h0b h1b
+      set u := eps (e j) (approx a e (p + 1) (j + 1)) with hu'
+      set v := eps (e j) (approx a e p (j + 1)) with hv'
+      have hu : (2 : ℝ) ≤ (a j : ℝ) + u := by linarith
+      have hv : (2 : ℝ) ≤ (a j : ℝ) + v := by linarith
+      have hune : ((a j : ℝ) + u) ≠ 0 := by linarith
+      have hvne : ((a j : ℝ) + v) ≠ 0 := by linarith
+      have hx1 : approx a e (p + 1 + 1) j = 1 / ((a j : ℝ) + u) := rfl
+      have hx2 : approx a e (p + 1) j = 1 / ((a j : ℝ) + v) := rfl
+      have hkey : approx a e (p + 1 + 1) j - approx a e (p + 1) j
+          = (v - u) / (((a j : ℝ) + u) * ((a j : ℝ) + v)) := by
+        rw [hx1, hx2]
+        field_simp
+        ring
+      have hprodpos : (0 : ℝ) < ((a j : ℝ) + u) * ((a j : ℝ) + v) := by positivity
+      have hprod : (4 : ℝ) ≤ ((a j : ℝ) + u) * ((a j : ℝ) + v) := by nlinarith
+      have huv : |v - u| ≤ (1 / 4 : ℝ) ^ p := by
+        rw [abs_sub_comm, hu', hv', eps_dist]
+        exact ih (j + 1)
+      have hppos : (0 : ℝ) < (1 / 4 : ℝ) ^ p := by positivity
+      rw [hkey, abs_div, abs_of_pos hprodpos, div_le_iff₀ hprodpos, pow_succ]
+      nlinarith
+
+/-- **`lem:slope`, the existence half.**  A slope at every level, satisfying
+the continued fraction step. -/
+theorem exists_slopes (a : ℕ → ℕ) (e : ℕ → Bool) (ha : ∀ j, 2 ≤ a j) :
+    ∃ α : ℕ → ℝ, (∀ j, 0 < α j) ∧ (∀ j, α j < 1) ∧
+      ∀ j, α j * ((a j : ℝ) + eps (e j) (α (j + 1))) = 1 := by
+  have hcau : ∀ j, ∃ y : ℝ,
+      Filter.Tendsto (fun d => approx a e d j) Filter.atTop (nhds y) := by
+    intro j
+    refine cauchySeq_tendsto_of_complete ?_
+    refine cauchySeq_of_le_geometric (1 / 4 : ℝ) 1 (by norm_num) (fun d => ?_)
+    rw [Real.dist_eq, one_mul, abs_sub_comm]
+    exact approx_diff ha d j
+  choose α hα using hcau
+  have hshift : ∀ j,
+      Filter.Tendsto (fun d => approx a e (d + 1) j) Filter.atTop (nhds (α j)) :=
+    fun j => (hα j).comp (Filter.tendsto_add_atTop_nat 1)
+  have hle : ∀ j, α j ≤ 1 / 2 := by
+    intro j
+    refine le_of_tendsto (hα j) ?_
+    filter_upwards with d using (approx_pos_le ha d j).2
+  have hposlb : ∀ j, 1 / ((a j : ℝ) + 1) ≤ α j := by
+    intro j
+    refine ge_of_tendsto (hshift j) ?_
+    filter_upwards with d
+    have hA : (2 : ℝ) ≤ (a j : ℝ) := by exact_mod_cast ha j
+    obtain ⟨h0, h1⟩ := approx_pos_le (e := e) ha d (j + 1)
+    obtain ⟨e0, e1⟩ := eps_mem (e j) h0 h1
+    have hx : approx a e (d + 1) j
+        = 1 / ((a j : ℝ) + eps (e j) (approx a e d (j + 1))) := rfl
+    rw [hx]
+    exact one_div_le_one_div_of_le (by linarith) (by linarith)
+  have hpos : ∀ j, 0 < α j := by
+    intro j
+    have hA : (2 : ℝ) ≤ (a j : ℝ) := by exact_mod_cast ha j
+    have : (0 : ℝ) < 1 / ((a j : ℝ) + 1) := by positivity
+    linarith [hposlb j]
+  have hden : ∀ j, (2 : ℝ) ≤ (a j : ℝ) + eps (e j) (α (j + 1)) := by
+    intro j
+    have hA : (2 : ℝ) ≤ (a j : ℝ) := by exact_mod_cast ha j
+    obtain ⟨e0, e1⟩ := eps_mem (e j) (hpos (j + 1)) (hle (j + 1))
+    linarith
+  have hrec : ∀ j, α j = 1 / ((a j : ℝ) + eps (e j) (α (j + 1))) := by
+    intro j
+    have hcont : Filter.Tendsto (fun d => eps (e j) (approx a e d (j + 1)))
+        Filter.atTop (nhds (eps (e j) (α (j + 1)))) := by
+      unfold eps
+      split_ifs
+      · exact (hα (j + 1)).const_sub 1
+      · exact hα (j + 1)
+    have hlim : Filter.Tendsto
+        (fun d => 1 / ((a j : ℝ) + eps (e j) (approx a e d (j + 1)))) Filter.atTop
+        (nhds (1 / ((a j : ℝ) + eps (e j) (α (j + 1))))) :=
+      tendsto_const_nhds.div (tendsto_const_nhds.add hcont) (by linarith [hden j])
+    have hshift' : Filter.Tendsto
+        (fun d => 1 / ((a j : ℝ) + eps (e j) (approx a e d (j + 1)))) Filter.atTop
+        (nhds (α j)) := hshift j
+    exact tendsto_nhds_unique hshift' hlim
+  refine ⟨α, hpos, fun j => by linarith [hle j], fun j => ?_⟩
+  rw [hrec j]
+  field_simp
+  exact div_self (by linarith [hden j])
+
+/-- **`lem:slope`, the uniqueness half.**  The block parameters and the record
+of which levels were complemented pin the slope: two compatible families agree
+to `4^{-d}` at every depth. -/
+theorem slopes_unique {a : ℕ → ℕ} {e : ℕ → Bool} (ha : ∀ j, 2 ≤ a j)
+    {α α' : ℕ → ℝ} (h0 : ∀ j, 0 < α j) (h1 : ∀ j, α j < 1)
+    (h0' : ∀ j, 0 < α' j) (h1' : ∀ j, α' j < 1)
+    (hr : ∀ j, α j * ((a j : ℝ) + eps (e j) (α (j + 1))) = 1)
+    (hr' : ∀ j, α' j * ((a j : ℝ) + eps (e j) (α' (j + 1))) = 1) : α = α' := by
+  have hden : ∀ (γ : ℕ → ℝ), (∀ j, 0 < γ j) → (∀ j, γ j < 1) → ∀ j,
+      (2 : ℝ) ≤ (a j : ℝ) + eps (e j) (γ (j + 1)) := by
+    intro γ hp hl j
+    have hA : (2 : ℝ) ≤ (a j : ℝ) := by exact_mod_cast ha j
+    obtain ⟨e0, -⟩ := eps_mem_of_le_one (e j) (hp (j + 1)).le (hl (j + 1)).le
+    linarith
+  have hinv : ∀ (γ : ℕ → ℝ), (∀ j, 0 < γ j) → (∀ j, γ j < 1) →
+      (∀ j, γ j * ((a j : ℝ) + eps (e j) (γ (j + 1))) = 1) →
+      ∀ j, γ j = 1 / ((a j : ℝ) + eps (e j) (γ (j + 1))) := by
+    intro γ hp hl hrr j
+    have hD : ((a j : ℝ) + eps (e j) (γ (j + 1))) ≠ 0 := by
+      have := hden γ hp hl j; linarith
+    exact eq_div_of_mul_eq hD (hrr j)
+  have hstep : ∀ j, |α j - α' j| ≤ |α (j + 1) - α' (j + 1)| / 4 := by
+    intro j
+    have hu := hden α h0 h1 j
+    have hv := hden α' h0' h1' j
+    have hdiff : α j - α' j
+        = (eps (e j) (α' (j + 1)) - eps (e j) (α (j + 1)))
+          / (((a j : ℝ) + eps (e j) (α (j + 1)))
+             * ((a j : ℝ) + eps (e j) (α' (j + 1)))) := by
+      rw [hinv α h0 h1 hr j, hinv α' h0' h1' hr' j]
+      field_simp
+      ring
+    have hpos : (0 : ℝ) < ((a j : ℝ) + eps (e j) (α (j + 1)))
+        * ((a j : ℝ) + eps (e j) (α' (j + 1))) := by positivity
+    have hge : (4 : ℝ) ≤ ((a j : ℝ) + eps (e j) (α (j + 1)))
+        * ((a j : ℝ) + eps (e j) (α' (j + 1))) := by nlinarith
+    rw [hdiff, abs_div, abs_of_pos hpos, div_le_div_iff₀ hpos (by norm_num),
+      eps_dist, abs_sub_comm]
+    nlinarith [abs_nonneg (α (j + 1) - α' (j + 1))]
+  have hbound : ∀ d j, |α j - α' j| ≤ (1 / 4 : ℝ) ^ d := by
+    intro d
+    induction d with
+    | zero =>
+        intro j
+        rw [pow_zero, abs_le]
+        constructor <;> [linarith [h0 j, h1' j]; linarith [h1 j, h0' j]]
+    | succ p ih =>
+        intro j
+        have := hstep j
+        have hp := ih (j + 1)
+        rw [pow_succ]
+        linarith
+  funext j
+  have hlim : Filter.Tendsto (fun d => (1 / 4 : ℝ) ^ d) Filter.atTop (nhds 0) :=
+    tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num) (by norm_num)
+  have hle : |α j - α' j| ≤ 0 :=
+    ge_of_tendsto hlim (Filter.Eventually.of_forall fun d => hbound d j)
+  have := abs_nonneg (α j - α' j)
+  have hz : |α j - α' j| = 0 := le_antisymm hle this
+  rw [abs_eq_zero, sub_eq_zero] at hz
+  exact hz
+
+/-! ### The tower of an abstract `ℓ`
+
+`isSturmian_deriveSeq` does not hand back `11`-freeness, so every level reruns
+`step_one` and exchanges when it comes out the other way. -/
+
+/-- `11` is absent. -/
+def NoOneOne (ℓ : ℕ → ℕ) : Prop := ∀ k, ℓ k = 1 → ℓ (k + 1) = 0
+
+open Classical in
+/-- Derive, and exchange the letters if `11` came back. -/
+noncomputable def nextLevel (ℓ : ℕ → ℕ) : ℕ → ℕ :=
+  if NoOneOne (deriveSeq ℓ (blockMax ℓ)) then deriveSeq ℓ (blockMax ℓ)
+  else exch (deriveSeq ℓ (blockMax ℓ))
+
+open Classical in
+/-- Whether that level was exchanged. -/
+noncomputable def nextFlag (ℓ : ℕ → ℕ) : Bool :=
+  if NoOneOne (deriveSeq ℓ (blockMax ℓ)) then false else true
+
+/-- The tower of normalised derived sequences. -/
+noncomputable def twr (ℓ : ℕ → ℕ) : ℕ → (ℕ → ℕ)
+  | 0 => ℓ
+  | (j + 1) => nextLevel (twr ℓ j)
+
+lemma nextLevel_eq_derive {ℓ : ℕ → ℕ} (hc : NoOneOne (deriveSeq ℓ (blockMax ℓ))) :
+    nextLevel ℓ = deriveSeq ℓ (blockMax ℓ) := by
+  unfold nextLevel; rw [if_pos hc]
+
+lemma nextLevel_eq_exch {ℓ : ℕ → ℕ} (hc : ¬ NoOneOne (deriveSeq ℓ (blockMax ℓ))) :
+    nextLevel ℓ = exch (deriveSeq ℓ (blockMax ℓ)) := by
+  unfold nextLevel; rw [if_neg hc]
+
+lemma nextFlag_false {ℓ : ℕ → ℕ} (hc : NoOneOne (deriveSeq ℓ (blockMax ℓ))) :
+    nextFlag ℓ = false := by unfold nextFlag; rw [if_pos hc]
+
+lemma nextFlag_true {ℓ : ℕ → ℕ} (hc : ¬ NoOneOne (deriveSeq ℓ (blockMax ℓ))) :
+    nextFlag ℓ = true := by unfold nextFlag; rw [if_neg hc]
+
+lemma twr_props {ℓ : ℕ → ℕ} (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : NoOneOne ℓ) : ∀ j,
+    (∀ k, twr ℓ j k ≤ 1) ∧ IsSturmian (twr ℓ j) ∧ NoOneOne (twr ℓ j) := by
+  intro j
+  induction j with
+  | zero => exact ⟨hb, hS, h11⟩
+  | succ p ih =>
+      obtain ⟨hb', hS', h11'⟩ := ih
+      have hdb : ∀ k, deriveSeq (twr ℓ p) (blockMax (twr ℓ p)) k ≤ 1 :=
+        fun k => deriveSeq_le_one hb' hS' h11' k
+      have hdS : IsSturmian (deriveSeq (twr ℓ p) (blockMax (twr ℓ p))) :=
+        isSturmian_deriveSeq hb' hS' h11'
+      show (∀ k, nextLevel (twr ℓ p) k ≤ 1) ∧ IsSturmian (nextLevel (twr ℓ p))
+        ∧ NoOneOne (nextLevel (twr ℓ p))
+      by_cases hc : NoOneOne (deriveSeq (twr ℓ p) (blockMax (twr ℓ p)))
+      · rw [nextLevel_eq_derive hc]; exact ⟨hdb, hdS, hc⟩
+      · rw [nextLevel_eq_exch hc]
+        refine ⟨fun k => exch_le_one _ k, isSturmian_exch hdb hdS, fun k hk => ?_⟩
+        rcases step_one hdb hdS with h00 | h11d
+        · have h1 := hdb k
+          have h2 := hdb (k + 1)
+          have hz : deriveSeq (twr ℓ p) (blockMax (twr ℓ p)) k = 0 := by
+            simp only [exch] at hk; omega
+          have ho := h00 k hz
+          simp only [exch]
+          omega
+        · exact absurd h11d hc
+
+lemma two_le_blockMax_twr {ℓ : ℕ → ℕ} (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : NoOneOne ℓ) (j : ℕ) : 2 ≤ blockMax (twr ℓ j) :=
+  let ⟨hb', hS', h11'⟩ := twr_props hb hS h11 j
+  (blocks hb' hS' h11').1
+
+/-! ### `thm:mh`, the converse -/
+
+/-- A normalised Sturmian sequence is one of the two codings. -/
+theorem exists_coding_of_noOneOne {ℓ : ℕ → ℕ} (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : NoOneOne ℓ) :
+    ∃ A x : ℝ, 0 < A ∧ A < 1 ∧ 0 ≤ x ∧ x < 1 ∧ (ℓ = code A x ∨ ℓ = codeUp A x) := by
+  obtain ⟨α, hpos, hlt, hrec⟩ :=
+    exists_slopes (fun j => blockMax (twr ℓ j)) (fun j => nextFlag (twr ℓ j))
+      (two_le_blockMax_twr hb hS h11)
+  have hT : Tower (twr ℓ) α (fun j => eps (nextFlag (twr ℓ j)) (α (j + 1))) := by
+    refine ⟨fun j => (twr_props hb hS h11 j).1, fun j => (twr_props hb hS h11 j).2.1,
+      fun j => (twr_props hb hS h11 j).2.2, hpos, hlt, hrec, fun j => ?_⟩
+    by_cases hc : NoOneOne (deriveSeq (twr ℓ j) (blockMax (twr ℓ j)))
+    · refine Or.inl ⟨nextLevel_eq_derive hc, ?_⟩
+      show eps (nextFlag (twr ℓ j)) (α (j + 1)) = α (j + 1)
+      rw [nextFlag_false hc]; rfl
+    · refine Or.inr ⟨nextLevel_eq_exch hc, ?_⟩
+      show eps (nextFlag (twr ℓ j)) (α (j + 1)) = 1 - α (j + 1)
+      rw [nextFlag_true hc]; rfl
+  obtain ⟨x, hx0, hx1, hcode⟩ := step5 hT
+  exact ⟨α 0, x, hpos 0, hlt 0, hx0, hx1, hcode⟩
+
+lemma code_fract (A x : ℝ) : code A (Int.fract x) = code A x := by
+  funext k; unfold code; rw [← fract_add_left]
+
+lemma codeUp_fract (A x : ℝ) : codeUp A (Int.fract x) = codeUp A x := by
+  funext k; unfold codeUp; rw [← fract_add_left]
+
+lemma exch_codeUp {A : ℝ} (hA0 : 0 < A) (x : ℝ) : exch (codeUp A x) = code (1 - A) (-x) := by
+  funext k
+  have h := codeUp_add_code_reflect hA0 x k
+  simp only [exch]
+  omega
+
+/-- A rational slope makes the coding periodic, which is how irrationality is
+got: the descent on denominators is never needed. -/
+lemma code_periodic_of_not_irrational {A x : ℝ} (h : ¬ Irrational A) :
+    EventuallyPeriodic (code A x) := by
+  simp only [Irrational, not_not, Set.mem_range] at h
+  obtain ⟨r, hr⟩ := h
+  have hq : ((r.den : ℝ)) * A = (r.num : ℝ) := by
+    rw [← hr, Rat.cast_def]
+    field_simp
+  refine ⟨0, r.den, r.den_pos, fun k _ => ?_⟩
+  have hf : Int.fract (x + ((k + r.den : ℕ) : ℝ) * A) = Int.fract (x + (k : ℝ) * A) := by
+    rw [show x + ((k + r.den : ℕ) : ℝ) * A = (x + (k : ℝ) * A) + ((r.num : ℤ) : ℝ) by
+      push_cast; linear_combination hq]
+    exact Int.fract_add_intCast _ _
+  unfold code
+  rw [hf]
+
+lemma codeUp_periodic_of_not_irrational {A x : ℝ} (h : ¬ Irrational A) :
+    EventuallyPeriodic (codeUp A x) := by
+  simp only [Irrational, not_not, Set.mem_range] at h
+  obtain ⟨r, hr⟩ := h
+  have hq : ((r.den : ℝ)) * A = (r.num : ℝ) := by
+    rw [← hr, Rat.cast_def]
+    field_simp
+  refine ⟨0, r.den, r.den_pos, fun k _ => ?_⟩
+  have hf : Int.fract (x + ((k + r.den : ℕ) : ℝ) * A) = Int.fract (x + (k : ℝ) * A) := by
+    rw [show x + ((k + r.den : ℕ) : ℝ) * A = (x + (k : ℝ) * A) + ((r.num : ℤ) : ℝ) by
+      push_cast; linear_combination hq]
+    exact Int.fract_add_intCast _ _
+  unfold codeUp
+  rw [hf]
+
+/-- **`mechanical_of_isSturmian`** — the converse of Morse and Hedlund.  Every
+Sturmian sequence is a lower or an upper coding of an irrational slope.
+Aperiodicity is not a hypothesis: `not_eventuallyPeriodic` already derives it
+from `IsSturmian`. -/
+theorem mechanical_of_isSturmian (ℓ : ℕ → ℕ) (hb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
+    ∃ A x : ℝ, Irrational A ∧ 0 < A ∧ A < 1 ∧ 0 ≤ x ∧ x < 1 ∧
+      (ℓ = code A x ∨ ℓ = codeUp A x) := by
+  obtain ⟨A, x, hA0, hA1, hx0, hx1, hcode⟩ :
+      ∃ A x : ℝ, 0 < A ∧ A < 1 ∧ 0 ≤ x ∧ x < 1 ∧ (ℓ = code A x ∨ ℓ = codeUp A x) := by
+    rcases step_one hb hS with h00 | h11
+    · have hb' : ∀ k, exch ℓ k ≤ 1 := fun k => exch_le_one _ k
+      have hS' : IsSturmian (exch ℓ) := isSturmian_exch hb hS
+      have h11' : NoOneOne (exch ℓ) := by
+        intro k hk
+        have h1 := hb k
+        have h2 := hb (k + 1)
+        have hz : ℓ k = 0 := by simp only [exch] at hk; omega
+        have ho := h00 k hz
+        simp only [exch]
+        omega
+      obtain ⟨A, x, hA0, hA1, hx0, hx1, hcode⟩ := exists_coding_of_noOneOne hb' hS' h11'
+      have hback : ℓ = exch (exch ℓ) := (exch_exch hb).symm
+      rcases hcode with hc | hc
+      · exact ⟨1 - A, Int.fract (-x), by linarith, by linarith,
+          Int.fract_nonneg _, Int.fract_lt_one _, Or.inr (by
+            calc ℓ = exch (exch ℓ) := hback
+            _ = exch (code A x) := by rw [hc]
+            _ = codeUp (1 - A) (-x) := exch_code hA1 x
+            _ = codeUp (1 - A) (Int.fract (-x)) := (codeUp_fract _ _).symm)⟩
+      · exact ⟨1 - A, Int.fract (-x), by linarith, by linarith,
+          Int.fract_nonneg _, Int.fract_lt_one _, Or.inl (by
+            calc ℓ = exch (exch ℓ) := hback
+            _ = exch (codeUp A x) := by rw [hc]
+            _ = code (1 - A) (-x) := exch_codeUp hA0 x
+            _ = code (1 - A) (Int.fract (-x)) := (code_fract _ _).symm)⟩
+    · exact exists_coding_of_noOneOne hb hS h11
+  refine ⟨A, x, ?_, hA0, hA1, hx0, hx1, hcode⟩
+  by_contra hirr
+  refine not_eventuallyPeriodic hS ?_
+  rcases hcode with hc | hc
+  · rw [hc]; exact code_periodic_of_not_irrational hirr
+  · rw [hc]; exact codeUp_periodic_of_not_irrational hirr
+
+/-- **`thm:mh`.**  Morse and Hedlund, both ways.  Both codings are needed:
+`fib_sturmian_not_code` is a Sturmian sequence that is no lower coding. -/
+theorem isSturmian_iff_mechanical (ℓ : ℕ → ℕ) (hb : ∀ k, ℓ k ≤ 1) :
+    IsSturmian ℓ ↔ ∃ A x : ℝ, Irrational A ∧ 0 < A ∧ A < 1 ∧ 0 ≤ x ∧ x < 1 ∧
+      (ℓ = code A x ∨ ℓ = codeUp A x) := by
+  constructor
+  · exact mechanical_of_isSturmian ℓ hb
+  · rintro ⟨A, x, hirr, hA0, hA1, -, -, rfl | rfl⟩
+    · exact isSturmian_code hirr hA0 hA1 x
+    · exact isSturmian_codeUp hirr hA0 hA1 x
+
+end Step5
+
 /-! ## §8 The tower
 
 The slope at level `j` is `α j` and the partial quotient is `a j`; the identity
@@ -3532,5 +4510,15 @@ end Substitution
 #print axioms Sturmian.fib_derive
 #print axioms Sturmian.sigma_pre
 #print axioms Sturmian.fib_limit
+#print axioms Sturmian.sum_codeUp
+#print axioms Sturmian.isSturmian_exch
+#print axioms Sturmian.exists_window_ge
+#print axioms Sturmian.exists_decomp
+#print axioms Sturmian.dev_lt_one
+#print axioms Sturmian.step5
+#print axioms Sturmian.exists_slopes
+#print axioms Sturmian.slopes_unique
+#print axioms Sturmian.mechanical_of_isSturmian
+#print axioms Sturmian.isSturmian_iff_mechanical
 
 end Sturmian

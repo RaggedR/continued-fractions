@@ -1,225 +1,140 @@
-# Handover: formalise `all-the-proofs.tex` §6–§7 in Lean
+# Handover: `all-the-proofs.tex` is formalised end to end
 
-**The paper is finished** — §6 step 5, the last unproved item, was proved on
-3 October 2026 and is now §7 of `all-the-proofs.tex`, and §11 reads "Nothing".
-All that is left anywhere is Lean Phase 9, and it is pure formalisation.
+**Phase 9 closed on 3 October 2026.** `mechanical_of_isSturmian` and
+`isSturmian_iff_mechanical` are proved, `lean/Sturmian.lean` has no `sorry`,
+`lean/build.sh` is green across all five files in about 50 seconds, and
+`all-the-proofs.tex` §11 still reads "Nothing". Every statement in the paper
+now has a Lean counterpart, `lem:slope` included — `exists_slopes` for the
+existence half, `slopes_unique` for "exactly one", and irrationality by the
+periodicity route rather than the paper's descent.
 
-**Of Phase 9, steps 1 to 4 of the converse are done**, in `Sturmian.lean`
-§6.1, on `lem:rs`, `cor:onesp`, `lem:evper`, `lem:aper`, `lem:rschain` and
-`lem:bridge`. `isSturmian_deriveSeq` is `prop:derived`.
+Read `lean/PLAN.md` Phase 9 for the decomposition and `lean/README.md` for
+file sizes. This file records what the last session found, because one of the
+findings was a hole in the paper.
 
-What remains is **step 5 (§7), which has no Lean at all**, the letter-exchange
-normalisation threaded through the tower, and the assembly into
-`mechanical_of_isSturmian` and `thm:mh`. Step 5 is a different kind of work
-from everything above: `lem:slope` is a contraction argument over `ℝ` with an
-irrationality descent, and `prop:bound` is an induction on word length with
-`Δ_α(u) = |u|₁ − α|u|` real-valued. The positional-and-`omega` discipline that
-carried steps 1 to 4 will not carry it.
+## A gap in §7, found and repaired
 
-`PLAN.md` records where the Lean route beats the paper's — `blockLens_le`
-collapses two paragraphs, `lem:bridge` goes positionally so `τ_a` is never a
-word, and the whole of step 4 avoids comparing weights — and the two proof
-slips formalising turned up in §6, both now fixed in the `.tex`.
+`prop:bound`'s lower bound read the block to the left of `u'` when `s = a`.
+**A factor sitting in the run of zeros before the first `1` has no block to
+its left**, and the case is reachable: `isLeast_code_zero`
+(`Sturmian.lean:3108`) puts the first `1` of `code γ 0` at exactly `a`, so it
+fires at the tower's own base case. The conclusion `|Δ| < 1` survives, but at
+`0.9948` — and `α(a+β) = 1` is an identity, so there was no slack to absorb a
+missing case.
 
-## What step 5 turned out to be
+`step5_check.py` had not seen it. Claim A ran from `M = 0`, but claim B, the
+decomposition, ran `for M in range(kp[0], Mmax)` — **every one of the
+3,022,668 windows started at the first `1`**, so the test shared the proof's
+blind spot. It now starts at `0`, reports an `in run` column, and asserts the
+repair; 3,024,000 windows, and `in run` is nonzero only at intercept `0`.
 
-Not Ostrowski, and not the tower inverted. Both routes the previous handover
-suggested were abandoned. Write `S(N)` for the number of `1`s in the first `N`
-letters of `ℓ` and
+The repair is **recurrence**: every factor occurs at arbitrarily large
+positions, so the occurrence moves past the run, and `Δ_α` does not care where
+the word sits. It is `lem:recur` in the paper and `exists_window_ge` in Lean,
+proved from `ncard_factors_succ` and `eventuallyPeriodic_of_rightSpecial_empty`
+— a tail that omits a factor has complexity `≤ m` at `m`, so its complexity
+stops rising somewhere below `m`, so it is eventually periodic. Not the
+textbook route, and it needed no new machinery.
 
-    D(N) = S(N) − Nα ,   Δ_α(u) = |u|₁ − α|u| .
+The cheap-looking alternative — adding "`Δ_{α_j}(prefix) < α_j` at every
+level" to the induction — **is false**; `s = 0, t = 0` breaks it. Do not retry
+it.
 
-By `lem:mech`, `ℓ = C(α,x)` iff `⌊Nα + x⌋ = S(N)` for every `N`, which is the
-linear condition `x ∈ ⋂_N [D(N), D(N)+1)`. So the intercept is a formula,
+## Where the Lean beat the paper
 
-    x = sup_{N ≥ 0} (S(N) − Nα) ,
+* **`Δ_α` takes a pair, not a word.** `dev α n w = w − αn`. Every use in §7
+  needs only `|u|` and `|u|₁`, so `lem:dev` is one `linear_combination` and
+  `τ_a` is never constructed — the dodge §6.1 already uses.
+* **The slopes are a hypothesis.** `Tower` carries `α`, `β` and the step
+  `α(a + β) = 1` as fields, following `tower_eq`'s precedent, so `prop:bound`
+  needs no limits. `exists_slopes` discharges them on its own.
+* **Irrationality is not a descent.** The paper descends on denominators. In
+  Lean it is cheaper last: a rational slope makes the coding periodic with
+  period `r.den`, contradicting `not_eventuallyPeriodic`. The descent never
+  had to be formalised. Uniqueness, by contrast, is the contraction run
+  directly: two compatible families agree to `4^{-d}` at every depth, so
+  `slopes_unique` is thirty lines on top of `eps_dist`.
+* **Aperiodicity is not a hypothesis.** `PLAN.md`'s target statement carried
+  `hap`; the proved theorem drops it, since `IsSturmian` already implies it.
+* **The exchange is invariant, not bookkeeping.** Exchanging letters sends
+  weight `w` to `m − w`, and `dev (1−α) m (m−w) = −dev α m w`. So `|Δ| < 1`
+  survives it, and a tower with every other level complemented needs one
+  bridging lemma (`dev_derive_of_dev`), not a parallel development.
+* **`sum_codeUp` needs no hypothesis on `x`** — the telescope leaves `⌈x⌉`.
+* **`ncard_factors_codeUp` got shorter.** Its inlined complementation argument
+  is now `exch` / `ncard_factors_exch`, reused by the tower; 1195 characters
+  became 555.
 
-and everything reduces to `sup D − inf D ≤ 1`, i.e. to `|Δ_α(u)| < 1` for every
-factor `u`. That is `prop:bound`, and it is an induction on `|u|` running down
-the levels, not an analytic argument.
+The step the earlier handover called "plumbing that is not in any step" — the
+letter exchange threaded through the tower — is the spine, not an afterthought:
+`isSturmian_deriveSeq` does not return `11`-freeness, so every level reruns
+`step_one`. And "§6.1 is irrelevant to §7" was wrong: `exists_decomp`, the
+largest single piece, is positional `omega` work built on `cnt`,
+`onesPos_block_length` and `onesPos_block_zero`.
 
-| | |
-|---|---|
-| `lem:slope` | `α` exists and is irrational: `β ↦ 1/(a+β)` contracts by `1/a² ≤ 1/4` |
-| `lem:dev` | `Δ_α(τ_a(w)) = −α Δ_β(w)` — the deviation scales by `−α` per level |
-| `prop:bound` | `|Δ_α(u)| < 1`, by induction on `|u|` |
-| `lem:countup` | the `C⁺` count, `⌈Nα+x⌉ − ⌈x⌉` |
-| `thm:step5` | `x = sup D`; **three** cases — `C(α,x)` if attained, `C⁺(α,x)` if not and `x < 1`, `C⁺(α,0)` if not and `x = 1` |
+## Build
 
-Three things make it work, and all three were already in the paper:
-
-1. **`prop:blocks` gives `a ≥ 2`** (after step 1's letter exchange). Hence
-   `|τ_a(u')| ≥ 2|u'|`, so the induction on word length descends strictly even
-   though the level changes — no base case at infinite depth is needed. The same
-   `a ≥ 2` is what makes `lem:slope` a contraction.
-2. **The gap inequality `aα < 1`** from §4 is the only slack in the system. The
-   worst case of the lower bound is `α(2a+β) = αa + 1 < 2`, where
-   `α(a+β) = 1` is an identity, not an estimate. The bound `< 1` is tight.
-3. **`q` must be a *proper* prefix of its block** in `u = 0^s τ_a(u') q`.
-   Otherwise absorb it into `u'`. This gives `t ≤ a−1`, and without it the
-   case `s = a, t = a` is false. It is the one piece of real bookkeeping, and
-   the first draft got it wrong.
-
-The `C`/`C⁺` split is whether `sup D` is attained, and the unattained branch
-splits again on `x = 1`, because `thm:mh` requires `x ∈ [0,1)` and so cannot
-return `C⁺(α,1)`. `thm:counterex` is exactly that third case: `1c` has
-`D(N) = 1 − {Nα}`, supremum `1`, attained nowhere — not a separate pathology.
-**An earlier version of this file called it two cases. It is three, and the
-third is the one the counterexample lives in.**
-
-## What was wrong in the previous handover
-
-Recorded because two of its three "established facts" steered toward the longer
-route.
-
-* **Mathlib's continued-fraction API is not needed.** `of_convergence`,
-  `ContinuantsRecurrence`, `Determinant`, `TerminatesIffRat`, and a generalised
-  `Palindrome.stream_fst` were all predicted for step 5. §7 uses none of them.
-* **Lothaire's Proposition 2.1.10 is not needed either.** The errata pointed at
-  `| |u|₁ − α|u| | < 1` as "step 5's machinery", which is right — it is exactly
-  `prop:bound` — but it is provable in half a page from `lem:blocks`, not
-  something to reconstruct from a book we cannot obtain.
-* **`Sturmian ⟹ balanced` is a trap.** It gives `prop:bound` in three lines via
-  the density, and it is the direction the literature defers to Lothaire ch. 2.
-  CRM Theorem 6.10 states it and proves only the converse. Do not go that way:
-  the derivation gives the bound directly.
-
-## The Lean brief for step 5
-
-Nothing of §7 is formalised. Everything in `Sturmian.lean` §6.1 — the
-right-special, block and window machinery — is irrelevant to it: that was
-positional reasoning discharged by `omega`, and §7 is real-valued. The relevant
-discipline is the one `PLAN.md` states for Phase 0: every proof is an
-inequality between `Int.fract` terms, closed by the `Int.fract` API plus
-`linarith`.
-
-**Start with `lem:countup`.** It is the one missing piece of §1's API and it is
-a five-line mirror of `sum_code` (`Sturmian.lean:138`): telescope
-`codeUp_eq_sub_ceil` over `Finset.range N` with `Finset.sum_range_sub`, then
-evaluate at `0`. `ceil_step` (`:76`) and `codeUp_eq_sub_ceil` (`:111`) already
-exist, so there is no new ceiling arithmetic. Doing it first gives a short win
-and the exact shape `thm:step5` consumes.
-
-```lean
-theorem sum_codeUp (hα0 : 0 < α) (hα1 : α < 1) (hx0 : 0 ≤ x) (hx1 : x < 1) (N : ℕ) :
-    ∑ k ∈ Finset.range N, (codeUp α x k : ℤ) = ⌈(N : ℝ) * α + x⌉ - ⌈x⌉
+```bash
+./lean/build.sh                 # all five files
+python3 step5_check.py          # asserts; prints nothing but its own ticks
+tectonic all-the-proofs.tex
 ```
 
-Then, in order:
+`build.sh` borrows an unrelated project's Mathlib. To rebuild `Sturmian.lean`
+alone during a session — about 20 seconds:
 
-1. **`lem:dev`** — pure algebra once `|τ_a(w)| = a|w| + |w|₁` and
-   `|τ_a(w)|₁ = |w|` are available. Note those two facts are about *words*, and
-   §6.1 deliberately avoids constructing `τ_a` as a word. Decide early whether
-   `Δ_α` takes a word or a pair `(length, weight)`. **Prefer the pair**: every
-   use of `Δ_α` in §7 needs only `|u|` and `|u|₁`, so `Δ` can be
-   `fun (n w : ℕ) => (w : ℝ) - α * n` and `lem:dev` becomes an identity between
-   two such pairs. That keeps `τ_a` out of the development entirely, as in §6.1.
-2. **`prop:bound`** — induction on `|u|`, descending levels. The three things
-   that make it work are already in the paper and are listed above: `a ≥ 2`
-   (so `|τ_a(u')| ≥ 2|u'|` and the induction descends), the gap inequality
-   `aα < 1` from §4 as the only slack, and `q` a *proper* prefix of its block
-   (so `t ≤ a−1`). The bound `< 1` is tight — `α(a+β) = 1` is an identity, not
-   an estimate — so do not expect slack to absorb a sloppy case.
-3. **`lem:slope`** — the contraction. `β ↦ 1/(a+β)` has `|derivative| ≤ 1/a² ≤ 1/4`
-   for `a ≥ 2`, so `j` levels confine `α` to an interval of length `4^{-j}`;
-   uniqueness follows. Irrationality is a descent on denominators
-   (`α = p/q` ⟹ `β = q/p − a` has denominator `p < q`), and complementing does
-   not change a denominator. `prop:derived` is what supplies a block parameter
-   at every level — i.e. `isSturmian_deriveSeq`, now available.
-4. **`thm:step5`** — `x = sup_N (S(N) − Nα)`. Needs `sSup` over a set of reals
-   bounded by `prop:bound`, and the three-case split above. `sum_code` gives
-   the `C` branch directly; `sum_codeUp` the other two.
+```bash
+cd ~/git/experiments/waarnar/loop-experiment/lean && lake env sh -c \
+  "cd ~/git/continued-fractions/lean && LEAN_PATH=\$LEAN_PATH:/tmp/cf-oleans \
+   lean -o /tmp/cf-oleans/Sturmian.olean Sturmian.lean"
+```
 
-**Two pieces of plumbing that are not in any step.** Neither appears in the §6
-step list, and both are real work:
+The inner `cd` is load-bearing; without it `lean` cannot find the file and the
+error is a bare "no such file or directory".
 
-* **The letter exchange.** §7 opens by normalising so `11` is absent, and
-  *every level below is normalised the same way*. `step_one` delivers `00`
-  **or** `11` absent, so the complementation has to be threaded through the
-  whole tower. The identity is in the proof of `cor:complexityup`: the
-  complement of `C(β,y)` is `C⁺(1−β,−y)`. In Lean the ingredients are
-  `codeUp_add_code_reflect` and the complement argument inside
-  `ncard_factors_codeUp`.
-* **The assembly.** `mechanical_of_isSturmian` exists only as a statement in
-  `PLAN.md` Phase 9. Combining it with `isSturmian_code` and
-  `isSturmian_codeUp` closes `thm:mh`, and that is the end of Phase 9.
+## If there is to be a next thing
+
+Nothing is owed. Two candidates, both outward-facing rather than internal:
+
+* **Upstream `exists_iterate_eq_self`** (`Palindrome.lean`, ~15 lines, no
+  number theory) — `PLAN.md` already flags it as belonging in
+  `Mathlib.Dynamics`.
+* **Upstream the Sturmian API.** `PLAN.md`'s October 2026 survey found
+  nothing comparable in Mathlib, the Isabelle AFP, or Rocq: no complexity
+  function, no factor-set or special-factor API. What exists here —
+  `factors`, `extBy`, `rightSpecial`, `window`, `cnt`, `deriveSeq`,
+  `blockMax`, `exch`, and `isSturmian_iff_mechanical` on top of them — would
+  be the first of its kind, and Berstel's definitions are verbatim ours.
 
 ## Two decisions already taken, so they are not re-litigated
 
 * **The corrupt blob in history stays.** Commit `a74730f` carries a 92.8MB
-  corruption of `lean/PLAN.md` — the largest object in the repo, from a Python
-  `str.replace("", …)`; see `LESSONS.md`. The file was restored in `14fa7fe`
-  and the working tree has been correct ever since.
+  corruption of `lean/PLAN.md`, restored in `14fa7fe`; see `LESSONS.md`.
+  Packed it costs 0.61MB. The commits are public, and GitHub warned on the
+  push of 3 October (`File lean/PLAN.md is 92.84 MB`, `GH001`), so it is not
+  invisible — but removing it now means rewriting *pushed* history, which the
+  global `CLAUDE.md` forbids outright. Do not attempt it. If the warning ever
+  becomes a rejection, that is a conversation with Robin, not a unilateral
+  rewrite.
+* **The root `README.md` does not restate Lean counts**, and `PLAN.md` no
+  longer does either. Sizes live in `lean/README.md`. One copy of every
+  number.
 
-  **Packed it costs 0.61MB**, not the 2.5MB the loose object suggests: it is
-  one string repeated tens of thousands of times and deltas against the good
-  `PLAN.md`. That is 3% of a 20MiB pack and less than four of the tracked PDFs.
-  Removing it means rewriting six commits of verified Lean with non-interactive
-  tooling only (`rebase -i` is unavailable in the agent environment), which
-  risks the session's actual asset for a cosmetic gain. Measure before
-  reopening this: `git rev-list --objects --all | git cat-file
-  --batch-check='%(objecttype) %(objectname) %(objectsize) %(objectsize:disk) %(rest)'`.
+## Method that worked, and keeps working
 
-  **It is not invisible, and the decision is now irreversible.** The push of
-  3 October 2026 drew `remote: warning: File lean/PLAN.md is 92.84 MB; this is
-  larger than GitHub's recommended maximum file size of 50.00 MB` and `GH001:
-  Large files detected`. The push succeeded — GitHub's hard limit is 100MB —
-  but expect that warning again on any push that transmits the object, and
-  note it sits only 7MB under a hard failure. Part of the argument for keeping
-  it was that nobody would notice; that part was wrong. The commits are now
-  public, so removing it would mean rewriting *pushed* history, which the
-  global `CLAUDE.md` forbids outright rather than by default. Do not attempt
-  it. If the warning ever becomes a rejection, that is a conversation with
-  Robin, not a unilateral rewrite.
-* **The root `README.md` no longer restates Lean counts.** It duplicated the
-  line counts and theorem total from `lean/README.md`, and the two drifted
-  three commits apart during this session. The root file's table now carries
-  only the per-file descriptions and points at `lean/README.md` for sizes.
-  Keep it that way: one copy of every number.
-
-## Numerics
-
-**`step5_check.py` reproduces all of it** — run it, it asserts rather than
-prints opinions. `prop:bound` and the decomposition over **3,022,668 factors**,
-44 sequences, `n ∈ {2,3,5,6,8,10,11,12,13,29,43}` and four intercepts each:
-`s ≤ a`, `t ≤ a−1`, `s = a ⟹ 1u'` a factor, the `lem:dev` identity, and
-`|Δ| < 1` with `sup → 1` never attained. `thm:step5` by reconstructing `x` from
-the sequence alone, to `10⁻⁴` by `N = 4000`. `thm:counterex` as case D.
-
-No test touches a decimal truncation: slopes are `sqrt(n) - floor(sqrt(n))` and
-the codings come from integer comparison in `ℤ[√n]`.
-
-Two test bugs in one session, both reporting a false failure: a bracket that
-trivially exceeded `1` for `|u| = 1`, and a decomposition that set `s = a`
-where it should have been `min(a, |u|)`. **Check the test before believing a
-counterexample** — that is now twice this has happened and twice the claim was
-right.
-
-## Method that worked
-
-- **Numerics before prose, every time.** Both new propositions were checked in
-  Python before a word went into the `.tex`: the predicted witnesses for step 2
-  (`{00,10}` for blocks `{1,3}`, `{000,100}` for `{2,4}`), and the bridge in
-  both directions for step 4. Two claims were wrong on the first test and one of
-  those was a bug in the test, not the claim — check both before believing
-  either.
-- **Never test on a decimal truncation.** `0.302770` looks like an irrational
-  and is not; its coding is eventually periodic and it produced a spurious
-  counterexample. Build slopes as `sqrt(n) - floor(sqrt(n))`.
-- **Three strikes.** Lothaire ch. 2 is not freely available and Vuillon's
-  "Balanced words" defeated three download routes. Both are recorded in
-  `papers/sturmian/README.md` with citations and a DOI rather than retried.
-- **`LESSONS.md` governs the prose.** Read it before writing any sentence in the
-  `.tex`. Robin rewrote nearly every sentence drafted on 30 September; the file
-  is the distillation. Shortest relevant rules: no stage direction, no advance
-  summaries of method, no restating a display in prose, concrete before general,
-  rigour in the statement and not in a remark, and no paragraph over three lines
-  in a definitional passage.
-
-## Sources
-
-`papers/sturmian/README.md` accounts for all of them, including the two that
-could not be obtained (Morse–Hedlund 1940 is paywalled and in copyright;
-Lothaire ch. 2 is not posted). Neither is needed now. The errata's Proposition
-2.1.10 is `| |u|₁ − α|u| | < 1`, which is our `prop:bound`; the agreement is a
-check on the statement, and the proof in §7 is our own.
+- **Numerics before prose, every time** — and **extend the numerics to the
+  case you are about to claim**. The §7 gap survived 3,022,668 checked factors
+  because the test and the proof made the same assumption. When a proof says
+  "the block to the left", check that there is one.
+- **Check the test before believing a counterexample.** Three times now the
+  test was wrong and the claim was right.
+- **Never test on a decimal truncation.** Build slopes as
+  `sqrt(n) - floor(sqrt(n))`.
+- **`LESSONS.md` governs the prose.** Read it before writing any sentence in
+  the `.tex`. Shortest relevant rules: no stage direction, no advance
+  summaries of method, no restating a display in prose, concrete before
+  general, and no paragraph over three lines in a definitional passage.
+- **Three strikes.** Lothaire ch. 2 and Vuillon's "Balanced words" are
+  recorded in `papers/sturmian/README.md` with citations rather than retried.
+  Neither was needed: the errata's Proposition 2.1.10 is our `prop:bound`, and
+  §7 proves it in half a page from `lem:blocks`.

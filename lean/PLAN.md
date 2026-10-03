@@ -16,13 +16,9 @@ the slope. Everything about `√n` is stated through that.
 
 ## Status
 
-**All eight phases are complete, and so is Lagrange's 1770 half.**
-`Sturmian.lean` 2057 lines, `Quadratic.lean` 544, `Lagrange.lean` 212,
-`SqrtN.lean` 127, 0 errors, 0 warnings, 0 sorries, 51 theorems checked by
-`#print axioms` across the five files.
-
-`all-the-proofs.tex` is formalised apart from the **one** thing it still
-declares unproved: the converse half of Morse–Hedlund (§10 item 1).
+**Every phase is complete, including Phase 9.**  `all-the-proofs.tex` is
+formalised end to end, 0 errors, 0 warnings, 0 sorries, every headline checked
+by `#print axioms`.  File sizes live in `README.md`; one copy of every number.
 
     derive_code       : derived   α x a = codeUp β (refl   α x 0)
     derive_codeUp     : derivedUp α x a = code   β (reflUp α x 0)
@@ -83,11 +79,12 @@ that other projects import.
 
 ## Remaining
 
-One target: the converse half of Morse–Hedlund.  `all-the-proofs.tex` §6 is
-complete as of 3 October 2026 — steps 2 and 4 (`prop:blocks`, `prop:derived`)
-and then step 5, which is §7 of that document (`lem:slope`, `prop:bound`,
-`thm:step5`).  **No open mathematics remains.**  Of the formalisation, `lem:rs`
-and `cor:onesp` are done; the rest is **Phase 9** below.
+The converse half of Morse–Hedlund closed on 3 October 2026 — steps 2 and 4
+(`prop:blocks`, `prop:derived`) and then step 5, which is §7 of that document
+(`lem:slope`, `prop:bound`, `thm:step5`).  **No open mathematics remains, and
+no open formalisation either**; `isSturmian_iff_mechanical` is the statement.
+Formalising §7 did turn up one gap in it, in `prop:bound`'s `s = a` case,
+repaired by `lem:recur`; **Phase 9** below records it.
 
 ## Design
 
@@ -443,9 +440,7 @@ The theorem is stated for an abstract admissible state, so it needs witnesses.
 with preperiod 1), and `eventually_periodic_golden` is the case
 `Palindrome.lean` cannot reach: `φ = (1+√5)/2`, where `Q = 2 ∣ 5 - 1²`.
 
-## Phase 9 — the converse of Morse–Hedlund (§6) — **steps 1 to 4 done**
-
-The only thing left in `all-the-proofs.tex`.
+## Phase 9 — the converse of Morse–Hedlund (§§6–7) — **done**
 
 ```lean
 theorem mechanical_of_isSturmian (ℓ : ℕ → ℕ) (hb : ∀ k, ℓ k ≤ 1)
@@ -454,9 +449,37 @@ theorem mechanical_of_isSturmian (ℓ : ℕ → ℕ) (hb : ∀ k, ℓ k ≤ 1)
       (ℓ = code α x ∨ ℓ = codeUp α x)
 ```
 
-With `isSturmian_code` and `isSturmian_codeUp` that closes `thm:mh`; with
-`fib_sturmian_not_code` it says precisely why the `sturmian.tex` §2 form was
-wrong — both codings are needed and neither alone suffices.
+With `isSturmian_code` and `isSturmian_codeUp` that closes `thm:mh`, now
+stated as the iff `isSturmian_iff_mechanical`; with `fib_sturmian_not_code` it
+says precisely why the `sturmian.tex` §2 form was wrong — both codings are
+needed and neither alone suffices.
+
+**Aperiodicity is not a hypothesis.** The statement above carries `hap`;
+the proved version drops it, because `not_eventuallyPeriodic` already derives
+it from `IsSturmian`.
+
+### What §7 cost, and where the Lean route differs from the paper
+
+* **A gap in the paper, found while planning.** `prop:bound`'s lower bound
+  reads the block to the left of `u'` when `s = a`.  A factor sitting in the
+  run of zeros before the first `1` has no block to its left, and the case is
+  reachable — `isLeast_code_zero` puts the first `1` of `code γ 0` at exactly
+  `a`.  `step5_check.py` had not seen it: every window started at the first
+  `1`.  The repair is recurrence, now `lem:recur` in the paper and
+  `exists_window_ge` here, proved from `ncard_factors_succ` and
+  `eventuallyPeriodic_of_rightSpecial_empty` rather than the textbook route.
+* **`Δ_α` takes a pair, not a word.**  `dev α n w = w − αn`, so `lem:dev` is
+  one `linear_combination` and `τ_a` is never built as a word — the dodge §6.1
+  already uses.
+* **The slopes are a hypothesis.**  `Tower` carries `α`, `β` and the step
+  `α(a + β) = 1` as fields, following `tower_eq`, so `prop:bound` needs no
+  limits at all.  `exists_slopes` discharges them separately.
+* **Irrationality is not a descent.**  The paper descends on denominators.
+  Here it is cheaper last: a rational slope makes the coding periodic with
+  period `r.den`, contradicting `not_eventuallyPeriodic`.
+* **`sum_codeUp` needs no hypothesis on `x`.**  The telescope leaves `⌈x⌉`.
+* **`ncard_factors_codeUp` got shorter.**  Its inlined complementation
+  argument became `exch`/`ncard_factors_exch`, reused by the tower.
 
 ### Sources
 
@@ -497,9 +520,10 @@ standard-sequence recurrence `sₙ = sₙ₋₁^{dₙ} sₙ₋₂`, with `[0; 1+
 continued fraction of the slope, is the *inverse of our derivation tower*.  So
 Phase 9 ought to be an inversion of `derived`/`tower`, not a new development.
 
-Status of §6's five steps.  **All five were proved by 3 October 2026**; step 5 is
-§7 of `all-the-proofs.tex`.  Step 2 was the step this plan called the real
-infrastructure, and it was not.
+Status of §6's five steps.  **All five were proved by 3 October 2026** and all
+five are now formalised; step 5 is §7 of `all-the-proofs.tex`.  Step 2 was the
+step this plan called the real infrastructure, and it was not — the window
+decomposition `exists_decomp` was.
 
 | step | content | tex | Lean |
 |---|---|---|---|
@@ -510,7 +534,9 @@ infrastructure, and it was not.
 | 3 | `ℓ = 0^{k₀} τ_a(ℓ')` | proved | **`onesPos_block_length`, `onesPos_zero_le`** |
 | 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | **proved** — `prop:derived` | **`isSturmian_deriveSeq`** |
 | 4b | both letters of `ℓ'` occur | absorbed into 4a (`m = 1`) | the `m = 0` case of `isSturmian_deriveSeq` |
-| 5 | the limit pins a single `α = [0;a₁,a₂,…]` and a single `x` | **proved** — §7 | not started — see `../HANDOVER.md` |
+| 5 | the limit pins a single `α = [0;a₁,a₂,…]` and a single `x` | **proved** — §7 | **`dev_lt_one`, `exists_slopes`, `slopes_unique`, `step5`** |
+| — | the letter exchange, threaded through the tower | §7 opening | **`exch`, `twr`, `nextFlag`** |
+| — | the assembly | `thm:mh` | **`mechanical_of_isSturmian`, `isSturmian_iff_mechanical`** |
 
 **Step 3 is less reusable than it looks.** `block_length` and `block_zero` are
 stated for `code α x` — they presuppose a coding, which is exactly what Phase 9
@@ -669,7 +695,7 @@ Six things to carry forward.
 | `tail`, `tail_mem_factors`, `snoc_tail`, `tail_rightSpecial` | drop the first letter |
 | `rightSpecial_chain` | **`lem:rschain`** |
 
-What remains is `lem:bridge` and the uniqueness half of `prop:derived`.
+`lem:bridge` and the uniqueness half of `prop:derived` followed.
 
 * **`lem:aper` is a pigeonhole on windows, and the window determines its
   successor.** With `rightSpecial ℓ m = ∅` every factor of length `m` has
@@ -795,13 +821,13 @@ facts — that is our §1, already done here.  It has no complexity function and
 balancedness.  Mathlib has neither, nor a factor-set or bispecial-factor API.
 Nothing found for Rocq.
 
-So Phase 9 means building a factor-set and right-special-factor API from
-scratch.  That is the argument for doing the phase at all: the statement is
-classical, but the infrastructure would be the first of its kind, and Berstel's
-definitions being verbatim ours (see `papers/sturmian/README.md`) means it would
-be recognisable to anyone else working in the area.  Note that after 3 October
-the API needed is *right*-special, not bispecial — the palindrome machinery the
-classical route wants is not on the critical path.
+So Phase 9 meant building a factor-set and right-special-factor API from
+scratch, and that API now exists: `factors`, `extBy`, `rightSpecial`, `window`,
+`cnt`, `blockLens`, `blockMax`, `deriveSeq`, `onesPos`, `exch`.  Berstel's
+definitions being verbatim ours (see `papers/sturmian/README.md`) means it
+should be recognisable to anyone else working in the area.  The API needed was
+*right*-special, not bispecial — the palindrome machinery the classical route
+wants was never on the critical path.
 
 
 ## Order of work
@@ -822,8 +848,12 @@ Done since:
 9 (Lagrange 1770)            (Quadratic.lean, extends Palindrome.lean)
 ```
 
-Next, and now the only thing left:
+And last:
 
 ```
-9 (converse Morse–Hedlund)   1, 2, 3, 4 done ──► 5
+9 (converse Morse–Hedlund)   1 ──► 2 ──► 3 ──► 4 ──► 5
 ```
+
+Within step 5: `sum_codeUp` and `exch` first, then `exists_window_ge`
+(`lem:recur`), `dev_tau`, `exists_decomp`, `Tower`, `dev_lt_one`,
+`exists_slopes`, `step5`, and `mechanical_of_isSturmian`.
