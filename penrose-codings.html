@@ -63,6 +63,15 @@ letter(&alpha;,x,k) = index(k+1) &minus; index(k)  &larr; C&#8314;(&alpha;,x)<su
   <div class="row"><label>line k</label><input type="range" id="lk" min="0" max="4" step="1"><span class="val" id="lkv"></span></div>
   <div class="row"><label>sample m</label><input type="range" id="lm" min="0" max="4" step="1"><span class="val" id="lmv"></span></div>
   <div class="row"><label>count j</label><input type="range" id="lj" min="0" max="4" step="1"><span class="val" id="ljv"></span></div>
+  <div class="pills"><button id="grid" class="on">show the two grids</button></div>
+  <p class="note">The white line is one line of family <em>k</em>. Blue lines
+     are family <em>m</em>, the ruler: its crossings with the white line are
+     equally spaced, and they are the white ticks. Yellow lines are family
+     <em>j</em>, the family being counted. Each step between consecutive ticks
+     is drawn <span style="color:#6ee7a0">green</span> when it crosses a yellow
+     line and <span style="color:#ff8282">red</span> when it does not. Reading
+     the steps gives the word &mdash; this is the cutting sequence of
+     <code>all-the-proofs.tex</code> &sect;1, drawn on the tiling.</p>
   <table id="slope"></table>
   <p class="sub" style="margin-top:8px">increments of K<sub>j</sub>, reduced by &lfloor;&alpha;&rfloor;</p>
   <div class="word" id="word"></div>
@@ -138,7 +147,7 @@ function buildTiles(n, g, R, radius){
    so subtracting floor(alpha) from each letter gives the paper's coding at
    slope frac(alpha) exactly.                                                */
 
-function readLine(n, g, k, m, j, N, s = 3){
+function readLine(n, g, k, m, j, N, s = 0){
   const e = dirs(n), ek = e[k], em = e[m], ej = e[j];
   const d = [-ek[1], ek[0]];
   const dem = d[0]*em[0] + d[1]*em[1];
@@ -186,16 +195,40 @@ function identify(a, n){
   return null;
 }
 
+/* continued fraction of a slope in (0,1), with its detected period: by
+   Prop 7 of penrose.tex the period is odd only when the field has a unit of
+   norm -1, so Q(sqrt5) and Q(sqrt2) show period 1 and Q(sqrt3) period 2. */
+function cf(x, k = 9){
+  const a = [];
+  for (let i = 0; i < k; i++){
+    if (x <= 1e-12) break;
+    const q = Math.floor(1/x); a.push(q); x = 1/x - q;
+  }
+  return a;
+}
+function period(a){
+  const t = a.slice(2);                       // skip the transient
+  for (let p = 1; p <= 3; p++){
+    let ok = true;
+    for (let i = 0; i + p < t.length; i++) if (t[i] !== t[i+p]) { ok = false; break; }
+    if (ok) return p;
+  }
+  return null;
+}
+
 const FIELD = {
-  5:{name:'Penrose',        sym:'10-fold', field:'ℚ(√5)', lam:'φ = 1.6180339887',  tau:'τ₁'},
-  4:{name:'Ammann–Beenker', sym:'8-fold',  field:'ℚ(√2)', lam:'1+√2 = 2.4142135624', tau:'τ₂'},
-  6:{name:'dodecagonal',    sym:'12-fold', field:'ℚ(√3)', lam:'2+√3 = 3.7320508076', tau:'τ₁τ₂'}
+  5:{name:'Penrose',        sym:'10-fold', field:'ℚ(√5)', lam:'φ = 1.6180339887',
+     tau:'τ₁', poly:'x² − x − 1', norm:'−1'},
+  4:{name:'Ammann–Beenker', sym:'8-fold',  field:'ℚ(√2)', lam:'1+√2 = 2.4142135624',
+     tau:'τ₂', poly:'x² − 2x − 1', norm:'−1'},
+  6:{name:'dodecagonal',    sym:'12-fold', field:'ℚ(√3)', lam:'2+√3 = 3.7320508076',
+     tau:'τ₁τ₂', poly:'x² − 4x + 1', norm:'+1'}
 };
 const PALETTE = [['#2d5d8f','#4a86c5'],['#8f4a2d','#c57a4a'],['#3d6b4a','#5fa072']];
 
 /* ---------------------------------------------------------------- state --- */
 let N = 5, gammas = [0.1, 0.23, -0.37, 0.41, -0.37];
-let lk = 0, lm = 1, lj = 2, reference = null;
+let lk = 0, lm = 1, lj = 2, reference = null, showGrid = true;
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 let scale = 42, R = 9, radius = 9.5;
 
@@ -228,6 +261,23 @@ function draw(){
     }
   }
 
+  // the two grid families involved: the ruler (m) and the counted family (j)
+  if (showGrid){
+    const e = dirs(N);
+    for (const [fam, col, wid] of [[lm, 'rgba(120,200,255,.45)', 1.1],
+                                   [lj, 'rgba(255,209,102,.75)', 1.6]]){
+      const el = e[fam], perp = [-el[1], el[0]];
+      for (let r = -14; r <= 14; r++){
+        const off = r - gammas[fam];            // p . e_fam = r - gamma_fam
+        const bx = el[0]*off, by = el[1]*off;
+        ctx.beginPath();
+        ctx.moveTo(bx - 40*perp[0], by - 40*perp[1]);
+        ctx.lineTo(bx + 40*perp[0], by + 40*perp[1]);
+        ctx.lineWidth = wid/scale; ctx.strokeStyle = col; ctx.stroke();
+      }
+    }
+  }
+
   // the line being read, and its sample points
   const rd = readLine(N, gammas, lk, lm, lj, 34);
   if (rd){
@@ -236,11 +286,19 @@ function draw(){
     ctx.moveTo(p0[0] - 40*d[0], p0[1] - 40*d[1]);
     ctx.lineTo(p0[0] + 40*d[0], p0[1] + 40*d[1]);
     ctx.lineWidth = 1.6/scale; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.stroke();
+    // each step between consecutive sample points carries one letter
+    rd.word.forEach((v,i) => {
+      const a = rd.pts[i], b = rd.pts[i+1];
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]);
+      ctx.lineWidth = 5/scale; ctx.lineCap = 'butt';
+      ctx.strokeStyle = v ? 'rgba(110,231,160,.95)' : 'rgba(255,130,130,.95)';
+      ctx.stroke();
+    });
+    // the sample points themselves: equally spaced ruler ticks
     rd.pts.forEach((p,i) => {
-      if (i >= rd.word.length) return;
-      ctx.beginPath(); ctx.arc(p[0], p[1], 4.5/scale, 0, 7);
-      ctx.fillStyle = rd.word[i] ? '#6ee7a0' : '#ff8282';
-      ctx.fill();
+      if (i > rd.word.length) return;
+      ctx.beginPath(); ctx.arc(p[0], p[1], 2.6/scale, 0, 7);
+      ctx.fillStyle = '#ffffff'; ctx.fill();
     });
   }
   ctx.restore();
@@ -285,8 +343,10 @@ function refresh(){
     <tr><th>tiling</th><td>${f.name}</td></tr>
     <tr><th>inflation λ</th><td>${f.lam}</td></tr>
     <tr><th>field</th><td>${f.field}</td></tr>
+    <tr><th>min poly of λ</th><td>${f.poly}</td></tr>
+    <tr><th>N(λ)</th><td>${f.norm}${f.norm==='+1'?' — forces even CF period':''}</td></tr>
     <tr><th>1-D substitution</th><td>${f.tau}</td></tr>
-    <tr><th>φ(n)</th><td>4 — quadratic</td></tr>`;
+    <tr><th>φ(n)</th><td>4 — quadratic, codim 2 from ℤ⁴</td></tr>`;
 
   const gs = gammas.reduce((a,b)=>a+b,0);
   $('gsum').textContent = gs.toFixed(3);
@@ -306,6 +366,9 @@ function refresh(){
       <tr><th>&lfloor;&alpha;&rfloor;</th><td>${rd.floor}</td></tr>
       <tr><th>{&alpha;} (paper's slope)</th><td>${rd.frac.toFixed(9)}${id2?' = '+id2:''}</td></tr>
       <tr><th>intercept c</th><td>${(rd.c - Math.floor(rd.c)).toFixed(9)}</td></tr>
+      <tr><th>CF of {&alpha;}</th><td>[0; ${cf(rd.frac).join(', ')}, …]</td></tr>
+      <tr><th>CF period</th><td>${(()=>{const p=period(cf(rd.frac,12));
+            return p===null ? '—' : p + (p===1?' (norm −1 unit)':' (norm +1: no norm −1 unit)');})()}</td></tr>
       <tr><th>increments = C&#8314;?</th><td class="${rd.agrees?'ok':'bad'}">${rd.agrees?'yes':'NO'}</td></tr>`;
     $('word').innerHTML = rd.word.map(v => v
         ? '<span style="color:#6ee7a0">1</span>'
@@ -342,6 +405,8 @@ $('sing').onclick = () => { gammas = gammas.map(()=>0); buildGammas(); refresh()
 $('rand').onclick = () => { gammas = gammas.map(()=>+(Math.random()*1.6-0.8).toFixed(3));
   const s = gammas.reduce((a,b)=>a+b,0); gammas[gammas.length-1] -= s;
   buildGammas(); refresh(); };
+$('grid').onclick = e => { showGrid = !showGrid;
+  e.target.className = showGrid ? 'on' : ''; refresh(); };
 $('freeze').onclick = () => {
   reference = new Set(buildTiles(N, gammas, R, radius).tiles.map(tileKey)); refresh(); };
 $('clearref').onclick = () => { reference = null; refresh(); };

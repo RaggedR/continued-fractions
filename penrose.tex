@@ -238,7 +238,8 @@ channels, each an instance of the object in \texttt{all-the-proofs.tex}.
 This yields an aperiodicity proof straight from MH-I.
 
 \begin{proposition}\label{prop:aper}
-A Penrose tiling has no translation period.
+A Penrose tiling has no translation period. The same argument covers the
+Ammann--Beenker and dodecagonal tilings.
 \end{proposition}
 
 \begin{proof}
@@ -246,7 +247,23 @@ Suppose $v$ were a period. Then each Ammann family's gap sequence would be
 periodic, hence of bounded factor complexity by the easy half of MH-I. But that
 gap sequence is the Sturmian word of slope $1/\varphi$, whose complexity is
 $m+1$ and so unbounded.
+
+The Ammann-bar fact is quoted. Here is the same conclusion using only the grid
+formalism of \S6.2, which is proved. A translation by $v$ carries the family-$j$
+lines $\{p : p \cdot e_j + \gamma_j \in \Z\}$ to themselves only if
+$v \cdot e_j \in \Z$, and it must do so for every $j$, since the tiling
+determines its grid. Fix two families $m$ and $j$: then
+$(v \cdot e_j)/(v \cdot e_m)$ is the ratio $\alpha$ of \S6.2, which is
+irrational --- it is $\pm\varphi^{\pm 1}$, $\pm\sqrt 2^{\pm 1}$ or
+$\pm\sqrt 3^{\pm 1}$ in the three cases. A ratio of two integers cannot be
+irrational unless both vanish, so $v \cdot e_j = 0$ for all $j$, and the $e_j$
+span $\R^2$, so $v = 0$.
 \end{proof}
+
+So the irrationality of the measured slopes \emph{is} the aperiodicity: the same
+number that makes the index word Sturmian is the obstruction to a period. A
+search over all $v$ with $v \cdot e_0, v \cdot e_1 \in \{-8,\dots,8\}$ found no
+nonzero candidate for $n = 4, 5, 6$.
 
 One distinction worth preserving: de Bruijn's \emph{pentagrid} is a different
 five-family construction, in which the lines \emph{are} equally spaced within
@@ -463,8 +480,9 @@ $7,9,14,18$ & cubic & $\approx 2.247$ & Danzer's sevenfold & none: no quadratic 
 
 So the answer in its strongest form: \emph{the only other quadratic irrationals
 giving Penrose-like planar tilings are $\sqrt 2$ and $\sqrt 3$.} Each is
-Penrose-like in every structural sense --- cut-and-project from $\Z^4$ or
-$\Z^8$ onto an $n$-fold invariant plane, an inflation symmetry, matching rules,
+Penrose-like in every structural sense --- since $\phi(n) = 4$ in all three
+cases, each is a codimension-two projection of a rank-four module, $\Z^4 \to \R^2$,
+onto an $n$-fold invariant plane, with an inflation symmetry, matching rules and
 pure point diffraction with $n$-fold Bragg peaks --- and each carries its own
 Sturmian word along its bar families, with the two spacings in the ratio
 supplied by that field's unit. Note that the three rows of the table are three
@@ -525,6 +543,65 @@ $1 + 2\cos(2\pi/7) \approx 2.2470$ is even Pisot --- its conjugates
 $1+2\cos(4\pi/7) \approx 0.5550$ and $1+2\cos(6\pi/7) \approx -0.8019$ both have
 modulus below $1$. Yet no sevenfold alloy has ever been observed, in four
 decades of looking. The plausible reason is the next subsection.
+
+\subsection{$\Q(\sqrt 2)$ is a twin of $\Q(\sqrt 5)$; $\Q(\sqrt 3)$ is not}
+
+The three fields of \S6.2 are not on an equal footing, and the asymmetry is
+forced by arithmetic rather than by geometry.
+
+\begin{center}
+\begin{tabular}{llllll}
+\toprule
+field & $n$ & $\lambda$ & minimal polynomial & $N(\lambda)$ & substitution \\
+\midrule
+$\Q(\sqrt 5)$ & $5, 10$ & $\varphi$      & $x^2 - x - 1$  & $-1$ & $\tau_1$ \\
+$\Q(\sqrt 2)$ & $8$     & $1 + \sqrt 2$  & $x^2 - 2x - 1$ & $-1$ & $\tau_2$ \\
+$\Q(\sqrt 3)$ & $12$    & $2 + \sqrt 3$  & $x^2 - 4x + 1$ & $+1$ & $\tau_1\tau_2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+$\Q(\sqrt 2)$ is the exact twin of $\Q(\sqrt 5)$: its unit is the metallic mean
+at $a = 2$, so $\lambda^2 = 2\lambda + 1$, a single $\tau_a$ suffices, and the
+slope has constant partial quotients. $\Q(\sqrt 3)$ is not, and cannot be.
+
+\begin{proposition}\label{prop:norm}
+Let $\alpha$ have purely periodic continued fraction of period $p$ and let
+$\lambda$ be the leading eigenvalue of $M_{a_1} \cdots M_{a_p}$. Then
+\[
+  N(\lambda) \;=\; \det\bigl(M_{a_1} \cdots M_{a_p}\bigr) \;=\; (-1)^p .
+\]
+Consequently, if $\Q(\sqrt d)$ contains no unit of norm $-1$, then every
+Sturmian slope generating $\Q(\sqrt d)$ has \emph{even} continued-fraction
+period. In particular no single $\tau_a$ has inflation factor in $\Q(\sqrt 3)$,
+and the dodecagonal case needs a period at least $2$.
+\end{proposition}
+
+\begin{proof}
+For a $2 \times 2$ integer matrix the determinant is the product of the
+eigenvalues, which for $M_{a_1}\cdots M_{a_p}$ are $\lambda$ and its algebraic
+conjugate; so $N(\lambda) = \det$. Each $\det M_{a} = -1$ by \S6.1, whence
+$\det = (-1)^p$. If $p$ were odd then $\lambda$ would be a unit of norm $-1$.
+
+For $d = 3$ no such unit exists: $x^2 - 3y^2 = -1$ requires
+$x^2 \equiv -1 \equiv 2 \pmod 3$, and the squares modulo $3$ are $0$ and $1$.
+The direct form of the same obstruction: a single $\tau_a$ generates
+$\Q(\sqrt{a^2+4})$, and $a^2 + 4 = 3k^2$ would give $a^2 \equiv 2 \pmod 3$,
+again impossible.
+\end{proof}
+
+By contrast $x^2 - 2y^2 = -1$ has the solution $(1,1)$ and $x^2 - 5y^2 = -1$ has
+$(2,1)$, which is why those two fields are reached at period $1$, by $\tau_2$ and
+$\tau_1$ respectively.
+
+Proposition~\ref{prop:norm} is visible in the measured slopes. Every slope read
+off the Penrose and Ammann--Beenker tilings has continued fraction of period
+$1$ --- $[0;\overline{1}]$, $[0;2,\overline{1}]$ for the first,
+$[0;\overline{2}]$, $[0;1,\overline{2}]$, $[0;3,\overline{2}]$ for the second
+--- while every slope read off the dodecagonal tiling has period $2$:
+$[0;\overline{1,2}]$, $[0;1,\overline{1,2}]$, $[0;2,\overline{2,1}]$. The
+twelvefold quasicrystal is one storey taller in the tower of \S\S4--5 than the
+other two, and Pell's equation is the reason.
 
 \subsection{Quadratic is the boundary, and the boundary is the Gauss map}
 
@@ -674,10 +751,13 @@ $\C$-or-$\Cp$ repair is that converse stated correctly.
 \texttt{cor:gauss}, \texttt{lem:blocks}, \texttt{thm:derive},
 \texttt{thm:fib}.
 
-\textbf{Proved here.} Proposition~\ref{prop:aper} (Penrose aperiodicity from
-MH-I plus the Ammann-bar fact), modulo the Ammann-bar fact itself, which is
-quoted. Proposition~\ref{prop:metallic} (the $\tau_a$ fixed point is
+\textbf{Proved here.} Proposition~\ref{prop:aper}, in two ways: from MH-I plus
+the quoted Ammann-bar fact, and --- independently of anything quoted --- from
+the grid formalism of \S6.2, covering all three symmetries.
+Proposition~\ref{prop:metallic} (the $\tau_a$ fixed point is
 $\C(\alpha, 1/(1+\alpha))$), from \texttt{thm:derive}.
+Proposition~\ref{prop:norm} ($N(\lambda) = (-1)^p$, so $\Q(\sqrt 3)$ needs even
+period), from $\det M_a = -1$ and a congruence modulo $3$.
 
 \textbf{Verified numerically while writing this.} $\phi(n) = 4$ exactly for
 $n \in \{5,8,10,12\}$. The metallic-mean eigenvalues and their conjugates.
@@ -692,6 +772,12 @@ an exact tiling for $n = 4,5,6$ (every sample point covered exactly once, no
 gaps, no overlaps); that the index increments equal $\Cp(\alpha,c)$ letter for
 letter; that $F(m) = m+1$ for $m \leq 8$; that for $n = 5$ de Bruijn's index
 sums stay bounded while the thick-to-thin ratio approaches $\varphi$.
+
+That $\Q(\sqrt 3)$ is never $\Q(\sqrt{a^2+4})$, checked for $a \leq 60$; that
+$x^2 - 3y^2 = -1$ has no solution with $y \leq 2000$ while $d = 2, 5$ have small
+ones; the continued-fraction periods of all eight measured slopes; and that no
+nonzero $v$ with $v \cdot e_0, v \cdot e_1 \in \{-8,\dots,8\}$ satisfies
+$v \cdot e_j \in \Z$ for all $j$, for $n = 4, 5, 6$.
 
 \textbf{Quoted from the literature, not verified here.} The Ammann-bar
 description of Penrose and the corresponding bar families of
