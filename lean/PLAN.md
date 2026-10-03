@@ -83,8 +83,9 @@ that other projects import.
 
 ## Remaining
 
-One target: the converse half of Morse–Hedlund, `all-the-proofs.tex` §6
-steps 2, 4a and 5.  Planned as **Phase 9** below.
+One target: the converse half of Morse–Hedlund.  `all-the-proofs.tex` §6 step 2
+was proved on 3 October 2026 (`prop:blocks`); steps 4a and 5 are still open
+mathematics, and none of §6 is formalised.  Planned as **Phase 9** below.
 
 ## Design
 
@@ -433,7 +434,7 @@ The theorem is stated for an abstract admissible state, so it needs witnesses.
 with preperiod 1), and `eventually_periodic_golden` is the case
 `Palindrome.lean` cannot reach: `φ = (1+√5)/2`, where `Q = 2 ∣ 5 - 1²`.
 
-## Phase 9 — the converse of Morse–Hedlund (§6, steps 2, 4a, 5)
+## Phase 9 — the converse of Morse–Hedlund (§6)
 
 The only thing left in `all-the-proofs.tex`.
 
@@ -485,12 +486,13 @@ standard-sequence recurrence `sₙ = sₙ₋₁^{dₙ} sₙ₋₂`, with `[0; 1+
 continued fraction of the slope, is the *inverse of our derivation tower*.  So
 Phase 9 ought to be an inversion of `derived`/`tower`, not a new development.
 
-Status of §6's five steps:
+Status of §6's five steps.  **Step 2 was proved on 3 October 2026** — see below;
+it was the step this plan called the real infrastructure, and it was not.
 
 | step | content | tex | Lean |
 |---|---|---|---|
 | 1 | `F(1)=2`, `F(2)=3`, so exactly one of `00`/`11` is absent | proved | not started |
-| 2 | block lengths take two consecutive values `a-1`, `a` — balancedness | *not proved* | — |
+| 2 | block lengths take two consecutive values `a-1`, `a` | **proved** — `prop:blocks` | not started |
 | 3 | `ℓ = 0^{k₀} τ_a(ℓ')` | proved | `block_length`, `block_zero`, but see below |
 | 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | *not proved* | — |
 | 4b | both letters of `ℓ'` occur | proved | not started |
@@ -504,14 +506,33 @@ is work; §6's "applies verbatim" is about the mathematics, not the Lean.
 
 ### Where the cost is
 
-**Step 2 is the real infrastructure.**  The classical proof is a
-minimal-counterexample induction producing a palindrome `w` with both `0w0` and
-`1w1` factors — a bispecial-factor argument, and nothing of the kind exists in
-any proof assistant.  The CRM monograph in `papers/sturmian/` does carry the
-finite half of this exact shape: a Lyndon word is Christoffel iff `xux, xuy,
-yux, yuy` are all balanced (§6.2), with the palindromic characterisation in
-ch. 4.  The induction lives in the finite setting, so that is the best starting
-point available.
+**Step 2 is proved, and it is not the palindrome argument.**  It is now
+`all-the-proofs.tex` Proposition `prop:blocks`, about half a page, and the only
+tool is
+
+```
+F(m+1) − F(m) = #{right-special factors of length m}            (lem:rs)
+```
+
+— so complexity `m+1` is *equivalent* to having exactly one right-special factor
+of each length (`cor:onesp`).  Then `0^{j+1}` and `1·0^j` have the same length
+and differ in their first letter, so at most one is right-special; `0^{j+1}` is
+right-special iff `j ≤ a−2`, and `1·0^j` iff `j` is a block length and some
+block is longer.  Uniqueness forces every non-maximal block length to be
+`≥ a−1`.  The over-long-initial-block case falls to the same inequality.
+
+That changes the Lean cost of this phase substantially.  **What is needed is a
+right-special-factor API, not a bispecial one** — and `lem:rs` is a statement
+about a surjection with fibres of size 1 or 2 between `factors ℓ (m+1)` and
+`factors ℓ m`, which the `factors`/`ncard` machinery from Phase 2 already
+supports.  The claim in *Prior art* below that no proof assistant has the needed
+API still stands, but the API is now much smaller than it looked.
+
+Verified numerically before writing: the right-special count is 1 at every
+length for three codings; block lengths `{1,3}` give the two right-special
+factors `00`, `10` at length 2 and `{2,4}` give `000`, `100` at length 3 — the
+predicted witnesses; and prefixing an over-long `0`-block to a genuine Sturmian
+tail breaks the count at exactly the predicted length.
 
 **Step 5 needs a convergence argument** — the Ostrowski representation of `x`.
 Unlike Phases 2–8 this is genuinely analytic.  Mathlib's continued-fraction API
@@ -524,23 +545,27 @@ It also wants `Palindrome.stream_fst` generalised off `√n`, which
 **Step 4a** may fall out of the tower for free, since `derive_code` and
 `derive_codeUp` already say what deriving a coding gives.
 
-### Order, and the early failure point
+### Order, and where it can still fail
 
 ```
-4a  ──►  2  ──►  3'  ──►  1, 4b  ──►  5
+lem:rs, cor:onesp  ──►  2  ──►  3'  ──►  1, 4b  ──►  4a  ──►  5
 ```
 
-Attempt **4a first**: it is the cheapest probe of whether "run §4–§5 backwards"
-is really the right route, and the place this phase can fail early.  Then step 2,
-the bulk.  `3'` is step 3 restated for abstract `ℓ`.  Steps 1 and 4b are small.
-Step 5 last — the only analytic piece, and the only one needing new Mathlib
-surface.
+Start with `lem:rs` and `cor:onesp`: short, self-contained, and they make step 2
+mechanical.  Then step 2, then `3'` (step 3 restated for an abstract `ℓ`, see
+above), then steps 1 and 4b, which are small.
 
-**No line estimate and no confidence number, deliberately.**  Phases 2, 7 and 8
-each carried both because the mathematics was in hand and only the Lean was
-unknown.  Here the mathematics of step 2 has not been read by anyone on this
-project, only its shape.  The first honest estimate can be written once 4a has
-been attempted.
+**4a and 5 are still open mathematics** and should be done on paper first, in
+`all-the-proofs.tex`, as step 2 was.  4a first of the two: it is the cheapest
+probe of whether "run §4–§5 backwards" really works, and the place this phase
+can still fail.  5 is the only analytic piece and the only one wanting new
+Mathlib surface — `GenContFract.of_convergence`, and `Palindrome.stream_fst`
+generalised off `√n`.
+
+**Still no line estimate**, but the reason has narrowed.  It is no longer that
+step 2's mathematics was unread — that is written down now — but that 4a and 5
+are unproved.  An estimate for everything up to and including `3'` could be
+written today; the honest version of the whole phase waits on 4a.
 
 ## Prior art: what proof assistants already have
 
@@ -552,11 +577,13 @@ facts — that is our §1, already done here.  It has no complexity function and
 balancedness.  Mathlib has neither, nor a factor-set or bispecial-factor API.
 Nothing found for Rocq.
 
-So Phase 9 step 2 means building that API from scratch.  That is the argument
-for doing the phase at all: the statement is classical, but the infrastructure
-would be the first of its kind, and Berstel's definitions being verbatim ours
-(see `papers/sturmian/README.md`) means it would be recognisable to anyone else
-working in the area.
+So Phase 9 means building a factor-set and right-special-factor API from
+scratch.  That is the argument for doing the phase at all: the statement is
+classical, but the infrastructure would be the first of its kind, and Berstel's
+definitions being verbatim ours (see `papers/sturmian/README.md`) means it would
+be recognisable to anyone else working in the area.  Note that after 3 October
+the API needed is *right*-special, not bispecial — the palindrome machinery the
+classical route wants is not on the critical path.
 
 
 ## Order of work

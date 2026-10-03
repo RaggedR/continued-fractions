@@ -17,6 +17,7 @@
 \newtheorem{theorem}[definition]{Theorem}
 \newtheorem{lemma}[definition]{Lemma}
 \newtheorem{corollary}[definition]{Corollary}
+\newtheorem{proposition}[definition]{Proposition}
 
 \title{Sturmian sequences of $\sqrt n$: the proofs}
 \author{Robin Langer}
@@ -399,9 +400,8 @@ for some irrational $\alpha \in (0,1)$ and some $x \in [0,1)$.
 \end{theorem}
 
 The forward implication is Theorem~\ref{thm:complexity} and
-Corollary~\ref{cor:complexityup}. \textbf{The converse is not proved here.}
-It is classical, and the route that fits this document is to run \S4 and \S5
-backwards:
+Corollary~\ref{cor:complexityup}. For the converse, run \S4 and \S5 backwards.
+Steps 1, 2, 3 and 4b below are proved; 4a and 5 are not.
 
 \begin{enumerate}
 \item $F_\ell(1) = 2$, so both letters occur. $F_\ell(2) = 3$, so exactly one
@@ -410,10 +410,8 @@ backwards:
   $\ell = \seq{1}^p\seq{0}^\infty$, whose complexity is $p+1$ for all
   $m > p$. \emph{Proved.}
 \item The lengths of the maximal blocks of $0$s take exactly two values, and
-  they are consecutive, say $a-1$ and $a$. \emph{Not proved here.} This is
-  balancedness, and the classical proof is a minimal-counterexample induction
-  producing a palindrome $w$ with $\seq{0}w\seq{0}$ and $\seq{1}w\seq{1}$ both
-  factors.
+  they are consecutive, say $a-1$ and $a$. \emph{Proposition~\ref{prop:blocks}
+  below.}
 \item Given step 2, Lemma~\ref{lem:blocks} applies verbatim: $\ell$ factors as
   $\seq{0}^{k_0}\tau_a(\ell')$ with $\ell'$ a sequence over
   $\{\seq{0},\seq{1}\}$. \emph{Proved.}
@@ -426,6 +424,84 @@ backwards:
   \ldots$ pin a single $x$. \emph{Not proved here.} This is the Ostrowski
   representation of $x$ and needs a convergence argument.
 \end{enumerate}
+
+Step 1 delivers $\seq{00}$ or $\seq{11}$, and step 2 is stated for $\seq{11}$.
+Exchanging the letters costs nothing: by the identity in the proof of
+Corollary~\ref{cor:complexityup}, the complement of $\C(\beta,y)$ is
+$\Cp(1-\beta,-y)$, and Theorem~\ref{thm:mh} admits both codings.
+
+Step 2 is a counting argument. Call a factor $u$ of $\ell$ \emph{right-special}
+when $u\seq{0}$ and $u\seq{1}$ are both factors.
+
+\begin{lemma}\label{lem:rs}
+$F_\ell(m+1) - F_\ell(m)$ is the number of right-special factors of length $m$.
+\end{lemma}
+
+\begin{proof}
+Every factor of length $m+1$ is $ua$ for a factor $u$ of length $m$ and a letter
+$a$, and every factor of length $m$ has at least one right extension: it occurs
+at some $k$, and $\ell_{k+m}$ extends it. So $ua \mapsto u$ is onto the factors
+of length $m$, with two elements over $u$ exactly when $u$ is right-special.
+\end{proof}
+
+\begin{corollary}\label{cor:onesp}
+$F_\ell(m) = m+1$ for every $m$ if and only if $\ell$ has exactly one
+right-special factor of each length.
+\end{corollary}
+
+The pair that does the work is $\seq{0}^{j+1}$ and $\seq{1}\seq{0}^{j}$. They
+have the same length and differ in their first letter, so at most one of them is
+right-special.
+
+\begin{proposition}\label{prop:blocks}
+Let $\ell$ be Sturmian with $\seq{11}$ not a factor, and let $a$ be the length of
+the longest block of $\seq{0}$s. Then $a \geq 2$, the blocks of $\seq{0}$s
+between consecutive $\seq{1}$s have lengths $a-1$ and $a$ and both occur, and the
+block before the first $\seq{1}$ has length at most $a$.
+\end{proposition}
+
+\begin{proof}
+$\ell$ has infinitely many $\seq{1}$s: otherwise it ends in $\seq{0}^\infty$ and
+$F_\ell$ is bounded. Let
+\[
+  S \;=\; \{\, j \;:\; \seq{1}\seq{0}^{j}\seq{1} \text{ is a factor of } \ell \,\},
+\]
+the set of interior block lengths. $S$ is nonempty, and $j \geq 1$ for $j \in S$
+because $\seq{11}$ is absent.
+
+The blocks of $\seq{0}$s are bounded. Were they not, $S$ would be unbounded,
+only one block being initial. Take $j \in S$ and then $s \in S$ with
+$s \geq j+1$. Now $\seq{1}\seq{0}^{j}\seq{1}$ and $\seq{1}\seq{0}^{j+1}$ are
+factors, so $\seq{1}\seq{0}^{j}$ is right-special; and $\seq{0}^{j+2}$ and
+$\seq{0}^{j+1}\seq{1}$ are factors, so $\seq{0}^{j+1}$ is right-special. Two of
+them, of length $j+1$, against Corollary~\ref{cor:onesp}.
+
+So $a$ is defined. Every block is finite, so a block of length $\geq j$ is
+followed by a $\seq{1}$: hence $\seq{0}^{j}$ is a factor exactly for
+$j \leq a$, and $\seq{0}^{j}\seq{1}$ is a factor for $1 \leq j \leq a$.
+
+Let $j \in S$ with $j < \max S$. Then $\seq{1}\seq{0}^{j}\seq{1}$ and
+$\seq{1}\seq{0}^{j+1}$ are factors, so $\seq{1}\seq{0}^{j}$ is right-special. If
+$j \leq a-2$ then $\seq{0}^{j+2}$ and $\seq{0}^{j+1}\seq{1}$ are factors, so
+$\seq{0}^{j+1}$ is right-special as well, and Corollary~\ref{cor:onesp} is
+contradicted. So
+\[
+  j \in S,\ j < \max S \;\Longrightarrow\; j \geq a-1 .
+\]
+
+If $\max S < a$, every $j \in S$ below $\max S$ would satisfy
+$j \geq a-1 \geq \max S$, so there is none and $S = \{\max S\}$. A single block
+length makes $\ell$ eventually periodic, which bounds $F_\ell$. So $\max S = a$,
+and the display gives $S \subseteq \{a-1,a\}$. Again $S$ is not a single value,
+so $S = \{a-1,a\}$, and $a-1 \geq 1$.
+
+The initial block has length at most $a$ by the definition of $a$.
+\end{proof}
+
+Proposition~\ref{prop:blocks} is weaker than balancedness and is what steps 3
+to 5 use. The classical route proves balancedness in full, by a
+minimal-counterexample induction producing a palindrome $w$ with
+$\seq{0}w\seq{0}$ and $\seq{1}w\seq{1}$ both factors; that is not needed here.
 
 \section{The substitution}
 
@@ -667,8 +743,10 @@ $Q < 0$ the value is $-\lfloor (P + a_0)/(-Q)\rfloor - 1$.
 \section{What is not proved here}
 
 \begin{enumerate}
-\item The converse half of Theorem~\ref{thm:mh}: steps 2, 4 and 5 of the list in
-  \S6. Step 2 is balancedness; step 5 is an Ostrowski convergence argument.
+\item The converse half of Theorem~\ref{thm:mh}: steps 4a and 5 of the list in
+  \S6. Step 4a is that the derived sequence is again Sturmian; step 5 is an
+  Ostrowski convergence argument. Step 2 was on this list and is now
+  Proposition~\ref{prop:blocks}.
 \item Nothing else. Both halves of Lagrange's theorem are now proved and
   formalised: Euler's (\S9, \texttt{lean/Lagrange.lean}) and Lagrange's own
   (Theorem~\ref{thm:lagrange1770}, \texttt{lean/Quadratic.lean}). Every other
