@@ -109,7 +109,7 @@ They were done in the order 0, 3, 4, 5, 6, 2 — the reverse of the order the
 sections appear in, and the reverse of the note in memory. The √n headline
 (Phase 5) lands without ever touching Phase 1.
 
-## Phase 0 — codings (§1)
+## Phase 0 — codings (§1) — **done**
 
 | Lemma | Lean |
 |---|---|
@@ -122,7 +122,7 @@ sections appear in, and the reverse of the note in memory. The √n headline
 Small. `Int.fract_add_int`, `Int.floor_add_fract`, `Int.fract_eq_self`.
 Confidence 95%.
 
-## Phase 1 — density (§2)
+## Phase 1 — density (§2) — **done**
 
 ```lean
 theorem exists_fract_mem_Ico (hα : Irrational α) (x : ℝ) {c ε : ℝ}
@@ -146,7 +146,7 @@ witnesses, so there is no induction and no wrap-around case analysis.
 Irrationality is used exactly once, to make the step `δ` nonzero; Dirichlet
 itself does not need it.
 
-## Phase 3 — return time and blocks (§4)
+## Phase 3 — return time and blocks (§4) — **done**
 
 `Theorem 4.1` is the keystone and is pure arithmetic:
 
@@ -169,7 +169,7 @@ def derive (α : ℝ) (ℓ : ℕ → ℕ) (i : ℕ) : ℕ := nth ℓ (i+1) - nth
 
 Confidence 85%. Main risk is `Nat.nth` API friction, not mathematics.
 
-## Phase 4 — the derivation theorem (§5)
+## Phase 4 — the derivation theorem (§5) — **done**
 
 ```lean
 theorem derive_code :
@@ -188,9 +188,16 @@ Proof: `u (i+1) = Int.fract (u i + 1 - β)` by `return_time`, then
 `v i = Int.fract (-u i)` satisfies `v (i+1) = Int.fract (v i + β)` by induction,
 then the letter rule is one `if_congr`. Confidence 80%, ~250 lines.
 
-## Phase 5 — square roots (§8) — the headline
+## Phase 5 — square roots (§8) — the headline — **done**
+
+Planned as `derive_iterate` and `derive_period`; **neither name exists.**  The
+`derive^[j]` formulation was replaced by an explicit tower, and the results
+landed as `tower_eq` and `tower_period` in `Sturmian.lean`, instantiated at
+`√n` by `sqrt_tower_period` in `SqrtN.lean`.  The planned statements are kept
+below only to show what changed.
 
 ```lean
+-- as planned, and never written:
 theorem derive_iterate (hn : ¬IsSquare n) (j : ℕ) (hj : 1 ≤ j) :
     derive^[j] (code (Int.fract (alpha n 0)) 0)
       = (if Odd j then codeUp else code) (Int.fract (alpha n j))
@@ -210,7 +217,7 @@ is the joint between the two files and the only place the plan can fail early.
 This is the new theorem: `sturmian.tex` observes the return-after-L for `n = 2`
 and `n = 7`; here it holds for every non-square `n`. Confidence 75%.
 
-## Phase 6 — the counterexample (§6)
+## Phase 6 — the counterexample (§6) — **done**
 
 ```lean
 def cons1 (ℓ : ℕ → ℕ) : ℕ → ℕ := fun k => if k = 0 then 1 else ℓ (k-1)
@@ -436,7 +443,7 @@ The theorem is stated for an abstract admissible state, so it needs witnesses.
 with preperiod 1), and `eventually_periodic_golden` is the case
 `Palindrome.lean` cannot reach: `φ = (1+√5)/2`, where `Q = 2 ∣ 5 - 1²`.
 
-## Phase 9 — the converse of Morse–Hedlund (§6)
+## Phase 9 — the converse of Morse–Hedlund (§6) — **steps 1 to 4 done**
 
 The only thing left in `all-the-proofs.tex`.
 
@@ -503,7 +510,7 @@ infrastructure, and it was not.
 | 3 | `ℓ = 0^{k₀} τ_a(ℓ')` | proved | **`onesPos_block_length`, `onesPos_zero_le`** |
 | 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | **proved** — `prop:derived` | **`isSturmian_deriveSeq`** |
 | 4b | both letters of `ℓ'` occur | absorbed into 4a (`m = 1`) | the `m = 0` case of `isSturmian_deriveSeq` |
-| 5 | the limit pins a single `α = [0;a₁,a₂,…]` and a single `x` | **proved** — §7 | not started |
+| 5 | the limit pins a single `α = [0;a₁,a₂,…]` and a single `x` | **proved** — §7 | not started — see `../HANDOVER.md` |
 
 **Step 3 is less reusable than it looks.** `block_length` and `block_zero` are
 stated for `code α x` — they presuppose a coding, which is exactly what Phase 9
