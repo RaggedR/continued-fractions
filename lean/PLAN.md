@@ -597,17 +597,20 @@ In `Sturmian.lean` §6.1, all clean:
 | `not_eventuallyPeriodic` | Sturmian ⟹ not eventually periodic |
 | `exists_one_ge` | infinitely many `1`s, the proof's first line |
 | `zeros`, `oneZeros`, `zerosOne`, `oneZerosOne` | `0^m`, `1 0^j`, `0^m 1`, `1 0^j 1` |
+| `mem_factors_iff` and four word forms | membership as occurrence at a position |
 | `rightSpecial_zeros_iff`, `rightSpecial_oneZeros_iff` | right-specialness as two named words |
 | `not_both_rightSpecial` | **the engine** — `0^{j+1}` and `1 0^j` cannot both be right-special |
 
 `prop:blocks` itself is not formalised.  What it needs next, in order:
 
-1. **Subword closure of `factors`.**  Every remaining step is of the form
-   *`1 0^s 1` is a factor and `s ≥ j+1`, so `1 0^{j+1}` and `0^{j+2}` and
-   `0^{j+1} 1` are factors.*  Each of those is a contiguous subword of a
-   factor.  One lemma — `factors` is closed under subwords, hence under
-   prefixes and suffixes — discharges all of them, and nothing else in step 2
-   is infrastructure.  **Do this first.**
+1. ~~Subword closure of `factors`.~~ **Done, and not as a subword lemma.**
+   Every remaining step is of the form *`1 0^s 1` is a factor and `s ≥ j+2`, so
+   `1 0^{j+1}` and `0^{j+2}` and `0^{j+1} 1` are factors.*  A generic subword
+   lemma would state each of those as a cast-laden `Fin` reindexing.  Instead
+   `mem_factors_iff` turns membership into *occurrence at a position*, and the
+   four words get `mem_factors_zeros_iff`, `mem_factors_oneZeros_iff`,
+   `mem_factors_zerosOne_iff`, `mem_factors_oneZerosOne_iff`.  Each deduction
+   is then a witness shift and `omega` closes it — no reindexing, no casts.
 2. `blockLens ℓ = {j | oneZerosOne j ∈ factors ℓ (j+2)}`, the set `S`;
    nonempty from `exists_one_ge` and a `Nat.find` for the next `1`;
    `1 ≤ j` for `j ∈ S` from `11` absent.

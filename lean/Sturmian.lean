@@ -1861,6 +1861,113 @@ lemma zeros_ne_oneZeros (j : ℕ) : zeros (j + 1) ≠ oneZeros j := by
   have := congrFun h 0
   simp [zeros, oneZeros] at this
 
+/-! ### Occurrence
+
+Membership in `factors` becomes a statement about positions, and each of the
+four words gets its own form.  Step 2's deductions — this word sits inside that
+factor — are then arithmetic on the witness, which is what `omega` wants. -/
+
+lemma mem_factors_iff {m : ℕ} {w : Fin m → ℕ} :
+    w ∈ factors ℓ m ↔ ∃ k, ∀ i : Fin m, ℓ (k + (i : ℕ)) = w i := by
+  constructor
+  · rintro ⟨k, rfl⟩; exact ⟨k, fun i => rfl⟩
+  · rintro ⟨k, h⟩; exact ⟨k, by funext j; exact (h j).symm⟩
+
+lemma zerosOne_apply (m : ℕ) (i : Fin (m + 1)) :
+    zerosOne m i = if (i : ℕ) = m then 1 else 0 := by
+  refine Fin.lastCases ?_ ?_ i
+  · simp [zerosOne]
+  · intro t
+    have ht : (t : ℕ) ≠ m := Nat.ne_of_lt t.2
+    simp [zerosOne, zeros, ht]
+
+lemma oneZerosOne_apply (j : ℕ) (i : Fin (j + 2)) :
+    oneZerosOne j i = if (i : ℕ) = 0 then 1 else if (i : ℕ) = j + 1 then 1 else 0 := by
+  refine Fin.lastCases ?_ ?_ i
+  · simp [oneZerosOne]
+  · intro t
+    have ht : (t : ℕ) ≠ j + 1 := Nat.ne_of_lt t.2
+    simp [oneZerosOne, oneZeros, ht]
+
+lemma mem_factors_zeros_iff (m : ℕ) :
+    zeros m ∈ factors ℓ m ↔ ∃ k, ∀ i < m, ℓ (k + i) = 0 := by
+  rw [mem_factors_iff]
+  exact ⟨fun ⟨k, h⟩ => ⟨k, fun i hi => h ⟨i, hi⟩⟩, fun ⟨k, h⟩ => ⟨k, fun i => h i i.2⟩⟩
+
+lemma mem_factors_oneZeros_iff (j : ℕ) :
+    oneZeros j ∈ factors ℓ (j + 1) ↔ ∃ k, ℓ k = 1 ∧ ∀ i < j, ℓ (k + 1 + i) = 0 := by
+  rw [mem_factors_iff]
+  constructor
+  · rintro ⟨k, h⟩
+    refine ⟨k, ?_, fun i hi => ?_⟩
+    · have := h ⟨0, by omega⟩; simpa [oneZeros] using this
+    · have := h ⟨i + 1, by omega⟩
+      simp only [oneZeros] at this
+      rw [show k + 1 + i = k + (i + 1) by omega]
+      simpa using this
+  · rintro ⟨k, h1, h2⟩
+    refine ⟨k, fun i => ?_⟩
+    rcases Nat.eq_zero_or_pos (i : ℕ) with hi | hi
+    · simp [oneZeros, hi, h1]
+    · obtain ⟨t, ht⟩ : ∃ t, (i : ℕ) = t + 1 := ⟨(i : ℕ) - 1, by omega⟩
+      have htj : t < j := by have := i.2; omega
+      have hv : oneZeros j i = 0 := by simp [oneZeros, ht]
+      rw [hv, ht, show k + (t + 1) = k + 1 + t by omega]
+      exact h2 t htj
+
+lemma mem_factors_zerosOne_iff (m : ℕ) :
+    zerosOne m ∈ factors ℓ (m + 1) ↔
+      ∃ k, (∀ i < m, ℓ (k + i) = 0) ∧ ℓ (k + m) = 1 := by
+  rw [mem_factors_iff]
+  constructor
+  · rintro ⟨k, h⟩
+    refine ⟨k, fun i hi => ?_, ?_⟩
+    · have := h ⟨i, by omega⟩; rw [zerosOne_apply] at this; simpa [Nat.ne_of_lt hi] using this
+    · have := h ⟨m, by omega⟩; rw [zerosOne_apply] at this; simpa using this
+  · rintro ⟨k, h1, h2⟩
+    refine ⟨k, fun i => ?_⟩
+    rw [zerosOne_apply]
+    rcases eq_or_ne (i : ℕ) m with hi | hi
+    · simp [hi, h2]
+    · simp only [hi, if_false]
+      exact h1 i (by have := i.2; omega)
+
+lemma mem_factors_oneZerosOne_iff (j : ℕ) :
+    oneZerosOne j ∈ factors ℓ (j + 2) ↔
+      ∃ k, ℓ k = 1 ∧ (∀ i < j, ℓ (k + 1 + i) = 0) ∧ ℓ (k + 1 + j) = 1 := by
+  rw [mem_factors_iff]
+  constructor
+  · rintro ⟨k, h⟩
+    refine ⟨k, ?_, fun i hi => ?_, ?_⟩
+    · have := h ⟨0, by omega⟩; rw [oneZerosOne_apply] at this; simpa using this
+    · have := h ⟨i + 1, by omega⟩
+      rw [oneZerosOne_apply] at this
+      simp only [Nat.succ_ne_zero, if_false] at this
+      rw [if_neg (by omega : ¬ (i + 1 = j + 1))] at this
+      rw [show k + 1 + i = k + (i + 1) by omega]
+      simpa using this
+    · have := h ⟨j + 1, by omega⟩
+      rw [oneZerosOne_apply] at this
+      simp only [Nat.succ_ne_zero, if_false] at this
+      rw [show k + 1 + j = k + (j + 1) by omega]
+      simpa using this
+  · rintro ⟨k, h1, h2, h3⟩
+    refine ⟨k, fun i => ?_⟩
+    rcases Nat.eq_zero_or_pos (i : ℕ) with hi | hi
+    · have hv : oneZerosOne j i = 1 := by rw [oneZerosOne_apply, if_pos hi]
+      rw [hv, hi]
+      simpa using h1
+    obtain ⟨t, ht⟩ : ∃ t, (i : ℕ) = t + 1 := ⟨(i : ℕ) - 1, by omega⟩
+    rcases eq_or_ne t j with htj | htj
+    · have hv : oneZerosOne j i = 1 := by
+        rw [oneZerosOne_apply, if_neg (by omega), if_pos (by omega)]
+      rw [hv, ht, htj, show k + (j + 1) = k + 1 + j by omega]
+      exact h3
+    · have hv : oneZerosOne j i = 0 := by
+        rw [oneZerosOne_apply, if_neg (by omega), if_neg (by omega)]
+      rw [hv, ht, show k + (t + 1) = k + 1 + t by omega]
+      exact h2 t (by have := i.2; omega)
+
 lemma rightSpecial_zeros_iff (j : ℕ) :
     zeros (j + 1) ∈ rightSpecial ℓ (j + 1) ↔
       zeros (j + 2) ∈ factors ℓ (j + 2) ∧ zerosOne (j + 1) ∈ factors ℓ (j + 2) := by
@@ -2311,6 +2418,7 @@ end Substitution
 #print axioms Sturmian.not_eventuallyPeriodic
 #print axioms Sturmian.exists_one_ge
 #print axioms Sturmian.not_both_rightSpecial
+#print axioms Sturmian.mem_factors_oneZerosOne_iff
 #print axioms Sturmian.return_time
 #print axioms Sturmian.ones_succ_eq
 #print axioms Sturmian.derived_eq
