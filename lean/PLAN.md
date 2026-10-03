@@ -501,7 +501,7 @@ infrastructure, and it was not.
 | `cor:onesp` | `F(m) = m+1` ⟺ one right-special factor per length | proved | **`isSturmian_iff_ncard_rightSpecial`** |
 | 2 | block lengths take two consecutive values `a-1`, `a` | **proved** — `prop:blocks` | **`blocks`, `initial_block_le`** |
 | 3 | `ℓ = 0^{k₀} τ_a(ℓ')` | proved | **`onesPos_block_length`, `onesPos_zero_le`** |
-| 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | **proved** — `prop:derived` | not started |
+| 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | **proved** — `prop:derived` | half — easy half and `lem:aper`, `lem:rschain` |
 | 4b | both letters of `ℓ'` occur | absorbed into 4a (`m = 1`) | — |
 | 5 | the limit pins a single `α = [0;a₁,a₂,…]` and a single `x` | **proved** — §7 | not started |
 
@@ -650,6 +650,61 @@ Six things to carry forward.
   abstract `ℓ` is a line-for-line mirror of §4.2 with `Nat.nth` in place of
   `ones`, plus `gap_mem_blockLens` to feed `blocks` in.  No new ideas.
 
+### Step 4 — half formalised
+
+| | |
+|---|---|
+| `window`, `window_mem`, `window_mem_extBy` | the length-`m` window at `k` |
+| `eventuallyPeriodic_of_rightSpecial_empty` | **`lem:aper`** |
+| `onesPos_strictMono`, `le_onesPos`, `exists_block` | which block contains `k` |
+| `eventuallyPeriodic_of_deriveSeq` | `ℓ'` periodic ⟹ `ℓ` periodic |
+| `rightSpecial_deriveSeq_nonempty` | **the easy half** — `ℓ'` has a right-special factor of every length |
+| `tail`, `tail_mem_factors`, `snoc_tail`, `tail_rightSpecial` | drop the first letter |
+| `rightSpecial_chain` | **`lem:rschain`** |
+
+What remains is `lem:bridge` and the uniqueness half of `prop:derived`.
+
+* **`lem:aper` is a pigeonhole on windows, and the window determines its
+  successor.** With `rightSpecial ℓ m = ∅` every factor of length `m` has
+  exactly one extension, so `window ℓ m k = window ℓ m k'` forces
+  `ℓ (k+m) = ℓ (k'+m)` and hence equal successor windows.
+  `Set.Infinite.exists_ne_map_eq_of_mapsTo` over `factors_finite` supplies the
+  repeat, and the period is read off index `0` of the window — which is why
+  `1 ≤ m` is a hypothesis.
+* **Periodicity transfers by summing one `ℓ'`-period of block lengths.**
+  `eventuallyPeriodic_of_deriveSeq` sets `P = onesPos ℓ (q+p) - onesPos ℓ q`
+  and shows `onesPos ℓ (q+t+p) = onesPos ℓ (q+t) + P` by induction on `t`,
+  using `onesPos_block_length` on both sides.  Then `exists_block` locates `k`
+  and the two cases are *block start* (both letters `1`) and *interior* (both
+  `0`).  No word-level identity.
+
+### Why the uniqueness half is the hard one
+
+**`τ_a` is not length-preserving.**  `|τ_a(w)| = m·a + |w|₁`, so two
+right-special factors of `ℓ'` of the same length `m` map to right-special
+factors of `ℓ` of *different* lengths whenever their weights differ.  That is
+exactly why the paper needs `lem:rschain` — it compares across lengths — and it
+is why the occurrence representation, which made steps 1 to 3 cheap, does not
+make the bridge free.
+
+Three things it needs, in increasing cost:
+
+1. **A transitive `rightSpecial_chain`**: `R_n` is a suffix of `R_{n'}` for
+   `n ≤ n'`, by iterating `tail`.  Cheap — the `tail` API is in place.
+2. **`τ_a` as a word**, `Fin (m*a + weight w) → ℕ`, with injectivity.  The
+   dependent length is the whole difficulty: every lemma about it carries a
+   cast.
+3. **A suffix of `τ_a(w')` beginning with `1` is `τ_a(v)` for a suffix `v` of
+   `w'`**, and counting blocks forces `v = w'`.  This is the real content.
+
+**Try the positional route first.**  "`τ_a(w)` occurs at block start `i`" is
+just `∀ t < m, deriveSeq ℓ a (i+t) = w t` — that is, `w` occurs in `ℓ'` at `i`,
+with no word construction at all.  If the uniqueness argument can be run on
+block *indices* rather than on words, `τ_a` never has to exist as a function.
+The obstruction to beat is that `rightSpecial_chain` is a statement about
+words; it would have to be re-proved as a statement about block-aligned
+positions.  Worth half a day before reaching for (2).
+
 ### Two gaps in `all-the-proofs.tex` §6, found by formalising
 
 Both fixed in the `.tex`; both were proof slips, not wrong results.
@@ -703,5 +758,5 @@ Done since:
 Next, and now the only thing left:
 
 ```
-9 (converse Morse–Hedlund)   1, 2, 3 done ──► 4 ──► 5
+9 (converse Morse–Hedlund)   1, 2, 3 done ──► 4 (half) ──► 5
 ```

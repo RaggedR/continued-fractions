@@ -1,0 +1,747 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{xcolor}
+\definecolor{cA}{HTML}{1F4E8C}
+\definecolor{cB}{HTML}{B3261E}
+\definecolor{cC}{HTML}{1B7A3D}
+\newcommand{\seq}[1]{\texttt{\small #1}}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\Cp}{\mathcal{C}^{+}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\R}{\mathbb{R}}
+\usepackage{parskip}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{plain}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{proposition}[definition]{Proposition}
+
+\title{What Morse--Hedlund means\\
+\large Complexity, zero entropy, quasicrystals, and the Penrose tiling}
+\author{Robin Langer}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2em}
+
+\begin{quote}\small
+This is an interpretive companion to \texttt{all-the-proofs.tex}. That document
+proves things; this one asks what they mean. References of the form
+\texttt{thm:mh} point into \texttt{all-the-proofs.tex}. \S\ref{sec:status}
+records, claim by claim, which statements here are proved there, which are
+standard results quoted from the literature, which were verified numerically
+while writing this, and which are open.
+\end{quote}
+
+\section{Two theorems, and where the number $m+1$ comes from}
+
+Write $F_\ell(m)$ for the number of distinct factors of length $m$ in a
+sequence $\ell$, and recall that $\ell$ is \emph{Sturmian} when
+$F_\ell(m) = m+1$ for every $m \geq 1$.
+
+\textbf{MH-I, the dichotomy.} $F_\ell$ is bounded if and only if $\ell$ is
+eventually periodic. Both halves appear in \texttt{all-the-proofs.tex}: the easy
+direction as the remark that an eventually periodic sequence has bounded
+complexity, and the hard direction inside the proof of
+\texttt{prop:blocks}.
+
+Unfold the dichotomy and a \emph{floor} appears. If $\ell$ is aperiodic then
+$F_\ell$ is strictly increasing; since $F_\ell(1) \geq 2$, strict monotonicity
+forces
+\[
+  F_\ell(m) \;\geq\; m+1 \qquad \text{for every } m \geq 1 .
+\]
+So $m+1$ is not a normalisation chosen for convenience. It is the minimum
+possible complexity of an aperiodic sequence, and Sturmian sequences are exactly
+those attaining it.
+
+The mechanism behind the floor is the increment identity used in
+\texttt{all-the-proofs.tex} \S7: $F_\ell(m+1) - F_\ell(m)$ is the number of
+\emph{right-special} factors of length $m$, meaning words $w$ for which both
+$w\seq{0}$ and $w\seq{1}$ occur. This turns the complexity function into a
+derivative of the tree of factors. Aperiodicity forces at least one branch point
+at every depth; Sturmian means exactly one.
+
+\begin{quote}
+Complexity is not a size. It is a branching count. A Sturmian sequence is one
+whose factor tree is an infinite spine carrying a single bifurcation per level
+--- the thinnest aperiodic tree there is.
+\end{quote}
+
+\textbf{MH-II, the classification.} The sequences attaining the floor are
+\emph{exactly} the codings of irrational rotations. This is \texttt{thm:mh}: a
+sequence is Sturmian if and only if it is $\C(\alpha,x)$ or $\Cp(\alpha,x)$ for
+some irrational $\alpha \in (0,1)$ and some $x \in [0,1)$.
+
+MH-II is the interesting one, and its interest is of a specific kind. A purely
+combinatorial counting bound --- $m+1$ words of each length, not $m+2$ ---
+determines a dynamical system up to two real parameters. No geometry is
+assumed. No rotation, no line, no slope. They are conclusions. This is the same
+shape of statement as ``a triangle-free graph with $\lfloor n^2/4 \rfloor$
+edges must be complete bipartite'': saturate the inequality and lose all
+freedom.
+
+\subsection{Four readings of the same bound}
+
+\textbf{Extremal.} Nothing in the world can sustain minimal aperiodic
+complexity forever except an irrational rotation.
+
+\textbf{Predictive.} Given the last $m$ letters, the next letter is forced for
+all but one of the $m+1$ possible windows. One state of ignorance per horizon,
+forever. A random binary sequence has $F(m) = 2^m$ and every window ambiguous;
+Sturmian sits at the opposite end of the same axis.
+
+\textbf{Entropic.} Topological entropy is
+$h = \lim_m \log F_\ell(m) / m$, and $\log(m+1)/m \to 0$. Sturmian sequences
+carry no entropy at all and are nonetheless not periodic. That combination is
+what the phrase \emph{aperiodic order} names, and it is why these words are the
+one-dimensional model of a quasicrystal.
+
+\textbf{Arithmetic.} Equivalently, $F_\ell(m) = m+1$ holds precisely when $\ell$
+is aperiodic and \emph{balanced}: any two factors of the same length have
+$\seq{1}$-counts differing by at most $1$. Step~2 of \texttt{thm:mh} --- the
+maximal $\seq{0}$-blocks take exactly two consecutive values $a-1$ and $a$ ---
+is balance in local form, and balance is bounded discrepancy of the orbit
+$\{k\alpha\}$. The three-distance theorem in combinatorial clothing.
+
+\section{Zero entropy is a crude invariant}
+
+Entropy detects only the exponential growth rate of $F_\ell$, and so collapses
+an enormous amount of structure to the single value $0$.
+
+\begin{center}
+\begin{tabular}{llc}
+\toprule
+$F_\ell(m)$ & class & $h$ \\
+\midrule
+bounded & eventually periodic & $0$ \\
+\textcolor{cA}{$\boldsymbol{m+1}$} & \textcolor{cA}{\textbf{Sturmian}} & $0$ \\
+$km + c$ & quasi-Sturmian, Pisot substitutive & $0$ \\
+$\sim 10m/3$ & Thue--Morse & $0$ \\
+$\sim m^2$ & polygonal billiards, two-dimensional Sturmian & $0$ \\
+$2^{m/\log m}$ & subexponential zero-entropy systems & $0$ \\
+$2^{hm}$ & positive entropy & $h > 0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Every row but the last is ``zero entropy''. So the observation that Sturmian
+sequences have zero entropy is true and nearly vacuous. The content is that they
+sit at the bottom of that column and that \emph{the bottom is a single point}:
+$m+1$ is attained, and attaining it is a complete classification. Nothing else
+in the table is rigid in this way. ``Linear complexity'' is a large and messy
+class; ``complexity exactly $m+1$'' is two real parameters.
+
+\begin{quote}
+Entropy is $\lim \log F / m$; complexity is $F$. Taking the logarithm and the
+limit is exactly the step that destroys rigidity. Morse--Hedlund is interesting
+because it works with the unlogged object, which is also why the proof of
+\texttt{thm:mh} runs on the increment identity rather than on any entropy
+argument. Entropy cannot see a difference of $1$.
+\end{quote}
+
+\section{What replaces entropy: the spectrum}
+
+Since the entropy vanishes, the classifying invariants are spectral. Let $X_\alpha$
+be the Sturmian subshift, the closure of the shift orbit of $\ell$.
+
+\begin{itemize}
+\item $X_\alpha$ is \emph{uniquely ergodic}: one invariant measure, so factor
+  frequencies exist and are forced. The frequency of $\seq{1}$ is $\alpha$,
+  which is \texttt{cor:slope}.
+\item Measure-theoretically $(X_\alpha, \text{shift})$ is isomorphic to the
+  circle under rotation by $\alpha$. Its Kolmogorov--Sinai entropy is $0$ and
+  its spectrum is \emph{pure discrete}, with eigenvalues
+  $\{e^{2\pi i n\alpha} : n \in \Z\}$. It is a Kronecker system: almost
+  periodic in Bohr's sense.
+\item Topologically it is \emph{not} the rotation. The coding map
+  $\text{circle} \to X_\alpha$ is a bijection except over the countably many
+  points whose orbit meets the partition endpoint $0$, where the fibre has
+  exactly two elements --- and those two elements are $\C(\alpha,x)$ and
+  $\Cp(\alpha,x)$.
+\end{itemize}
+
+That last bullet is \texttt{thm:counterex} stated dynamically. The sequence
+$\seq{1}c$ of that theorem is one of the two preimages of a single point of the
+circle. In the standard terminology $X_\alpha$ is \emph{almost automorphic}: an
+almost one-to-one extension of its maximal equicontinuous factor.
+
+\begin{quote}
+The disjunction in \texttt{thm:mh} is therefore not a blemish. It is the name of
+the only way in which $X_\alpha$ fails to be a rotation. The circle is the
+geometry; $X_\alpha$ is the combinatorics; they differ exactly on one countable
+orbit, where the floor and ceiling conventions split. A measure-zero
+disagreement, invisible to entropy and invisible to $F_\ell$, and the precise
+reason the naive form of the theorem is false.
+\end{quote}
+
+\section{Quasicrystals: the same construction in two dimensions}
+
+Read a Sturmian word geometrically. Replace $\seq{1}$ by a long interval $L$ and
+$\seq{0}$ by a short one $S$. For the Fibonacci word, $|L|/|S| = \varphi$ and the
+result is the \emph{Fibonacci chain}, the standard one-dimensional quasicrystal
+of condensed-matter physics. By \texttt{thm:fib} it is the fixed point of
+$\sigma(\seq{1}) = \seq{10}$, $\sigma(\seq{0}) = \seq{1}$, which is $\tau_1$ in
+the notation of \texttt{all-the-proofs.tex} \S5.
+
+Where does it come from? From the cutting-sequence picture, which is the
+degenerate case of \emph{cut-and-project}: take a lattice, a subspace of
+irrational slope, a strip, and project the lattice points inside the strip.
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+ & Fibonacci chain & Penrose tiling \\
+\midrule
+lattice & $\Z^2$ & $\Z^5$ (really $A_4$: $\Z^5$ modulo its diagonal) \\
+physical space $E_\parallel$ & line of slope $\alpha$ & $2$-plane invariant under $5$-fold rotation \\
+internal space $E_\perp$ & complementary line & complementary $2$-plane \\
+window & interval, the projected unit square & pentagons, the projected unit $5$-cube \\
+window decomposes into & $2$ subintervals $\leftrightarrow$ letters & $4$ pentagons $\leftrightarrow$ vertex classes \\
+parameter & intercept $x \in [0,1)$ & offsets $\gamma_1,\dots,\gamma_5$, $\sum \gamma_j \in \Z$ \\
+aperiodic because & $\alpha$ irrational & $E_\parallel$ totally irrational \\
+inflation factor & $\varphi$ & $\varphi$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The same machine, run from dimension $2$ to $1$ and from dimension $5$ to $2$.
+The physical quasicrystals --- Shechtman's 1982 Al--Mn alloy with fivefold
+diffraction symmetry, Nobel Prize 2011 --- are the planar and spatial cases.
+``Fibonacci is to Penrose as $\Z^2$ is to $\Z^5$'' is not an analogy; it is the
+definition in both cases.
+
+\section{The Penrose tiling contains Sturmian words}
+
+Decorate each Penrose rhomb in the standard way and the segments join, across
+the whole tiling, into five families of infinite straight lines at angles
+$2\pi k/5$: the \emph{Ammann bars}. Within one family the lines are not equally
+spaced. The gaps take exactly two values $L$ and $S$ with $L/S = \varphi$, and
+the sequence of gaps read along the perpendicular direction is the Fibonacci
+word.
+
+A Penrose tiling is therefore, to a first approximation, five Fibonacci words
+laid at $72^\circ$ to one another, subject to a consistency condition. Penrose's
+matching rules are equivalent to the requirement that the bars continue straight
+across every edge. The aperiodicity is enforced in five one-dimensional
+channels, each an instance of the object in \texttt{all-the-proofs.tex}.
+
+This yields an aperiodicity proof straight from MH-I.
+
+\begin{proposition}\label{prop:aper}
+A Penrose tiling has no translation period.
+\end{proposition}
+
+\begin{proof}
+Suppose $v$ were a period. Then each Ammann family's gap sequence would be
+periodic, hence of bounded factor complexity by the easy half of MH-I. But that
+gap sequence is the Sturmian word of slope $1/\varphi$, whose complexity is
+$m+1$ and so unbounded.
+\end{proof}
+
+One distinction worth preserving: de Bruijn's \emph{pentagrid} is a different
+five-family construction, in which the lines \emph{are} equally spaced within
+each family and the tiling is the dual of the grid. There the irrationality
+enters through the incommensurability of the five directions rather than through
+the spacings. Both pictures are correct; the Ammann bars are the one in which
+Sturmian words appear verbatim.
+
+\subsection{Why the golden ratio --- twice, for the same reason}
+
+Fivefold symmetry puts the tiling's coefficients in the cyclotomic field
+$\Q(\zeta_5)$, whose maximal real subfield is
+\[
+  \Q(\zeta_5) \cap \R \;=\; \Q(\sqrt 5) \;=\; \Q(\varphi) .
+\]
+So $\varphi$ is forced the moment fivefold symmetry is demanded.
+
+Meanwhile, in \texttt{all-the-proofs.tex} \S8, $\varphi$ arises for a
+completely different-looking reason: $a_1 = 1$ and $\beta = \alpha$, that is,
+$\alpha = 1/\varphi$ is the fixed point of the Gauss map
+$\alpha \mapsto \{1/\alpha\}$. That is precisely why derivation returns the same
+sequence and the infinite renormalisation collapses to a single substitution.
+
+These are the same number reached from crystallography and from continued
+fractions, and the coincidence is not one. A Sturmian word is substitutive ---
+self-similar under a single inflation, rather than under an infinite sequence of
+distinct ones --- exactly when its slope is a quadratic irrational, i.e.\ has
+eventually periodic continued fraction. A quasicrystal needs a self-similar
+inflation in order to have matching rules at all; quadratic irrationality is
+the price; and the lowest-degree option carrying a non-crystallographic rotation
+is $\varphi$. Hence the Fibonacci chain in physics, hence pentagons in Penrose,
+and hence the fact that \S8 of \texttt{all-the-proofs.tex} is the one place in
+the paper where the Gauss orbit is a fixed point.
+
+\subsection{Inflation, Pisot, diffraction}
+
+\begin{itemize}
+\item \textbf{Inflation.} Penrose tilings inflate by $\varphi$: each rhomb
+  subdivides into smaller rhombs and the result is the original rescaled.
+  \texttt{thm:fib}'s $\sigma(c) = c$ and $c = \lim_j \sigma^j(\seq{1})$ is the
+  one-dimensional instance --- the tiling is its own inflation, grown from a
+  seed.
+\item \textbf{Pisot.} Penrose's substitution matrix has leading eigenvalue
+  $\varphi^2$ with its conjugate inside the unit circle; $\tau_1$'s matrix
+  $\left(\begin{smallmatrix}1&1\\1&0\end{smallmatrix}\right)$ has $\varphi$
+  and $-1/\varphi$. Both Pisot, so both have pure point diffraction.
+\item \textbf{Diffraction.} Fibonacci: Bragg peaks on the rank-$2$ module
+  $\Z + \Z\varphi$. Penrose: Bragg peaks on a rank-$4$ module, with tenfold
+  symmetric intensities --- the Shechtman pattern. Projecting the Penrose
+  Fourier module along one Ammann direction returns $\Z + \Z\varphi$.
+\item \textbf{Frequencies.} The thick-to-thin rhomb ratio is $\varphi$, forced
+  by the eigenvector of the inflation matrix. The one-dimensional statement is
+  \texttt{cor:slope} evaluated at $\alpha = 1/\varphi$.
+\end{itemize}
+
+\subsection{Conway worms are the Penrose form of $\C$ versus $\Cp$}
+
+This parallel is exact, and it is the one I find most convincing.
+
+In \texttt{thm:counterex} the coding map is injective except over the countable
+orbit of $0$, where the fibre has two elements: floor and ceiling, because the
+point sits on the partition boundary and a side must be chosen.
+
+In the Penrose family the parameter is the offset vector $\gamma$. For
+\emph{generic} $\gamma$ the projection data determine the tiling uniquely. For
+\emph{singular} $\gamma$ --- where lattice points land on the window's boundary
+--- the construction is ambiguous, and the ambiguity is resolved along a line:
+one obtains distinct tilings with identical finite patches, differing by flips
+along an infinite strip. Those strips are \emph{Conway worms}; the maximally
+symmetric singular configuration is the \emph{decapod}, whose tiling is Conway's
+cartwheel.
+
+In both cases: the hull is an almost one-to-one extension of a torus; the
+non-injectivity lives over a measure-zero set of boundary-hitting parameters;
+and no finitely observable datum --- the language, the patch set, $F_\ell$, the
+diffraction pattern --- distinguishes members of a singular fibre. The
+disjunction in \texttt{thm:mh} and the existence of Conway worms are one
+phenomenon in two dimensions' worth of clothing.
+
+This also explains how there can be uncountably many Penrose tilings while
+``the'' Penrose tiling remains a meaningful phrase: all of them are locally
+indistinguishable, every finite patch of one occurring in every other. The
+Sturmian statement is that all $\C(\alpha,x)$ with $\alpha$ fixed share one
+language, so $F_\ell$ depends on $\alpha$ only through its irrationality and on
+$x$ not at all. Complexity sees the hull, never the point in it.
+
+\section{Other quadratic irrationals}
+
+Fibonacci is one Sturmian word among uncountably many. Which of the others
+give Penrose-like objects? The question splits in two, with very different
+answers in dimension one and dimension two.
+
+\subsection{Dimension one: the metallic means, out of $\tau_a$}
+
+Abelianise the substitution $\tau_a(\seq{1}) = \seq{1}\seq{0}^a$,
+$\tau_a(\seq{0}) = \seq{1}\seq{0}^{a-1}$ of
+\texttt{all-the-proofs.tex} \S5, in the basis (count of $\seq{1}$s, count of
+$\seq{0}$s):
+\[
+  M_a \;=\; \begin{pmatrix} 1 & 1 \\ a & a-1 \end{pmatrix},
+  \qquad \operatorname{tr} M_a = a, \qquad \det M_a = -1 ,
+\]
+so the inflation factor satisfies
+\[
+  \lambda^2 - a\lambda - 1 = 0, \qquad
+  \lambda \;=\; \frac{a + \sqrt{a^2+4}}{2} .
+\]
+These are the \emph{metallic means}: golden at $a=1$, silver $1+\sqrt 2$ at
+$a=2$, bronze $(3+\sqrt{13})/2$ at $a=3$, and onward. The silver-mean chain,
+$\tau_2$ with $\seq{1} \mapsto \seq{100}$ and $\seq{0} \mapsto \seq{10}$, is a
+standard object in the quasicrystal literature alongside Fibonacci.
+
+\begin{quote}
+$\det M_a = -1$ for every $a$, and any product of such matrices has determinant
+$\pm 1$. So the inflation factor of a self-similar Sturmian chain is always an
+algebraic \emph{unit} of a real quadratic field, with conjugate $\mp 1/\lambda$
+of modulus below $1$ --- hence always Pisot, automatically. ``Quadratic slope
+gives a good quasicrystal'' is not luck; it is $\det = \pm 1$, which is itself
+only the statement that $\tau_a$ is invertible on the abelianisation because the
+block decomposition \texttt{lem:blocks} is a bijection.
+\end{quote}
+
+Eventually periodic continued fractions supply the rest. A periodic block
+$[0;\overline{a_1,\dots,a_p}]$ yields the composite substitution
+$\tau_{a_1} \circ \cdots \circ \tau_{a_p}$, whose matrix product has the
+quadratic unit as leading eigenvalue. For instance
+$M_1 M_2 = \left(\begin{smallmatrix}3&2\\1&1\end{smallmatrix}\right)$ has trace
+$4$ and determinant $1$, giving $\lambda^2 - 4\lambda + 1 = 0$ and
+$\lambda = 2+\sqrt 3$.
+
+The fixed point itself is pinned, and its intercept is \emph{not} the slope
+except in the Fibonacci case. That is worth recording, because it is exactly
+what makes \texttt{thm:fib} look simpler than the general statement.
+
+\begin{proposition}\label{prop:metallic}
+Fix $a \geq 1$ and let $\alpha = \bigl(\sqrt{a^2+4} - a\bigr)/2 = 1/\lambda$,
+the irrational with constant partial quotients $[0;\overline{a}]$. Then the
+unique Sturmian word fixed by $\tau_a$ is
+\[
+  \C\!\left(\alpha, \tfrac{1}{1+\alpha}\right) .
+\]
+For $a = 1$ one has $\alpha^2 + \alpha = 1$, hence $1/(1+\alpha) = \alpha$, and
+the statement reduces to \texttt{thm:fib}.
+\end{proposition}
+
+\begin{proof}
+The slope condition is $\{1/\alpha\} = \alpha$, i.e.\ $1/\alpha = a + \alpha$,
+i.e.\ $\alpha^2 + a\alpha - 1 = 0$, which is the stated $\alpha$; this is the
+fixed point of the Gauss map with partial quotient $a$, so $a_1 = a$ and
+$\beta = \alpha$ as required by \texttt{cor:gauss}.
+
+Since $\tau_a(\seq{1})$ and $\tau_a(\seq{0})$ both begin with $\seq{1}$, the
+fixed point begins with $\seq{1}$, so $k_0 = 0$ and $x_0 = x$. The coordinate
+computation in the proof of \texttt{thm:fib} reads, in general,
+$u_0 = \bigl(x - (1-\alpha)\bigr)/\alpha$, and \texttt{thm:derive} gives the
+derived intercept as $\{-u_0\}$. Demanding $\{-u_0\} = x$ means
+$-(x - 1 + \alpha)/\alpha = x + m$ for some $m \in \Z$, that is
+\[
+  x \;=\; \frac{1 - (m+1)\alpha}{1+\alpha} .
+\]
+The constraint $k_0 = 0$ is $x \geq 1 - \alpha$. For $m = 0$ we get
+$(1-\alpha)/(1+\alpha) < 1-\alpha$, excluded; for $m = -2$ we get $x = 1$,
+outside $[0,1)$; $m \leq -3$ and $m \geq 1$ leave $[0,1)$ likewise. For
+$m = -1$, $x = 1/(1+\alpha)$ and $1/(1+\alpha) \geq 1-\alpha$ holds because
+$(1-\alpha)(1+\alpha) = 1 - \alpha^2 \leq 1$. So $m = -1$ is the only
+admissible choice.
+\end{proof}
+
+Verified numerically for $a = 1, \dots, 7$ by comparing the first $8000$ letters
+of the $\tau_a$-fixed point against $\C(\alpha, 1/(1+\alpha))$, agreement exact
+in every case. The composite $\tau_1 \tau_2$ behaves the same way with its own
+intercept: its fixed point is
+$\C\!\left(\sqrt 3 - 1,\ (\sqrt 3 - 1)/2\right)$, agreeing on the first
+$50\,000$ letters.
+
+The clean general statement of which slopes admit a substitution is the theory
+of \emph{Sturm numbers}: $\alpha \in (0,1)$ is the slope of a
+substitution-invariant Sturmian word if and only if $\alpha$ is a quadratic
+irrational whose algebraic conjugate $\alpha^*$ does not lie in $(0,1)$
+(Crisp--Moran--Pollington--Shiue; Allauzen). Quadratic is necessary, and the
+point on the orbit must then be chosen correctly ---
+Proposition~\ref{prop:metallic} is that choice, made explicit, for constant
+partial quotients.
+
+\subsection{Dimension two: exactly three fields, because $\phi(n) = 4$}
+
+Now impose $n$-fold rotational symmetry on a planar tiling. Its coefficients
+must lie in the cyclotomic ring $\Z[\zeta_n]$, of rank $\phi(n)$ over $\Z$, so
+the cut-and-project must run from $\Z^{\phi(n)}$ down to $2$ dimensions. The
+inflation factor is real and lives in the maximal real subfield
+$\Q(\zeta_n) \cap \R$, of degree $\phi(n)/2$.
+
+For the inflation factor to be \emph{quadratic} we therefore need
+$\phi(n)/2 = 2$, that is $\phi(n) = 4$, that is
+\[
+  n \in \{5, 8, 10, 12\} .
+\]
+That list is complete, and it is exactly the roster of classical planar
+quasicrystals.
+
+\begin{center}
+\begin{tabular}{llllp{4.6cm}}
+\toprule
+$n$ & field & $\lambda$ & tiling & matching Sturmian slope \\
+\midrule
+$5, 10$ & $\Q(\sqrt 5)$ & $\varphi$ & \textbf{Penrose} & $[0;\overline{1}] = 1/\varphi$, from $\tau_1$ \\
+$8$ & $\Q(\sqrt 2)$ & $1+\sqrt 2$ & \textbf{Ammann--Beenker} & $[0;\overline{2}] = \sqrt 2 - 1$, from $\tau_2$ \\
+$12$ & $\Q(\sqrt 3)$ & $2+\sqrt 3$ & \textbf{Stampfli, shield} & $[0;\overline{1,2}] = \sqrt 3 - 1$, from $\tau_1\tau_2$ \\
+\midrule
+$7,9,14,18$ & cubic & $\approx 2.247$ & Danzer's sevenfold & none: no quadratic slope \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+So the answer in its strongest form: \emph{the only other quadratic irrationals
+giving Penrose-like planar tilings are $\sqrt 2$ and $\sqrt 3$.} Each is
+Penrose-like in every structural sense --- cut-and-project from $\Z^4$ or
+$\Z^8$ onto an $n$-fold invariant plane, an inflation symmetry, matching rules,
+pure point diffraction with $n$-fold Bragg peaks --- and each carries its own
+Sturmian word along its bar families, with the two spacings in the ratio
+supplied by that field's unit. Note that the three rows of the table are three
+rows of the $\tau_a$ tower of \texttt{all-the-proofs.tex}: $\tau_1$, $\tau_2$,
+and $\tau_1 \tau_2$.
+
+\subsubsection*{The slopes, measured rather than quoted}
+
+The right-hand column of that table was quoted. It can be measured. Write the
+$n$ grid families as $\{p : p \cdot e_j + \gamma_j \in \Z\}$ with
+$e_j = e^{2\pi i j/n}$ for odd $n$ and $e^{\pi i j/n}$ for even $n$, and recall
+de Bruijn's index
+\[
+  K_j(p) \;=\; \lceil\, p \cdot e_j + \gamma_j \,\rceil .
+\]
+This is the cumulative counting function of \texttt{lem:count}, so its
+increments are a coding. Walk a line of family $k$, in direction
+$d = e_k^\perp$, sampling at its crossings with family $m$ --- which are equally
+spaced, and so supply the index of a coding --- and count with family $j$. Then
+\[
+  K_j(\text{$i{+}1$st sample}) - K_j(\text{$i$th sample})
+  \;=\; \Cp(\alpha, c)_i + \lfloor \alpha \rfloor ,
+  \qquad
+  \alpha \;=\; \frac{d \cdot e_j}{d \cdot e_m} ,
+\]
+the $\lfloor \alpha \rfloor$ because
+$\lceil i\alpha + x \rceil = \lceil i\{\alpha\} + x\rceil + i\lfloor\alpha\rfloor$.
+So every grid line of every one of these tilings carries a coding, at a slope
+fixed by the geometry alone.
+
+Computing those slopes gives
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+$n$ & tiling & $\{\alpha\}$ measured & continued fraction \\
+\midrule
+$5$ & Penrose & $0.618034 = 1/\varphi$, $0.381966 = 1/\varphi^2$ & $[0;\overline{1}]$, $[0;2,\overline{1}]$ \\
+$4$ & Ammann--Beenker & $0.414214 = \sqrt 2 - 1$ & $[0;\overline{2}]$ \\
+$6$ & dodecagonal & $0.732051 = \sqrt 3 - 1$ & $[0;\overline{1,2}]$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+which are exactly the slopes of $\tau_1$, $\tau_2$ and $\tau_1\tau_2$ from
+\S\ref{sec:status}'s metallic-mean family. The agreement is not built in: the
+left side comes from pentagonal, octagonal and dodecagonal geometry, the right
+side from the Gauss map. In every case tested the increments agreed with
+$\Cp(\alpha,c)$ letter for letter, and the measured complexity was
+$F(m) = m+1$ for $m = 1,\dots,8$ --- so the tilings' own grid indices are
+Sturmian, measured rather than assumed.
+
+Every quasicrystal so far found in a real material is quadratic: icosahedral
+(the original Al--Mn) is $\Q(\sqrt 5)$, decagonal is $\Q(\sqrt 5)$, octagonal
+is $\Q(\sqrt 2)$, dodecagonal is $\Q(\sqrt 3)$. Danzer's sevenfold tilings exist
+mathematically, and their cubic inflation factor
+$1 + 2\cos(2\pi/7) \approx 2.2470$ is even Pisot --- its conjugates
+$1+2\cos(4\pi/7) \approx 0.5550$ and $1+2\cos(6\pi/7) \approx -0.8019$ both have
+modulus below $1$. Yet no sevenfold alloy has ever been observed, in four
+decades of looking. The plausible reason is the next subsection.
+
+\subsection{Quadratic is the boundary, and the boundary is the Gauss map}
+
+The deep statement concerns \emph{local rules}. A tiling has local matching
+rules when a finite set of permitted neighbour configurations forces membership
+in the hull. That is what makes a quasicrystal growable, atom by atom, rather
+than merely definable.
+
+\begin{itemize}
+\item \textbf{One dimension.} A Sturmian word is substitution-invariant, hence
+  locally rule-generated, if and only if its slope is a Sturm number --- in
+  particular quadratic.
+\item \textbf{Two dimensions.} A planar cut-and-project tiling admits local
+  rules only if the projection subspace is defined over a quadratic field
+  (Le; related results of Levitov and Socolar). Beyond quadratic, no finite rule
+  set suffices.
+\end{itemize}
+
+In the language of \texttt{all-the-proofs.tex} \S\S4--5 the reason is
+immediate. Derivation sends $\alpha \mapsto \{1/\alpha\}$ and strips a block of
+width $a_i$. Matching rules amount to needing only finitely many distinct
+$\tau_a$, which is to say the Gauss orbit of $\alpha$ must be eventually
+periodic, which by Lagrange is to say $\alpha$ is quadratic. For
+$\alpha = e - 2$, or any Liouville number, the partial quotients never cycle,
+each storey of the tower demands a fresh substitution with a fresh block width,
+and no finite local rule can see arbitrarily long blocks.
+
+\begin{quote}
+\texttt{cor:gauss} --- the block widths encountered are the partial quotients of
+$\alpha$ --- is therefore the quasicrystal-quality classifier. Finite Gauss
+orbit, $\alpha$ rational: periodic, a crystal. Eventually periodic, $\alpha$
+quadratic: self-similar, matching rules, a genuine quasicrystal, and in the
+plane one of exactly four rotational symmetries. Aperiodic Gauss orbit,
+everything else: still a perfectly good quasiperiodic tiling with sharp Bragg
+peaks, but no inflation and no local rules. Definable, not growable. The
+derivation operator of \S4 is the thing that decides which.
+\end{quote}
+
+A related and sharper quality measure: a Sturmian word is \emph{linearly
+recurrent} --- every factor of length $m$ recurs within $Cm$ --- if and only if
+$\alpha$ is of bounded type, $\sup_i a_i < \infty$. Lagarias and Pleasants argue
+that linear recurrence is the right definition of an \emph{ideal} quasicrystal.
+Liouville slopes, with unbounded partial quotients, produce arbitrarily long
+stretches that look locally periodic.
+
+\section{What quadratic buys, and what it does not}
+
+A distinction easy to blur. Pure point diffraction does \emph{not} require
+quadratic, or even Pisot. Every regular model set --- cut-and-project with any
+totally irrational subspace and a well-behaved window --- diffracts purely
+pointwise (Hof, Schlottmann). So $\C(\alpha,x)$ has sharp Bragg peaks on
+$\Z + \Z\alpha$ for \emph{every} irrational $\alpha$.
+
+The Pisot condition matters for the other family: systems defined by a
+substitution rather than by a projection. There pure point diffraction can fail.
+\textbf{Thue--Morse} is the standard example --- complexity about $10m/3$, hence
+zero entropy and low complexity by any reasonable standard, yet singular
+continuous diffraction, no Bragg peaks at all. So zero entropy does not buy
+quasicrystalline order; the Pisot property of the inflation factor does, and for
+quadratic slopes it comes free by $\det M_a = -1$.
+
+Quadratic irrationality therefore buys self-similarity and local rules. It does
+not buy the diffraction, which was already there.
+
+The resulting stratification of ``Penrose-like'':
+\begin{enumerate}
+\item \textbf{Quasiperiodic with pure point diffraction.} Every irrational
+  $\alpha$. Uncountably many, one per slope.
+\item \textbf{Self-similar, substitutive, locally rule-generated.} Quadratic
+  $\alpha$ only. Countably many; $\tau_a$ and its products generate them all.
+\item \textbf{Planar, with a crystallographically forbidden rotational symmetry
+  and quadratic inflation.} Exactly $n = 5, 8, 10, 12$. Penrose,
+  Ammann--Beenker, dodecagonal. Three fields: $\Q(\sqrt 5)$, $\Q(\sqrt 2)$,
+  $\Q(\sqrt 3)$.
+\end{enumerate}
+
+\section{The physics, briefly}
+
+Put an electron on the chain. The discrete Schr\"odinger operator
+\[
+  (H\psi)_k \;=\; \psi_{k+1} + \psi_{k-1} + V \ell_k \psi_k ,
+  \qquad \ell \text{ Sturmian},
+\]
+is the \emph{Fibonacci Hamiltonian}. The three complexity regimes give three
+different physics.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+potential & spectrum & transport \\
+\midrule
+periodic ($F_\ell$ bounded) & bands, absolutely continuous & ballistic, $|x| \sim t$ \\
+\textcolor{cA}{Sturmian ($F_\ell = m+1$)} & \textcolor{cA}{zero-measure Cantor set,} & \textcolor{cA}{anomalous, $|x| \sim t^\gamma$,} \\
+ & \textcolor{cA}{purely singular continuous} & \textcolor{cA}{$0 < \gamma < 1$} \\
+i.i.d.\ random (positive entropy) & pure point, dense & Anderson localisation, none \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For every $V \neq 0$ the spectrum is a Cantor set of zero Lebesgue measure
+(S\"ut\H{o}; Bellissard--Iochum--Scoppola--Testard; the fractal-dimension theory
+is Damanik--Gorodetski--Yessen). This is the mathematical reason quasicrystalline
+alloys conduct so startlingly badly for metals: their electronic states are
+neither extended nor localised.
+
+And the control parameter is the continued fraction of $\alpha$. The
+transfer-matrix renormalisation is a \emph{trace map} indexed by the partial
+quotients --- the derivation operator of \S4 run on matrices instead of words.
+The Hausdorff dimension of the spectrum and the transport exponent $\gamma$
+depend on $\alpha$ through the $a_i$, and the same Diophantine dichotomy
+governs the almost Mathieu operator, the Hofstadter butterfly, and the Ten
+Martini problem (Avila--Jitomirskaya).
+
+\section{Where the analogy stops}
+
+Everything above transfers from dimension one to dimension two. The
+\emph{theorem} does not. There is no known two-dimensional Morse--Hedlund.
+
+For a planar configuration let $P(m,n)$ count distinct $m \times n$ patches.
+Penrose has $P(m,n) \sim C m^2 n^2$: polynomial, zero entropy, but nothing like
+a rigid extremal value. The conjectured analogue of MH-I is \textbf{Nivat's
+conjecture} (1997):
+
+\begin{quote}
+If $P(m,n) \leq mn$ for some $m, n \geq 1$, then the configuration is periodic.
+\end{quote}
+
+Open in general after nearly thirty years. Partial results: Kari--Szabados for
+algebraic and low-complexity cases, Cyr--Kra for $P(m,n) \leq mn/2$ and related
+bounds, with various strengthenings by Szabados. And there is no known
+two-dimensional analogue of MH-II at all --- no classification saying that the
+configurations attaining the minimum are exactly the projections of
+such-and-such a lattice. The Penrose tiling is not extremal for any known
+complexity functional. It is extremal for \emph{symmetry} instead: the
+lowest-degree field admitting a non-crystallographic rotation.
+
+Which is the honest answer to why MH-II deserves a careful proof, and a
+formalisation. One dimension is the only place where the quasicrystal story has
+a complete converse, and \texttt{thm:mh} together with the
+$\C$-or-$\Cp$ repair is that converse stated correctly.
+
+\section{Status of the claims}\label{sec:status}
+
+\textbf{Proved in \texttt{all-the-proofs.tex}.} MH-I in both directions; MH-II
+(\texttt{thm:mh}); the increment identity; the counterexample
+\texttt{thm:counterex} and the $\C$-or-$\Cp$ repair; \texttt{cor:slope},
+\texttt{cor:gauss}, \texttt{lem:blocks}, \texttt{thm:derive},
+\texttt{thm:fib}.
+
+\textbf{Proved here.} Proposition~\ref{prop:aper} (Penrose aperiodicity from
+MH-I plus the Ammann-bar fact), modulo the Ammann-bar fact itself, which is
+quoted. Proposition~\ref{prop:metallic} (the $\tau_a$ fixed point is
+$\C(\alpha, 1/(1+\alpha))$), from \texttt{thm:derive}.
+
+\textbf{Verified numerically while writing this.} $\phi(n) = 4$ exactly for
+$n \in \{5,8,10,12\}$. The metallic-mean eigenvalues and their conjugates.
+Proposition~\ref{prop:metallic} for $a = 1,\dots,7$ on $8000$-letter prefixes.
+The $\tau_1\tau_2$ fixed point as $\C(\sqrt 3 - 1, (\sqrt 3 - 1)/2)$ on
+$50\,000$-letter prefixes. That $1+2\cos(2\pi/7)$ is Pisot.
+
+The measured-slope table of \S6.2, by an independent implementation of the
+generalised dual method (\texttt{penrose-codings.html}, with its kernel written
+as $\lceil k\alpha + x\rceil$ and its increments): that the construction yields
+an exact tiling for $n = 4,5,6$ (every sample point covered exactly once, no
+gaps, no overlaps); that the index increments equal $\Cp(\alpha,c)$ letter for
+letter; that $F(m) = m+1$ for $m \leq 8$; that for $n = 5$ de Bruijn's index
+sums stay bounded while the thick-to-thin ratio approaches $\varphi$.
+
+\textbf{Quoted from the literature, not verified here.} The Ammann-bar
+description of Penrose and the corresponding bar families of
+Ammann--Beenker; unique ergodicity and the almost automorphic structure of
+$X_\alpha$; Conway worms and the singular Penrose tilings; the cut-and-project
+descriptions and the $\phi(n)$ rank argument; pure point diffraction of regular
+model sets; the local-rules theorems; the Sturm-number characterisation; the
+Fibonacci-Hamiltonian spectral results.
+
+\textbf{Open.} Nivat's conjecture. Any two-dimensional analogue of MH-II. The
+absence of sevenfold quasicrystalline alloys has no proof, only the
+local-rules heuristic of \S6.3.
+
+\textbf{Attempted and withdrawn.} The identification of a single phason flip
+with a single $\C$-versus-$\Cp$ choice at one index. Numerically, perturbing
+$\gamma$ through the maximally singular value $\gamma = 0$ changes roughly half
+the tiles in a patch, spread over the whole patch (principal-axis ratio $1.25$),
+not confined to a strip. That is consistent with $\gamma = 0$ being the
+tenfold-degenerate decapod configuration rather than a single worm, so the
+experiment does not refute \S5.3 --- but it does not support the sharper
+one-index claim either, and \S5.3 should be read as the structural analogy it
+states and nothing more.
+
+\section{Sources}
+
+\begin{itemize}\itemsep2pt
+\item M.~Baake and U.~Grimm, \emph{Aperiodic Order}, vol.~1, CUP 2013. \S7.1
+  Fibonacci, \S7.3 Penrose, \S7.8 Ammann--Beenker, written as parallel sections
+  precisely to expose the dictionary of \S4 above; chs.~4 and 9 for diffraction.
+\item N.~G.~de Bruijn, ``Algebraic theory of Penrose's non-periodic tilings of
+  the plane'', I and II, \emph{Indag.\ Math.} 43 (1981). The pentagrid, and the
+  Ammann bars.
+\item M.~Senechal, \emph{Quasicrystals and Geometry}, CUP 1995. The singular
+  tilings, worms, and the cartwheel.
+\item N.~Pytheas Fogg, \emph{Substitutions in Dynamics, Arithmetics and
+  Combinatorics}, Springer LNM 1794, 2002. Ch.~6 is the Sturmian/continued
+  fraction dictionary in the form closest to \texttt{all-the-proofs.tex}
+  \S\S4--8.
+\item T.~T.~Q.~Le, ``Local rules for quasiperiodic tilings'', in
+  \emph{The Mathematics of Long-Range Aperiodic Order}, Kluwer 1997. The
+  quadratic-field theorem.
+\item D.~Crisp, W.~Moran, A.~Pollington, P.~Shiue, ``Substitution invariant
+  cutting sequences'', \emph{J.\ Th\'eor.\ Nombres Bordeaux} 5 (1993);
+  C.~Allauzen, ``Une caract\'erisation simple des nombres de Sturm'',
+  \emph{J.\ Th\'eor.\ Nombres Bordeaux} 10 (1998).
+\item D.~Damanik, J.~Fillman, A.~Gorodetski, surveys on the Fibonacci
+  Hamiltonian; A.~Avila and S.~Jitomirskaya, ``The Ten Martini Problem'',
+  \emph{Ann.\ of Math.} 170 (2009).
+\item M.~Nivat, ICALP 1997 invited talk (the conjecture); J.~Kari and
+  M.~Szabados, V.~Cyr and B.~Kra, for the partial results.
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,353 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Penrose from five codings</title>
+<style>
+  :root{--bg:#0e1117;--fg:#e6e6e6;--dim:#8b94a3;--line:#262c38;--acc:#6ea8fe}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;display:flex;height:100vh;overflow:hidden}
+  #stage{flex:1;position:relative;min-width:0}
+  canvas{display:block;width:100%;height:100%}
+  #panel{width:390px;border-left:1px solid var(--line);padding:14px 16px;overflow-y:auto;background:#11151d}
+  h1{font-size:14px;margin:0 0 2px;letter-spacing:.02em}
+  h2{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--dim);
+     margin:18px 0 7px;border-bottom:1px solid var(--line);padding-bottom:4px}
+  .sub{color:var(--dim);font-size:11px;margin:0 0 4px}
+  .kern{background:#080b10;border:1px solid var(--line);border-radius:4px;padding:8px 9px;
+        font-size:11px;color:#b9c4d4;white-space:pre;overflow-x:auto}
+  .row{display:flex;align-items:center;gap:8px;margin:3px 0}
+  .row label{width:40px;color:var(--dim);flex:none}
+  .row input[type=range]{flex:1;min-width:0;accent-color:var(--acc)}
+  .row .val{width:62px;text-align:right;font-variant-numeric:tabular-nums;flex:none}
+  .pills{display:flex;gap:5px;flex-wrap:wrap;margin:4px 0 8px}
+  button{background:#1a2030;color:var(--fg);border:1px solid var(--line);border-radius:4px;
+         padding:4px 9px;font:inherit;font-size:11px;cursor:pointer}
+  button:hover{border-color:var(--acc)}
+  button.on{background:var(--acc);color:#0b0f16;border-color:var(--acc)}
+  table{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
+  td,th{padding:2px 4px;text-align:right;border-bottom:1px solid #1b212c}
+  th{color:var(--dim);font-weight:400;text-align:right}
+  td:first-child,th:first-child{text-align:left}
+  .word{font-size:11px;word-break:break-all;color:#cfe3ff;line-height:1.7}
+  .ok{color:#6ee7a0}.bad{color:#ff8282}
+  .note{color:var(--dim);font-size:11px;margin:6px 0 0}
+  code{color:#cfe3ff}
+</style>
+
+<div id="stage"><canvas id="c"></canvas></div>
+<div id="panel">
+  <h1>Penrose from five codings</h1>
+  <p class="sub">de Bruijn's dual method, written on the coding kernel of
+     <code>all-the-proofs.tex</code>.</p>
+
+  <div class="kern">index(&alpha;,x,k) = &lceil;k&alpha; + x&rceil;        &larr; de Bruijn K, lem:count
+letter(&alpha;,x,k) = index(k+1) &minus; index(k)  &larr; C&#8314;(&alpha;,x)<sub>k</sub>, lem:shift</div>
+  <p class="note">The grid index <em>is</em> the cumulative counting function of
+     <code>lem:count</code>; its increments are the coding. Read along any grid
+     line, the tiling's own indices spell a Sturmian word.</p>
+
+  <h2>Symmetry</h2>
+  <div class="pills" id="nsel"></div>
+  <table id="field"></table>
+
+  <h2>Intercepts &gamma;<sub>j</sub></h2>
+  <div id="gammas"></div>
+  <div class="row" style="margin-top:6px">
+    <label>&Sigma;&gamma;</label><span class="val" id="gsum"></span>
+    <button id="zero">&Sigma;&gamma;=0</button><button id="sing">all &gamma;=0</button>
+    <button id="rand">random</button>
+  </div>
+  <p class="note" id="singnote"></p>
+
+  <h2>Read a line</h2>
+  <div class="row"><label>line k</label><input type="range" id="lk" min="0" max="4" step="1"><span class="val" id="lkv"></span></div>
+  <div class="row"><label>sample m</label><input type="range" id="lm" min="0" max="4" step="1"><span class="val" id="lmv"></span></div>
+  <div class="row"><label>count j</label><input type="range" id="lj" min="0" max="4" step="1"><span class="val" id="ljv"></span></div>
+  <table id="slope"></table>
+  <p class="sub" style="margin-top:8px">increments of K<sub>j</sub>, reduced by &lfloor;&alpha;&rfloor;</p>
+  <div class="word" id="word"></div>
+  <table id="cplx"></table>
+
+  <h2>Diff</h2>
+  <div class="pills">
+    <button id="freeze">freeze reference</button><button id="clearref">clear</button>
+  </div>
+  <p class="note" id="diffnote">Freeze, then move a &gamma; slider: tiles that
+     appear or vanish are outlined. At a singular &gamma; the whole patch
+     reorganises at once.</p>
+
+  <h2>Checks</h2>
+  <table id="checks"></table>
+</div>
+
+<script>
+'use strict';
+/* ---------------------------------------------------------------- kernel --
+   The entire construction is n copies of one 1-D question: which integer
+   interval does a point fall into along direction e_j?  all-the-proofs.tex
+   calls the answer's increments a coding; de Bruijn calls the answer an index.
+   They are the same function, related by lem:count.                         */
+
+const index  = (alpha, x, k) => Math.ceil(k * alpha + x);
+const letter = (alpha, x, k) => index(alpha, x, k + 1) - index(alpha, x, k);
+
+/* ------------------------------------------------------------ the grid ----
+   Family j is the set of lines  { p : p.e_j + gamma_j in Z }.
+   For odd n take e_j = exp(2 pi i j / n), so that sum e_j = 0 and de Bruijn's
+   index-sum theorem applies; for even n the n distinct normals mod pi are
+   exp(i pi j / n).                                                          */
+
+function dirs(n){
+  const step = (n % 2) ? 2*Math.PI/n : Math.PI/n;
+  return Array.from({length:n}, (_,j) => [Math.cos(step*j), Math.sin(step*j)]);
+}
+
+function buildTiles(n, g, R, radius){
+  const e = dirs(n), out = [], sums = [];
+  for (let j = 0; j < n; j++) for (let k = j+1; k < n; k++){
+    const [ejx,ejy] = e[j], [ekx,eky] = e[k];
+    const det = ejx*eky - ejy*ekx;
+    if (Math.abs(det) < 1e-12) continue;
+    for (let r = -R; r <= R; r++) for (let s = -R; s <= R; s++){
+      const bj = r - g[j], bk = s - g[k];
+      const px = ( bj*eky - bk*ejy) / det;
+      const py = (-bj*ekx + bk*ejx) / det;
+      if (px*px + py*py > radius*radius) continue;
+      // the index vector of the mesh at this crossing
+      const K = new Array(n);
+      for (let l = 0; l < n; l++) K[l] = Math.ceil(px*e[l][0] + py*e[l][1] + g[l]);
+      K[j] = r; K[k] = s;                     // exact on the two crossing families
+      let bx = 0, by = 0, ks = 0;
+      for (let l = 0; l < n; l++){ bx += K[l]*e[l][0]; by += K[l]*e[l][1]; ks += K[l]; }
+      const d = Math.min((k-j+n)%n, (j-k+n)%n);
+      out.push({bx, by, ej:e[j], ek:e[k], j, k, shape:d});
+      sums.push(ks);
+    }
+  }
+  return {tiles: out, sums};
+}
+
+/* ------------------------------------------------- reading off a coding ---
+   Walk a line of family k.  Sample at its crossings with family m: those are
+   equally spaced, which is what makes the sample index k of a coding.  Count
+   with family j.  The increments of K_j are then exactly C+(alpha, c), with
+
+       alpha = (d . e_j) / (d . e_m),      d = perpendicular of e_k.
+
+   For |alpha| > 1, ceil(k alpha + x) = ceil(k frac(alpha) + x) + k floor(alpha),
+   so subtracting floor(alpha) from each letter gives the paper's coding at
+   slope frac(alpha) exactly.                                                */
+
+function readLine(n, g, k, m, j, N, s = 3){
+  const e = dirs(n), ek = e[k], em = e[m], ej = e[j];
+  const d = [-ek[1], ek[0]];
+  const dem = d[0]*em[0] + d[1]*em[1];
+  const dej = d[0]*ej[0] + d[1]*ej[1];
+  if (Math.abs(dem) < 1e-9) return null;
+  const alpha = dej / dem;
+  const p0 = [ek[0]*(s - g[k]), ek[1]*(s - g[k])];
+  const t0 = -(p0[0]*em[0] + p0[1]*em[1] + g[m]) / dem;
+  const h  = 1 / dem;
+  const c  = p0[0]*ej[0] + p0[1]*ej[1] + g[j] + t0*dej;
+
+  const K = [], pts = [];
+  for (let i = 0; i <= N; i++){
+    const t = t0 + i*h, p = [p0[0] + t*d[0], p0[1] + t*d[1]];
+    K.push(Math.ceil(p[0]*ej[0] + p[1]*ej[1] + g[j]));
+    pts.push(p);
+  }
+  const raw = K.slice(1).map((v,i) => v - K[i]);
+  const fl  = Math.floor(alpha);
+  const red = raw.map(v => v - fl);                      // the paper's coding
+  const pred = red.map((_,i) => letter(alpha - fl, c, i));
+  const agrees = red.every((v,i) => v === pred[i]);
+  const F = [];
+  for (let mm = 1; mm <= 8; mm++){
+    const set = new Set();
+    for (let t = 0; t + mm <= red.length; t++) set.add(red.slice(t, t+mm).join(''));
+    F.push(set.size);
+  }
+  return {alpha, frac: alpha - fl, floor: fl, c, word: red, agrees, F, pts, line:{p0, d}};
+}
+
+/* ------------------------------------------------------------- identify --- */
+const PHI = (1 + Math.sqrt(5)) / 2;
+function identify(a, n){
+  const cands = n === 5
+    ? [['φ',PHI],['1/φ',1/PHI],['φ²',PHI*PHI],['1/φ²',1/(PHI*PHI)]]
+    : n === 4
+    ? [['√2',Math.SQRT2],['1/√2',1/Math.SQRT2],['1+√2',1+Math.SQRT2],
+       ['√2−1',Math.SQRT2-1],['1−1/√2',1-1/Math.SQRT2]]
+    : [['√3',Math.sqrt(3)],['1/√3',1/Math.sqrt(3)],['2+√3',2+Math.sqrt(3)],
+       ['√3−1',Math.sqrt(3)-1],['1−1/√3',1-1/Math.sqrt(3)]];
+  for (const [nm,v] of [['1',1],...cands])
+    for (const sg of [1,-1])
+      if (Math.abs(a - sg*v) < 1e-9) return (sg < 0 ? '−' : '') + nm;
+  return null;
+}
+
+const FIELD = {
+  5:{name:'Penrose',        sym:'10-fold', field:'ℚ(√5)', lam:'φ = 1.6180339887',  tau:'τ₁'},
+  4:{name:'Ammann–Beenker', sym:'8-fold',  field:'ℚ(√2)', lam:'1+√2 = 2.4142135624', tau:'τ₂'},
+  6:{name:'dodecagonal',    sym:'12-fold', field:'ℚ(√3)', lam:'2+√3 = 3.7320508076', tau:'τ₁τ₂'}
+};
+const PALETTE = [['#2d5d8f','#4a86c5'],['#8f4a2d','#c57a4a'],['#3d6b4a','#5fa072']];
+
+/* ---------------------------------------------------------------- state --- */
+let N = 5, gammas = [0.1, 0.23, -0.37, 0.41, -0.37];
+let lk = 0, lm = 1, lj = 2, reference = null;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+let scale = 42, R = 9, radius = 9.5;
+
+function tileKey(t){ return t.bx.toFixed(5)+','+t.by.toFixed(5)+','+t.j+','+t.k; }
+
+function draw(){
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = w*dpr; cv.height = h*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle = '#0e1117'; ctx.fillRect(0,0,w,h);
+  ctx.save(); ctx.translate(w/2, h/2); ctx.scale(scale, -scale);
+
+  const {tiles, sums} = buildTiles(N, gammas, R, radius);
+  const refSet = reference;
+
+  for (const t of tiles){
+    const [a,b] = PALETTE[t.shape % PALETTE.length];
+    ctx.beginPath();
+    ctx.moveTo(t.bx, t.by);
+    ctx.lineTo(t.bx + t.ej[0], t.by + t.ej[1]);
+    ctx.lineTo(t.bx + t.ej[0] + t.ek[0], t.by + t.ej[1] + t.ek[1]);
+    ctx.lineTo(t.bx + t.ek[0], t.by + t.ek[1]);
+    ctx.closePath();
+    ctx.fillStyle = (t.shape % 2) ? a : b;
+    ctx.fill();
+    ctx.lineWidth = 1/scale; ctx.strokeStyle = '#0e1117'; ctx.stroke();
+    if (refSet && !refSet.has(tileKey(t))){
+      ctx.lineWidth = 2.4/scale; ctx.strokeStyle = '#ffd166'; ctx.stroke();
+    }
+  }
+
+  // the line being read, and its sample points
+  const rd = readLine(N, gammas, lk, lm, lj, 34);
+  if (rd){
+    const {p0,d} = rd.line;
+    ctx.beginPath();
+    ctx.moveTo(p0[0] - 40*d[0], p0[1] - 40*d[1]);
+    ctx.lineTo(p0[0] + 40*d[0], p0[1] + 40*d[1]);
+    ctx.lineWidth = 1.6/scale; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.stroke();
+    rd.pts.forEach((p,i) => {
+      if (i >= rd.word.length) return;
+      ctx.beginPath(); ctx.arc(p[0], p[1], 4.5/scale, 0, 7);
+      ctx.fillStyle = rd.word[i] ? '#6ee7a0' : '#ff8282';
+      ctx.fill();
+    });
+  }
+  ctx.restore();
+  return {tiles, sums, rd};
+}
+
+/* ------------------------------------------------------------------ UI --- */
+const $ = id => document.getElementById(id);
+
+function buildPills(){
+  $('nsel').innerHTML = '';
+  for (const n of [5,4,6]){
+    const b = document.createElement('button');
+    b.textContent = FIELD[n].sym + ' · ' + FIELD[n].name;
+    b.className = (n === N) ? 'on' : '';
+    b.onclick = () => { N = n; gammas = defaultG(n); lk=0; lm=1; lj=2; reference=null; rebuild(); };
+    $('nsel').appendChild(b);
+  }
+}
+function defaultG(n){
+  const g = [0.1,0.23,-0.37,0.41,-0.37,0.0].slice(0,n);
+  const s = g.reduce((a,b)=>a+b,0); g[n-1] -= s; return g;
+}
+function buildGammas(){
+  $('gammas').innerHTML = '';
+  gammas.forEach((v,j) => {
+    const row = document.createElement('div'); row.className = 'row';
+    row.innerHTML = `<label>&gamma;<sub>${j}</sub></label>
+      <input type="range" min="-1" max="1" step="0.001" value="${v}">
+      <span class="val">${v.toFixed(3)}</span>`;
+    const inp = row.querySelector('input'), val = row.querySelector('.val');
+    inp.oninput = () => { gammas[j] = +inp.value; val.textContent = gammas[j].toFixed(3); refresh(); };
+    $('gammas').appendChild(row);
+  });
+  for (const id of ['lk','lm','lj']) $(id).max = N - 1;
+}
+
+function refresh(){
+  const {tiles, sums, rd} = draw();
+  const f = FIELD[N];
+  $('field').innerHTML = `
+    <tr><th>tiling</th><td>${f.name}</td></tr>
+    <tr><th>inflation λ</th><td>${f.lam}</td></tr>
+    <tr><th>field</th><td>${f.field}</td></tr>
+    <tr><th>1-D substitution</th><td>${f.tau}</td></tr>
+    <tr><th>φ(n)</th><td>4 — quadratic</td></tr>`;
+
+  const gs = gammas.reduce((a,b)=>a+b,0);
+  $('gsum').textContent = gs.toFixed(3);
+  const nearInt = Math.abs(gs - Math.round(gs)) < 2e-3;
+  const anyZero = gammas.some(g => Math.abs(g) < 2e-3);
+  $('singnote').innerHTML = (nearInt ? '<span class="ok">&Sigma;&gamma; &isin; &#8484;: a Penrose tiling.</span>'
+                                     : '<span class="bad">&Sigma;&gamma; &notin; &#8484;: a generalised, non-Penrose dual tiling.</span>')
+    + (anyZero ? ' <span class="bad">Some &gamma;<sub>j</sub> = 0: singular, lines meet at the origin.</span>' : '');
+
+  $('lkv').textContent = lk; $('lmv').textContent = lm; $('ljv').textContent = lj;
+
+  if (!rd){ $('slope').innerHTML = '<tr><td>degenerate choice</td></tr>'; $('word').textContent=''; $('cplx').innerHTML=''; }
+  else {
+    const id1 = identify(rd.alpha, N), id2 = identify(rd.frac, N);
+    $('slope').innerHTML = `
+      <tr><th>&alpha; = (d&middot;e<sub>j</sub>)/(d&middot;e<sub>m</sub>)</th><td>${rd.alpha.toFixed(9)}${id1?' = '+id1:''}</td></tr>
+      <tr><th>&lfloor;&alpha;&rfloor;</th><td>${rd.floor}</td></tr>
+      <tr><th>{&alpha;} (paper's slope)</th><td>${rd.frac.toFixed(9)}${id2?' = '+id2:''}</td></tr>
+      <tr><th>intercept c</th><td>${(rd.c - Math.floor(rd.c)).toFixed(9)}</td></tr>
+      <tr><th>increments = C&#8314;?</th><td class="${rd.agrees?'ok':'bad'}">${rd.agrees?'yes':'NO'}</td></tr>`;
+    $('word').innerHTML = rd.word.map(v => v
+        ? '<span style="color:#6ee7a0">1</span>'
+        : '<span style="color:#ff8282">0</span>').join('');
+    let rows = '<tr><th>m</th><th>F(m)</th><th>m+1</th></tr>';
+    rd.F.forEach((v,i) => {
+      const ok = v === i + 2;
+      rows += `<tr><td>${i+1}</td><td class="${ok?'ok':'bad'}">${v}</td><td>${i+2}</td></tr>`;
+    });
+    $('cplx').innerHTML = rows;
+  }
+
+  // checks
+  const shapes = {}; tiles.forEach(t => shapes[t.shape] = (shapes[t.shape]||0)+1);
+  const inner = tiles.filter(t => t.bx*t.bx + t.by*t.by < 25);
+  const ish = {}; inner.forEach(t => ish[t.shape] = (ish[t.shape]||0)+1);
+  const lo = Math.min(...sums), hi = Math.max(...sums);
+  let ratio = '—';
+  if (N === 5 && ish[2]) ratio = (ish[1]/ish[2]).toFixed(4) + ' vs φ = 1.6180';
+  $('checks').innerHTML = `
+    <tr><th>tiles drawn</th><td>${tiles.length}</td></tr>
+    <tr><th>distinct shapes</th><td>${Object.keys(shapes).length}</td></tr>
+    <tr><th>index sums</th><td>${lo} … ${hi}${N===5 && hi-lo<=3 ? ' <span class="ok">bounded</span>':''}</td></tr>
+    <tr><th>thick/thin (interior)</th><td>${ratio}</td></tr>`;
+}
+
+function rebuild(){ buildPills(); buildGammas(); refresh(); }
+
+for (const [id,set] of [['lk',v=>lk=v],['lm',v=>lm=v],['lj',v=>lj=v]])
+  $(id).oninput = e => { set(+e.target.value); refresh(); };
+$('zero').onclick = () => { const s = gammas.reduce((a,b)=>a+b,0);
+  gammas[gammas.length-1] -= s; buildGammas(); refresh(); };
+$('sing').onclick = () => { gammas = gammas.map(()=>0); buildGammas(); refresh(); };
+$('rand').onclick = () => { gammas = gammas.map(()=>+(Math.random()*1.6-0.8).toFixed(3));
+  const s = gammas.reduce((a,b)=>a+b,0); gammas[gammas.length-1] -= s;
+  buildGammas(); refresh(); };
+$('freeze').onclick = () => {
+  reference = new Set(buildTiles(N, gammas, R, radius).tiles.map(tileKey)); refresh(); };
+$('clearref').onclick = () => { reference = null; refresh(); };
+addEventListener('resize', refresh);
+addEventListener('wheel', e => { scale *= e.deltaY < 0 ? 1.08 : 1/1.08;
+  scale = Math.max(14, Math.min(160, scale)); refresh(); }, {passive:true});
+
+rebuild();
+</script>

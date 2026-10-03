@@ -2386,6 +2386,230 @@ theorem onesPos_zero_le (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
     (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) : onesPos ℓ 0 ≤ blockMax ℓ :=
   initial_block_le hbb hS h11 (one_onesPos hbb hS 0) (fun _ hi => onesPos_zero_zeros hbb hi)
 
+/-! ### `lem:aper` — no right-special factor means periodic -/
+
+/-- The window of length `m` at `k`. -/
+def window (ℓ : ℕ → ℕ) (m k : ℕ) : Fin m → ℕ := fun t => ℓ (k + (t : ℕ))
+
+lemma window_mem (m k : ℕ) : window ℓ m k ∈ factors ℓ m := ⟨k, rfl⟩
+
+lemma window_snoc (m k : ℕ) :
+    (Fin.snoc (window ℓ m k) (ℓ (k + m)) : Fin (m + 1) → ℕ) = window ℓ (m + 1) k :=
+  snoc_factor k m _ rfl
+
+lemma window_mem_extBy (m k : ℕ) : window ℓ m k ∈ extBy ℓ m (ℓ (k + m)) := by
+  show (Fin.snoc (window ℓ m k) (ℓ (k + m)) : Fin (m + 1) → ℕ) ∈ factors ℓ (m + 1)
+  rw [window_snoc]
+  exact window_mem (m + 1) k
+
+/-- **`lem:aper`.**  With no right-special factor of length `m`, the window
+determines its own successor, and the windows lie in a finite set. -/
+theorem eventuallyPeriodic_of_rightSpecial_empty (hbb : ∀ k, ℓ k ≤ 1) {m : ℕ}
+    (hm : 1 ≤ m) (hemp : rightSpecial ℓ m = ∅) : EventuallyPeriodic ℓ := by
+  have hdet : ∀ k k', window ℓ m k = window ℓ m k' → ℓ (k + m) = ℓ (k' + m) := by
+    intro k k' h
+    by_contra hne
+    have h0 := hbb (k + m)
+    have h1 := hbb (k' + m)
+    have hmem : window ℓ m k ∈ rightSpecial ℓ m := by
+      rcases (by omega : ℓ (k + m) = 0 ∧ ℓ (k' + m) = 1
+          ∨ ℓ (k + m) = 1 ∧ ℓ (k' + m) = 0) with ⟨e, e'⟩ | ⟨e, e'⟩
+      · refine ⟨by rw [← e]; exact window_mem_extBy m k, ?_⟩
+        rw [h, ← e']; exact window_mem_extBy m k'
+      · refine ⟨?_, by rw [← e]; exact window_mem_extBy m k⟩
+        rw [h, ← e']; exact window_mem_extBy m k'
+    rw [hemp] at hmem
+    exact hmem
+  have hstep : ∀ k k', window ℓ m k = window ℓ m k' →
+      window ℓ m (k + 1) = window ℓ m (k' + 1) := by
+    intro k k' h
+    funext t
+    rcases (by have := t.2; omega : (t : ℕ) + 1 < m ∨ (t : ℕ) + 1 = m) with ht | ht
+    · have := congrFun h ⟨(t : ℕ) + 1, ht⟩
+      simp only [window] at this ⊢
+      rw [show k + 1 + (t : ℕ) = k + ((t : ℕ) + 1) by omega,
+          show k' + 1 + (t : ℕ) = k' + ((t : ℕ) + 1) by omega]
+      exact this
+    · simp only [window]
+      rw [show k + 1 + (t : ℕ) = k + m by omega, show k' + 1 + (t : ℕ) = k' + m by omega]
+      exact hdet k k' h
+  obtain ⟨i, -, j, -, hij, heq⟩ :=
+    Set.Infinite.exists_ne_map_eq_of_mapsTo (Set.infinite_univ (α := ℕ))
+      (f := fun k => window ℓ m k) (fun k _ => window_mem m k) (factors_finite hbb m)
+  rcases Nat.lt_or_ge i j with hlt | hge
+  · refine ⟨i, j - i, by omega, fun k hk => ?_⟩
+    have hall : ∀ t, window ℓ m (i + t) = window ℓ m (j + t) := by
+      intro t
+      induction t with
+      | zero => simpa using heq
+      | succ n ih =>
+          rw [show i + (n + 1) = i + n + 1 by omega, show j + (n + 1) = j + n + 1 by omega]
+          exact hstep _ _ ih
+    have h := congrFun (hall (k - i)) ⟨0, by omega⟩
+    simp only [window] at h
+    rw [show i + (k - i) + 0 = k by omega, show j + (k - i) + 0 = k + (j - i) by omega] at h
+    exact h.symm
+  · have hlt : j < i := by omega
+    refine ⟨j, i - j, by omega, fun k hk => ?_⟩
+    have hall : ∀ t, window ℓ m (j + t) = window ℓ m (i + t) := by
+      intro t
+      induction t with
+      | zero => simpa using heq.symm
+      | succ n ih =>
+          rw [show j + (n + 1) = j + n + 1 by omega, show i + (n + 1) = i + n + 1 by omega]
+          exact hstep _ _ ih
+    have h := congrFun (hall (k - j)) ⟨0, by omega⟩
+    simp only [window] at h
+    rw [show j + (k - j) + 0 = k by omega, show i + (k - j) + 0 = k + (i - j) by omega] at h
+    exact h.symm
+
+/-! ### Periodicity transfers up the derivation -/
+
+lemma onesPos_strictMono (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) :
+    StrictMono (onesPos ℓ) :=
+  Nat.nth_strictMono (setOf_one_infinite' hbb hS)
+
+lemma le_onesPos (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) (i : ℕ) :
+    i ≤ onesPos ℓ i :=
+  (onesPos_strictMono hbb hS).le_apply
+
+/-- Which block contains `k`. -/
+lemma exists_block (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) {k : ℕ}
+    (hk : onesPos ℓ 0 ≤ k) : ∃ i, onesPos ℓ i ≤ k ∧ k < onesPos ℓ (i + 1) := by
+  classical
+  have hex : ∃ i, k < onesPos ℓ (i + 1) :=
+    ⟨k, by have := le_onesPos hbb hS (k + 1); omega⟩
+  refine ⟨Nat.find hex, ?_, Nat.find_spec hex⟩
+  rcases Nat.eq_zero_or_pos (Nat.find hex) with h | h
+  · rw [h]; exact hk
+  · obtain ⟨i', hi'⟩ : ∃ i', Nat.find hex = i' + 1 := ⟨Nat.find hex - 1, by omega⟩
+    have hmin := Nat.find_min hex (m := i') (by omega)
+    rw [hi']
+    omega
+
+/-- An eventually periodic derived sequence makes `ℓ` eventually periodic: one
+`ℓ'`-period of blocks has a fixed total length. -/
+theorem eventuallyPeriodic_of_deriveSeq (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0)
+    (h' : EventuallyPeriodic (deriveSeq ℓ (blockMax ℓ))) : EventuallyPeriodic ℓ := by
+  obtain ⟨q, p, hp, hper⟩ := h'
+  have hmono := onesPos_strictMono hbb hS
+  set P := onesPos ℓ (q + p) - onesPos ℓ q with hP
+  have hPpos : 0 < P := by
+    have := hmono (show q < q + p by omega)
+    omega
+  have hshift : ∀ t, onesPos ℓ (q + t + p) = onesPos ℓ (q + t) + P := by
+    intro t
+    induction t with
+    | zero => simp only [Nat.add_zero]; omega
+    | succ n ih =>
+        have hb1 := onesPos_block_length hbb hS h11 (q + n + p)
+        have hb2 := onesPos_block_length hbb hS h11 (q + n)
+        have hd := hper (q + n) (by omega)
+        rw [show q + (n + 1) + p = q + n + p + 1 by omega,
+            show q + (n + 1) = q + n + 1 by omega, hb1, hb2, hd]
+        omega
+  refine ⟨onesPos ℓ q, P, hPpos, fun k hk => ?_⟩
+  have hk0 : onesPos ℓ 0 ≤ k := by
+    have := hmono.monotone (show 0 ≤ q by omega)
+    omega
+  obtain ⟨i, hi1, hi2⟩ := exists_block hbb hS hk0
+  have hiq : q ≤ i := by
+    by_contra hc
+    push Not at hc
+    have := hmono.monotone (show i + 1 ≤ q by omega)
+    omega
+  obtain ⟨t, ht⟩ : ∃ t, i = q + t := ⟨i - q, by omega⟩
+  subst ht
+  have hs1 := hshift t
+  have hs2 : onesPos ℓ (q + t + p + 1) = onesPos ℓ (q + t + 1) + P := by
+    have h := hshift (t + 1)
+    rw [show q + (t + 1) + p = q + t + p + 1 by omega,
+        show q + (t + 1) = q + t + 1 by omega] at h
+    exact h
+  rcases Nat.eq_zero_or_pos (k - onesPos ℓ (q + t)) with hj | hj
+  · have hk1 : k = onesPos ℓ (q + t) := by omega
+    have h1 : ℓ k = 1 := by rw [hk1]; exact one_onesPos hbb hS _
+    have h2 : ℓ (k + P) = 1 := by
+      have h := one_onesPos hbb hS (q + t + p)
+      rw [show onesPos ℓ (q + t + p) = k + P by omega] at h
+      exact h
+    omega
+  · have h1 : ℓ k = 0 := by
+      have h : ℓ (onesPos ℓ (q + t) + (k - onesPos ℓ (q + t))) = 0 :=
+        onesPos_block_zero hbb (by omega) (by omega)
+      rw [show onesPos ℓ (q + t) + (k - onesPos ℓ (q + t)) = k by omega] at h
+      exact h
+    have h2 : ℓ (k + P) = 0 := by
+      have h : ℓ (onesPos ℓ (q + t + p) + (k - onesPos ℓ (q + t))) = 0 :=
+        onesPos_block_zero hbb (by omega) (by omega)
+      rw [show onesPos ℓ (q + t + p) + (k - onesPos ℓ (q + t)) = k + P by omega] at h
+      exact h
+    omega
+
+/-- The easy half of **`prop:derived`**: `ℓ'` has a right-special factor of
+every length. -/
+theorem rightSpecial_deriveSeq_nonempty (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) {m : ℕ} (hm : 1 ≤ m) :
+    (rightSpecial (deriveSeq ℓ (blockMax ℓ)) m).Nonempty := by
+  rcases Set.eq_empty_or_nonempty (rightSpecial (deriveSeq ℓ (blockMax ℓ)) m) with hemp | h
+  · exact absurd (eventuallyPeriodic_of_deriveSeq hbb hS h11
+      (eventuallyPeriodic_of_rightSpecial_empty
+        (fun k => deriveSeq_le_one hbb hS h11 k) hm hemp))
+      (not_eventuallyPeriodic hS)
+  · exact h
+
+/-! ### `lem:rschain` — the right-special factors form a suffix chain -/
+
+/-- Drop the first letter. -/
+def tail {m : ℕ} (u : Fin (m + 1) → ℕ) : Fin m → ℕ :=
+  fun t => u ⟨(t : ℕ) + 1, by omega⟩
+
+lemma tail_mem_factors {m : ℕ} {u : Fin (m + 1) → ℕ} (hu : u ∈ factors ℓ (m + 1)) :
+    tail u ∈ factors ℓ m := by
+  obtain ⟨k, hk⟩ := mem_factors_iff.1 hu
+  refine mem_factors_iff.2 ⟨k + 1, fun t => ?_⟩
+  have h := hk ⟨(t : ℕ) + 1, by omega⟩
+  simp only [tail]
+  rw [show k + 1 + (t : ℕ) = k + ((t : ℕ) + 1) by omega]
+  exact h
+
+lemma snoc_tail {m : ℕ} (b : ℕ) (u : Fin (m + 1) → ℕ) :
+    (Fin.snoc (tail u) b : Fin (m + 1) → ℕ)
+      = tail (Fin.snoc u b : Fin (m + 2) → ℕ) := by
+  funext s
+  refine Fin.lastCases ?_ ?_ s
+  · have he : (⟨(Fin.last m : ℕ) + 1, by omega⟩ : Fin (m + 2)) = Fin.last (m + 1) := by
+      apply Fin.ext; simp
+    simp only [tail, Fin.snoc_last, he, Fin.snoc_last]
+  · intro t
+    have he : (⟨((t.castSucc : Fin (m + 1)) : ℕ) + 1, by omega⟩ : Fin (m + 2))
+        = (⟨(t : ℕ) + 1, by omega⟩ : Fin (m + 1)).castSucc := by
+      apply Fin.ext; simp
+    simp only [tail, Fin.snoc_castSucc, he, Fin.snoc_castSucc]
+
+lemma tail_rightSpecial {m : ℕ} {u : Fin (m + 1) → ℕ}
+    (hu : u ∈ rightSpecial ℓ (m + 1)) : tail u ∈ rightSpecial ℓ m := by
+  obtain ⟨h0, h1⟩ := hu
+  refine ⟨?_, ?_⟩
+  · show (Fin.snoc (tail u) 0 : Fin (m + 1) → ℕ) ∈ factors ℓ (m + 1)
+    rw [snoc_tail]
+    exact tail_mem_factors h0
+  · show (Fin.snoc (tail u) 1 : Fin (m + 1) → ℕ) ∈ factors ℓ (m + 1)
+    rw [snoc_tail]
+    exact tail_mem_factors h1
+
+/-- **`lem:rschain`.**  With exactly one right-special factor of each length,
+each is the suffix of the next. -/
+theorem rightSpecial_chain (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) {m : ℕ}
+    {u : Fin (m + 1) → ℕ} (hu : u ∈ rightSpecial ℓ (m + 1))
+    {v : Fin m → ℕ} (hv : v ∈ rightSpecial ℓ m) : tail u = v := by
+  obtain ⟨w, hw⟩ :=
+    Set.ncard_eq_one.1 ((isSturmian_iff_ncard_rightSpecial hbb).1 hS m)
+  have h1 : tail u ∈ rightSpecial ℓ m := tail_rightSpecial hu
+  rw [hw, Set.mem_singleton_iff] at h1 hv
+  rw [h1, hv]
+
 end MorseHedlund
 
 /-! ## §8 The tower
@@ -2801,6 +3025,10 @@ end Substitution
 #print axioms Sturmian.initial_block_le
 #print axioms Sturmian.onesPos_block_length
 #print axioms Sturmian.onesPos_zero_le
+#print axioms Sturmian.eventuallyPeriodic_of_rightSpecial_empty
+#print axioms Sturmian.eventuallyPeriodic_of_deriveSeq
+#print axioms Sturmian.rightSpecial_deriveSeq_nonempty
+#print axioms Sturmian.rightSpecial_chain
 #print axioms Sturmian.return_time
 #print axioms Sturmian.ones_succ_eq
 #print axioms Sturmian.derived_eq

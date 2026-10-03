@@ -4,11 +4,20 @@
 3 October 2026 and is now §7 of `all-the-proofs.tex`. `lean/PLAN.md` Phase 9 is
 the remaining work and it is now pure formalisation.
 
-Phase 9 is underway in `Sturmian.lean` §6.1. `lem:rs`, `cor:onesp`,
-`lem:evper` and **steps 1, 2 and 3** of the converse are formalised. Steps 4
-and 5 remain. `PLAN.md` has the brief, records where the Lean route beats the
-paper's, and lists the two proof slips formalising turned up in §6 — both now
-fixed in the `.tex`.
+Phase 9 is underway in `Sturmian.lean` §6.1. Steps 1, 2 and 3 are formalised,
+along with `lem:rs`, `cor:onesp`, `lem:evper`, `lem:aper`, `lem:rschain` and
+the easy half of step 4. What remains is `lem:bridge` with the uniqueness half
+of `prop:derived`, then step 5.
+
+**`lem:bridge` is the wall, and `PLAN.md` says why**: `τ_a` is not
+length-preserving, so two right-special factors of `ℓ'` of equal length map to
+right-special factors of `ℓ` of different lengths. The occurrence
+representation that made steps 1 to 3 cheap does not help here. Read that
+section before starting — it recommends trying a positional reformulation
+before building `τ_a` as a dependently-typed word.
+
+`PLAN.md` also records where the Lean route beats the paper's, and the two
+proof slips formalising turned up in §6 — both now fixed in the `.tex`.
 
 ## What step 5 turned out to be
 
