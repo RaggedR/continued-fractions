@@ -24,8 +24,9 @@ fi
 
 mkdir -p "$OUT"
 
-# Palindrome, Lagrange and Sturmian are mutually independent; SqrtN imports all three.
-for f in Palindrome Lagrange Sturmian; do
+# Palindrome, Lagrange and Sturmian are mutually independent; Quadratic imports
+# Palindrome, and SqrtN imports Palindrome, Lagrange and Sturmian.
+for f in Palindrome Lagrange Sturmian Quadratic; do
   echo "--- $f.lean"
   cd "$MATHLIB_PROJECT" && lake env sh -c \
     "cd '$SRC' && LEAN_PATH=\$LEAN_PATH:'$OUT' lean -o '$OUT/$f.olean' $f.lean"

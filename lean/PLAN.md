@@ -16,13 +16,13 @@ the slope. Everything about `√n` is stated through that.
 
 ## Status
 
-**All eight phases are complete.**  `Sturmian.lean` 2057 lines,
-`Lagrange.lean` 212 lines, `SqrtN.lean` 127 lines, 0 errors, 0 warnings,
-0 sorries, 45 theorems checked by `#print axioms` across the four files.
+**All eight phases are complete, and so is Lagrange's 1770 half.**
+`Sturmian.lean` 2057 lines, `Quadratic.lean` 544, `Lagrange.lean` 212,
+`SqrtN.lean` 127, 0 errors, 0 warnings, 0 sorries, 51 theorems checked by
+`#print axioms` across the five files.
 
-`all-the-proofs.tex` is now formalised apart from the two things it itself
-declares unproved (§10 items 1 and 2).  That was the stated stopping point:
-the paper and the Lean say the same thing.
+`all-the-proofs.tex` is formalised apart from the **one** thing it still
+declares unproved: the converse half of Morse–Hedlund (§10 item 1).
 
     derive_code       : derived   α x a = codeUp β (refl   α x 0)
     derive_codeUp     : derivedUp α x a = code   β (reflUp α x 0)
@@ -42,6 +42,10 @@ the paper and the Lean say the same thing.
     quadratic_of_eventually_periodic
                       : Irrational (α 0) → α (m+L) = α m → 1 ≤ L →
                         ∃ A B C : ℤ, A ≠ 0 ∧ A * α 0 ^ 2 + B * α 0 + C = 0
+    exists_reduced    : Adm n s₀ → ∃ m, Reduced n ((step n)^[m] s₀).1 _
+    eventually_periodic
+                      : Adm n s₀ → ∃ m L, 0 < L ∧
+                        ∀ k, m ≤ k → (step n)^[k+L] s₀ = (step n)^[k] s₀
 
 `sqrt_tower_period` is one headline: for every non-square `n`, deriving `L`
 times returns the sequence with its first letter removed.  `sturmian.tex`
@@ -370,6 +374,65 @@ pair that instantiates `tower_period` also instantiates this. A concrete check
 in `Lagrange.lean` confirms that `[1;1,1,…]` yields `(r,s,t) = (1,1,-1)`, i.e.
 `x² + x - 1 = 0`, the equation of `1/φ` from §7.
 
+## Lagrange 1770 (§9, the other half) — **done**
+
+`Quadratic.lean` (544 lines).  The remaining target from the original memory
+note, and it came in well under the 400–700 line estimate, for two reasons.
+
+**Almost nothing in `Palindrome.lean` was specific to `√n`.** `quo`, `step`,
+`unstep`, `Reduced`, `finite_reduced`, `step_mapsTo`, `step_injOn` are all
+statements about the *discriminant* `n` and an arbitrary state; only
+`state n k = (step n)^[k] (0,1)` fixes the start.  So the general case is an
+extension, not a rewrite, and §2 of `Quadratic.lean` gets pure periodicity on
+the reduced set by citing `Palindrome` directly.
+
+**One thing did have to change.** `Palindrome.quo n P Q = (a₀ + P)/Q` is
+`⌊(P+√n)/Q⌋` only for `Q > 0`, which for `√n` is automatic (`Q_pos_all`).  For a
+general quadratic irrational the `Q`s must change sign, so
+
+```lean
+def quo (n : ℕ) (P Q : ℤ) : ℤ :=
+  if 0 < Q then Palindrome.quo n P Q else -(Palindrome.quo n P (-Q)) - 1
+```
+
+with `floor_surd` proving it is the floor either way.  The negative branch is
+`⌊-x⌋ = -⌊x⌋ - 1`, legitimate because a surd is never an integer.
+
+### The preperiod, without convergents
+
+`exists_reduced` is the only new mathematics, and the textbook route — the
+convergents `pₖ/qₖ`, the bound `|α - pₖ/qₖ| < 1/qₖ²`, then either the invariant
+discriminant of `Aₖx² + Bₖx + Cₖ` or uniqueness of the CF expansion — is
+**avoidable**.  Mathlib does have what that route needs
+(`GenContFract.of_convergence`, `abs_sub_convs_le`, `ContinuantsRecurrence`,
+`Determinant`), but it would also need the `stream_fst` bridge generalised.
+None of it is used.  Instead:
+
+* `α̅ₖ < 0` forces `α̅ₖ₊₁ ∈ (-1,0)`, which *is* reduced.  So if the orbit is
+  never reduced then `α̅ₖ > 0` for every `k ≥ 1`.
+* Positivity of `α̅ₖ₊₁ = 1/(α̅ₖ - aₖ)` forces `α̅ₖ > aₖ ≥ 1`, so `αₖ` *and* `α̅ₖ`
+  exceed 1 from index 1 on.
+* `αₖ₊₁ - α̅ₖ₊₁ = (α̅ₖ - αₖ)·αₖ₊₁α̅ₖ₊₁` identically, so the gap
+  `|αₖ - α̅ₖ| = 2√n/|Qₖ|` strictly *increases*.
+* Hence `|Qₖ|` is a strictly decreasing sequence of positive integers.
+  Infinite descent.
+
+This matches the source.  `αₖ·α̅ₖ = -Qₖ₋₁/Qₖ`, so `α̅ₖ < 0` says `Qₖ₋₁` and `Qₖ`
+have the same sign — which is Lagrange's own criterion, *Additions* art. 41
+("deux consécutifs de même signe").  The design was arrived at independently and
+then found to be his; `papers/README.md` indexes the article.
+
+The paper now carries this proof too, as `all-the-proofs.tex`
+Theorem `thm:lagrange1770`, so §10's unproved list is down to one item.
+
+### Instances
+
+The theorem is stated for an abstract admissible state, so it needs witnesses.
+`eventually_periodic_sqrt` checks that starting at `(0,1)` reproduces
+`Palindrome.state` exactly (a consistency check — `purely_periodic` is sharper,
+with preperiod 1), and `eventually_periodic_golden` is the case
+`Palindrome.lean` cannot reach: `φ = (1+√5)/2`, where `Q = 2 ∣ 5 - 1²`.
+
 ## Not attempted
 
 - **The converse of Morse–Hedlund** (§6, steps 2/4/5): complexity `m+1` ⟹
@@ -385,12 +448,6 @@ in `Lagrange.lean` confirms that `[1;1,1,…]` yields `(r,s,t) = (1,1,-1)`, i.e.
   bispecial-factor API that exists nowhere, which is why it gets no line
   estimate: the risk is infrastructure, not mathematics.
 
-- **Lagrange for a general quadratic irrational** (§9, the 1770 half). The
-  other open target in memory. `Reduced`, `step`/`unstep`, `finite_reduced` and
-  `exists_iterate_eq_self` in `Palindrome.lean` are Lagrange's argument at
-  `D = n, Q = 1`; they generalise to `(P + √D)/Q` with `Q ∣ D - P²`. The new
-  work is the preperiod, since pure periodicity is what is lost.
-  400–700 lines.
 
 ## Order of work
 
@@ -404,9 +461,14 @@ Done:
 8                          (Lagrange.lean, independent of everything else)
 ```
 
-Next, each its own project and independent of the other:
+Done since:
 
 ```
-Lagrange general (§9, 1770)
+9 (Lagrange 1770)            (Quadratic.lean, extends Palindrome.lean)
+```
+
+Next, and now the only thing left:
+
+```
 reverse Morse–Hedlund (§6)   — needs a factor-set API first
 ```

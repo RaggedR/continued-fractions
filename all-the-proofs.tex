@@ -604,21 +604,75 @@ form $(r,s,t)$ evaluated at the rational point $-S/R$, and that cannot vanish
 because the roots of $(r,s,t)$ are $\alpha_m$ and its conjugate, neither of
 which is rational.
 
-The converse --- every quadratic irrational has an eventually periodic
-continued fraction --- is \textbf{not proved here}. For $\alpha = \sqrt n - a_0$
-it is \texttt{purely\_periodic} in \texttt{lean/Palindrome.lean}, by way of
-reduced forms $(P+\sqrt D)/Q$ and the finiteness of the reduced set. The general
-case needs the preperiod, and neither \texttt{sturmian.tex} nor the Lean
-development has it.
+\begin{theorem}[Lagrange, 1770]\label{thm:lagrange1770}
+The continued fraction of every quadratic irrational is eventually periodic.
+\end{theorem}
+
+\begin{proof}
+Write the complete quotients as $\alpha_k = (P_k + \sqrt D)/Q_k$ with
+$Q_k \mid D - P_k^2$; the recurrence $P_{k+1} = a_kQ_k - P_k$,
+$Q_{k+1} = (D - P_{k+1}^2)/Q_k$ preserves that divisibility, since
+$P_{k+1} \equiv -P_k \pmod{Q_k}$. Call a state \emph{reduced} when
+$\alpha_k > 1$ and $-1 < \bar\alpha_k < 0$. For a fixed $D$ there are only
+finitely many reduced states, and on them the recurrence is invertible, so once
+the orbit is reduced it is \emph{purely} periodic --- that is the argument of
+\texttt{palindrome.tex} §2--3, which never used $Q = 1$. It is therefore enough
+that some $\alpha_k$ be reduced.
+
+For $k \geq 1$ we have $\alpha_k > 1$, so $a_k = \lfloor\alpha_k\rfloor \geq 1$.
+Conjugating $\alpha_k = a_k + 1/\alpha_{k+1}$ gives
+$\bar\alpha_k = a_k + 1/\bar\alpha_{k+1}$. Hence if $\bar\alpha_k < 0$ then
+$1/\bar\alpha_{k+1} = \bar\alpha_k - a_k < -1$, so
+$-1 < \bar\alpha_{k+1} < 0$ and $\alpha_{k+1}$ is reduced.
+
+So suppose no $\alpha_k$ is reduced. Then $\bar\alpha_k > 0$ for every
+$k \geq 1$ --- it is never $0$, as $\sqrt D$ is irrational. Positivity of
+$\bar\alpha_{k+1} = 1/(\bar\alpha_k - a_k)$ forces $\bar\alpha_k > a_k \geq 1$,
+so $\alpha_k$ \emph{and} $\bar\alpha_k$ exceed $1$ for every $k \geq 1$.
+Subtracting the two conjugate recurrences, and using
+$\alpha_k - a_k = 1/\alpha_{k+1}$ and
+$\bar\alpha_k - a_k = 1/\bar\alpha_{k+1}$,
+\[
+  \alpha_{k+1} - \bar\alpha_{k+1}
+  \;=\; \frac{1}{\alpha_k - a_k} - \frac{1}{\bar\alpha_k - a_k}
+  \;=\; (\bar\alpha_k - \alpha_k)\,\alpha_{k+1}\bar\alpha_{k+1} .
+\]
+Since $\alpha_{k+1}\bar\alpha_{k+1} > 1$, the gap
+$|\alpha_k - \bar\alpha_k|$ is strictly increasing. But
+$\alpha_k - \bar\alpha_k = 2\sqrt D/Q_k$, so $|Q_{k+1}| < |Q_k|$ for every
+$k \geq 1$: a strictly decreasing sequence of positive integers. That is
+impossible.
+\end{proof}
+
+Two remarks. First, $\alpha_k\bar\alpha_k = -Q_{k-1}/Q_k$, so for $k \geq 1$
+(where $\alpha_k > 0$) the condition $\bar\alpha_k < 0$ says exactly that
+$Q_{k-1}$ and $Q_k$ have the \emph{same sign}. That is Lagrange's own
+criterion, \emph{Additions} art. 41: "lorsque dans la série des nombres
+$E, E_1, E_2,\ldots$ on en trouvera deux consécutifs de même signe, celui des
+deux qui sera moindre que $\sqrt B$ sera déjà nécessairement périodique."
+
+Second, the textbook proof is different: it passes through the convergents
+$p_k/q_k$, the bound $|\alpha - p_k/q_k| < 1/q_k^2$, and either the invariance
+of the discriminant of $A_kx^2 + B_kx + C_k$ or the uniqueness of the
+continued-fraction expansion. The descent above needs none of that, which is
+why the formalisation is short.
+
+This is \texttt{lean/Quadratic.lean}: \texttt{exists\_reduced} is the preperiod,
+\texttt{eventually\_periodic} the theorem. One thing the integer recurrence does
+need there and did not for $\sqrt n$: $\lfloor (P + \sqrt D)/Q\rfloor$ equals
+$\lfloor (P + a_0)/Q\rfloor$ only when $Q > 0$, and for a general quadratic
+irrational the $Q_k$ change sign --- as the first remark says, they must. For
+$Q < 0$ the value is $-\lfloor (P + a_0)/(-Q)\rfloor - 1$.
 
 \section{What is not proved here}
 
 \begin{enumerate}
 \item The converse half of Theorem~\ref{thm:mh}: steps 2, 4 and 5 of the list in
   \S6. Step 2 is balancedness; step 5 is an Ostrowski convergence argument.
-\item Lagrange's theorem for a general quadratic irrational (\S9). The case
-  $\sqrt n - \lfloor \sqrt n\rfloor$ is formalised.
-\item Nothing else. Every other assertion of \texttt{sturmian.tex} is proved
+\item Nothing else. Both halves of Lagrange's theorem are now proved and
+  formalised: Euler's (\S9, \texttt{lean/Lagrange.lean}) and Lagrange's own
+  (Theorem~\ref{thm:lagrange1770}, \texttt{lean/Quadratic.lean}). Every other
+  assertion of \texttt{sturmian.tex} is proved
   above, and the numbers in its tables --- the slopes, the four derived
   sequences of $n = 7$, the gap lists for $n = 2$ and $n = 7$, the four factors
   of length $3$ --- have been checked in exact arithmetic in

@@ -27,7 +27,7 @@ figures with the source kept.
 | `data/periods.npz` | n, L(n), R(n) for all 99,683 non-squares below 10⁵. |
 | `period-histogram.pdf` | The recomputed figure — 2 pages, 8 panels. |
 | `distribution.pdf` | Two disjoint bands of n plotted together, showing the law drifts. |
-| `lean/` | **The Lean 4 formalisation**, four files, 3,349 lines, no sorries, 45 theorems verified by `#print axioms`. See `lean/README.md` and `lean/PLAN.md`. |
+| `lean/` | **The Lean 4 formalisation**, five files, 3,893 lines, no sorries, 51 theorems verified by `#print axioms`. See `lean/README.md` and `lean/PLAN.md`. |
 | `sturmian.tex` / `.pdf` | The Sturmian side: codings of an irrational rotation, derived sequences, and the tower of derivations of √n. Assertion-dense — written to be checked, and it was. |
 | `all-the-proofs.tex` / `.pdf` | Proofs of everything `sturmian.tex` asserts, plus the corrections it needed. This is what `lean/Sturmian.lean` and `lean/Lagrange.lean` formalise. |
 | `papers/` | Scans of Euler 1767, Lagrange 1770 and Legendre 1798, with an article-level index of where each theorem actually is. |
@@ -35,14 +35,16 @@ figures with the source kept.
 
 ## The Lean formalisation
 
-Four files in `lean/`, mutually independent except that `SqrtN.lean` imports
-the other three:
+Five files in `lean/`. `Palindrome`, `Lagrange` and `Sturmian` are mutually
+independent; `Quadratic` imports `Palindrome`, and `SqrtN` imports the other
+three:
 
 | file | lines | contents |
 |---|---|---|
 | `Palindrome.lean` | 953 | Legendre's palindrome theorem for √n: Lagrange periodicity, the palindrome, `a_L = 2a₀`, the matrix side, and the bridge to Mathlib's `GenContFract`. |
 | `Sturmian.lean` | 2057 | `all-the-proofs.tex` §§1–8: codings, density, complexity, gaps, the derivation theorem, Morse–Hedlund, the tower, the substitution. |
 | `Lagrange.lean` | 212 | §9: Euler's half of Lagrange's theorem — eventually periodic ⟹ quadratic irrational. |
+| `Quadratic.lean` | 544 | §9: Lagrange's half — every quadratic irrational has an eventually periodic continued fraction. Generalises `Palindrome.lean` off `Q = 1`. |
 | `SqrtN.lean` | 127 | The √n instances of the tower and of Euler, joining the files. |
 
 Two headline theorems beyond the classical ones:
@@ -56,8 +58,10 @@ Two headline theorems beyond the classical ones:
   `1` prefixed is Sturmian and is a lower coding of nothing. Both halves are
   proved in Lean.
 
-Mathlib has no Lagrange periodicity, no quadratic-irrational predicate and no
-factor complexity, so none of this was transcription.
+Both halves of Lagrange's theorem are now formalised — Euler's 1737 direction
+in `Lagrange.lean`, Lagrange's own 1770 direction in `Quadratic.lean`. Mathlib
+has neither, nor a quadratic-irrational predicate, nor factor complexity, so
+none of this was transcription.
 
 ## Reproducing
 
