@@ -65,12 +65,15 @@ route.
 
 ## Numerics
 
-`prop:bound` and the decomposition were checked over ≈3·10⁶ factors, 28
-sequences, `n ∈ {2,3,5,6,8,10,11,12,13,29,43}` and four intercepts each — `s ≤ a`,
-`t ≤ a−1`, `s = a ⟹ 1u'` a factor, the `lem:dev` identity, and `|Δ| < 1` with
-`sup → 1` never attained. `thm:step5` was checked by reconstructing `x` from the
-sequence alone to `10⁻⁴` by `N = 4000`. Scripts were scratch, not committed;
-`sturmian.py` has the reusable helpers.
+**`step5_check.py` reproduces all of it** — run it, it asserts rather than
+prints opinions. `prop:bound` and the decomposition over **3,022,668 factors**,
+44 sequences, `n ∈ {2,3,5,6,8,10,11,12,13,29,43}` and four intercepts each:
+`s ≤ a`, `t ≤ a−1`, `s = a ⟹ 1u'` a factor, the `lem:dev` identity, and
+`|Δ| < 1` with `sup → 1` never attained. `thm:step5` by reconstructing `x` from
+the sequence alone, to `10⁻⁴` by `N = 4000`. `thm:counterex` as case D.
+
+No test touches a decimal truncation: slopes are `sqrt(n) - floor(sqrt(n))` and
+the codings come from integer comparison in `ℤ[√n]`.
 
 Two test bugs in one session, both reporting a false failure: a bracket that
 trivially exceeded `1` for `|u| = 1`, and a decomposition that set `s = a`

@@ -30,6 +30,7 @@ figures with the source kept.
 | `lean/` | **The Lean 4 formalisation**, five files, 3,893 lines, no sorries, 51 theorems verified by `#print axioms`. See `lean/README.md` and `lean/PLAN.md`. |
 | `sturmian.tex` / `.pdf` | The Sturmian side: codings of an irrational rotation, derived sequences, and the tower of derivations of √n. Assertion-dense — written to be checked, and it was. |
 | `all-the-proofs.tex` / `.pdf` | Proofs of everything `sturmian.tex` asserts, plus the corrections it needed. This is what `lean/Sturmian.lean` and `lean/Lagrange.lean` formalise. |
+| `step5_check.py` | The numerics behind `all-the-proofs.tex` §7, asserting rather than printing: the factor bound over 3,022,668 factors, the block decomposition, and the recovery of the intercept as `x = sup_N (S(N) − Nα)`. |
 | `papers/` | Scans of Euler 1767, Lagrange 1770 and Legendre 1798, with an article-level index of where each theorem actually is. |
 | `original/` | The 14 September originals, for comparison: `period-histogram.pdf`, `period-distribution.pdf`, and the `period-histogram.txt` write-up. Kept unmodified. |
 
