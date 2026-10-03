@@ -27,7 +27,7 @@ figures with the source kept.
 | `data/periods.npz` | n, L(n), R(n) for all 99,683 non-squares below 10⁵. |
 | `period-histogram.pdf` | The recomputed figure — 2 pages, 8 panels. |
 | `distribution.pdf` | Two disjoint bands of n plotted together, showing the law drifts. |
-| `lean/` | **The Lean 4 formalisation**, five files, 4,888 lines, no sorries, 68 theorems verified by `#print axioms`. See `lean/README.md` and `lean/PLAN.md`. |
+| `lean/` | **The Lean 4 formalisation**, five files, 5,171 lines, no sorries, 72 theorems verified by `#print axioms`. See `lean/README.md` and `lean/PLAN.md`. |
 | `sturmian.tex` / `.pdf` | The Sturmian side: codings of an irrational rotation, derived sequences, and the tower of derivations of √n. Assertion-dense — written to be checked, and it was. |
 | `all-the-proofs.tex` / `.pdf` | Proofs of everything `sturmian.tex` asserts, plus the corrections it needed. This is what `lean/Sturmian.lean` and `lean/Lagrange.lean` formalise. |
 | `step5_check.py` | The numerics behind `all-the-proofs.tex` §7, asserting rather than printing: the factor bound over 3,022,668 factors, the block decomposition, and the recovery of the intercept as `x = sup_N (S(N) − Nα)`. |
@@ -48,7 +48,7 @@ three:
 | file | lines | contents |
 |---|---|---|
 | `Palindrome.lean` | 953 | Legendre's palindrome theorem for √n: Lagrange periodicity, the palindrome, `a_L = 2a₀`, the matrix side, and the bridge to Mathlib's `GenContFract`. |
-| `Sturmian.lean` | 3052 | `all-the-proofs.tex` §§1–8: codings, density, complexity, right-special factors, gaps, the derivation theorem, Morse–Hedlund with steps 1–3 of its converse, the tower, the substitution. |
+| `Sturmian.lean` | 3335 | `all-the-proofs.tex` §§1–8: codings, density, complexity, right-special factors, gaps, the derivation theorem, Morse–Hedlund with steps 1–3 of its converse, the tower, the substitution. |
 | `Lagrange.lean` | 212 | §9: Euler's half of Lagrange's theorem — eventually periodic ⟹ quadratic irrational. |
 | `Quadratic.lean` | 544 | §9: Lagrange's half — every quadratic irrational has an eventually periodic continued fraction. Generalises `Palindrome.lean` off `Q = 1`. |
 | `SqrtN.lean` | 127 | The √n instances of the tower and of Euler, joining the files. |

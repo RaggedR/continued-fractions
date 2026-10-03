@@ -9,7 +9,7 @@ Three further files formalise `../all-the-proofs.tex`; they are documented in
 | file | lines | contents |
 |---|---|---|
 | `Palindrome.lean` | 953 | Legendre's palindrome theorem, §§1–5 of `../palindrome.tex` |
-| `Sturmian.lean` | 3052 | `../all-the-proofs.tex` §§1–8: codings, density, complexity, right-special factors, gaps, derivation, Morse–Hedlund, the tower, the substitution |
+| `Sturmian.lean` | 3335 | `../all-the-proofs.tex` §§1–8: codings, density, complexity, right-special factors, gaps, derivation, Morse–Hedlund, the tower, the substitution |
 | `Lagrange.lean` | 212 | §9: Euler's half of Lagrange's theorem, for an abstract tail sequence |
 | `Quadratic.lean` | 544 | §9: **Lagrange's own half** — the continued fraction of every quadratic irrational is eventually periodic |
 | `SqrtN.lean` | 127 | `√n` instances of the tower (§8) and of Euler (§9), joining the files |

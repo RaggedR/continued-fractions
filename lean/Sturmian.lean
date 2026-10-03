@@ -2795,6 +2795,100 @@ theorem rightSpecial_of_blockWindow (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian 
   · have hm := window_mem_extBy (ℓ := ℓ) n (onesPos ℓ i)
     rwa [h1] at hm
 
+/-! ### Counting the `1`s in a window -/
+
+/-- The number of `1`s among `ℓ k, …, ℓ (k + n - 1)`. -/
+def cnt (ℓ : ℕ → ℕ) (k : ℕ) : ℕ → ℕ
+  | 0 => 0
+  | n + 1 => cnt ℓ k n + (if ℓ (k + n) = 1 then 1 else 0)
+
+/-- The count depends only on the window, which is why window equality
+transfers it. -/
+lemma cnt_congr {k k' : ℕ} :
+    ∀ n, (∀ t, t < n → ℓ (k + t) = ℓ (k' + t)) → cnt ℓ k n = cnt ℓ k' n := by
+  intro n
+  induction n with
+  | zero => intro _; rfl
+  | succ p ih =>
+      intro h
+      rw [cnt, cnt, ih (fun t ht => h t (by omega)), h p (by omega)]
+
+lemma cnt_add (k A : ℕ) : ∀ B, cnt ℓ k (A + B) = cnt ℓ k A + cnt ℓ (k + A) B := by
+  intro B
+  induction B with
+  | zero => rfl
+  | succ p ih =>
+      rw [show A + (p + 1) = (A + p) + 1 by omega, cnt, ih, cnt,
+          show k + (A + p) = k + A + p by omega]
+      omega
+
+lemma cnt_eq_zero {k : ℕ} : ∀ n, (∀ t, t < n → ℓ (k + t) = 0) → cnt ℓ k n = 0 := by
+  intro n
+  induction n with
+  | zero => intro _; rfl
+  | succ p ih =>
+      intro h
+      rw [cnt, ih (fun t ht => h t (by omega)), h p (by omega)]
+      simp
+
+lemma cnt_one_of (k : ℕ) (h : ℓ k = 1) : cnt ℓ k 1 = 1 := by
+  rw [show (1 : ℕ) = 0 + 1 from rfl, cnt, cnt]
+  simp [h]
+
+/-- **The invariant.**  A window of `ℓ` spanning `m` blocks and `a` letters
+more carries exactly `m + 1` ones. -/
+theorem cnt_block_window (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) (i : ℕ) : ∀ m,
+    cnt ℓ (onesPos ℓ i) (onesPos ℓ (i + m) + blockMax ℓ - onesPos ℓ i) = m + 1 := by
+  have hmono := onesPos_strictMono hbb hS
+  have ha2 : 2 ≤ blockMax ℓ := (blocks hbb hS h11).1
+  intro m
+  induction m with
+  | zero =>
+      simp only [Nat.add_zero]
+      have hb := onesPos_block_length hbb hS h11 i
+      have hd := deriveSeq_le_one hbb hS h11 i
+      have he : onesPos ℓ i + blockMax ℓ - onesPos ℓ i = 1 + (blockMax ℓ - 1) := by omega
+      have hz : cnt ℓ (onesPos ℓ i + 1) (blockMax ℓ - 1) = 0 := by
+        refine cnt_eq_zero _ (fun t ht => ?_)
+        have h := onesPos_block_zero (ℓ := ℓ) hbb (i := i) (j := 1 + t)
+          (by omega) (by rw [hb]; omega)
+        rw [show onesPos ℓ i + (1 + t) = onesPos ℓ i + 1 + t by omega] at h
+        exact h
+      rw [he, cnt_add, cnt_one_of _ (one_onesPos hbb hS i), hz]
+  | succ p ih =>
+      have hb := onesPos_block_length hbb hS h11 (i + p)
+      have hb2 := onesPos_block_length hbb hS h11 (i + p + 1)
+      have hd := deriveSeq_le_one hbb hS h11 (i + p)
+      have hd2 := deriveSeq_le_one hbb hS h11 (i + p + 1)
+      have hmi : onesPos ℓ i ≤ onesPos ℓ (i + p) := hmono.monotone (by omega)
+      set d := deriveSeq ℓ (blockMax ℓ) (i + p) with hdd
+      have hsplit : onesPos ℓ (i + (p + 1)) + blockMax ℓ - onesPos ℓ i
+          = (onesPos ℓ (i + p) + blockMax ℓ - onesPos ℓ i) + (d + (1 + (blockMax ℓ - 1))) := by
+        rw [show i + (p + 1) = i + p + 1 by omega, hb]
+        omega
+      have hk : onesPos ℓ i + (onesPos ℓ (i + p) + blockMax ℓ - onesPos ℓ i)
+          = onesPos ℓ (i + p) + blockMax ℓ := by omega
+      rw [hsplit, cnt_add, ih, hk, cnt_add, cnt_add]
+      have hz1 : cnt ℓ (onesPos ℓ (i + p) + blockMax ℓ) d = 0 := by
+        refine cnt_eq_zero _ (fun t ht => ?_)
+        have h := onesPos_block_zero (ℓ := ℓ) hbb (i := i + p)
+          (j := blockMax ℓ + t) (by omega) (by rw [hb]; omega)
+        rw [show onesPos ℓ (i + p) + (blockMax ℓ + t)
+            = onesPos ℓ (i + p) + blockMax ℓ + t by omega] at h
+        exact h
+      have hone : ℓ (onesPos ℓ (i + p) + blockMax ℓ + d) = 1 := by
+        rw [show onesPos ℓ (i + p) + blockMax ℓ + d = onesPos ℓ (i + p + 1) by omega]
+        exact one_onesPos hbb hS _
+      have hz2 : cnt ℓ (onesPos ℓ (i + p) + blockMax ℓ + d + 1) (blockMax ℓ - 1) = 0 := by
+        refine cnt_eq_zero _ (fun t ht => ?_)
+        have h := onesPos_block_zero (ℓ := ℓ) hbb (i := i + p + 1)
+          (j := 1 + t) (by omega) (by rw [hb2]; omega)
+        rw [show onesPos ℓ (i + p + 1) + (1 + t)
+            = onesPos ℓ (i + p) + blockMax ℓ + d + 1 + t by omega] at h
+        exact h
+      rw [hz1, cnt_one_of _ hone, hz2]
+
 end MorseHedlund
 
 /-! ## §8 The tower
@@ -3217,6 +3311,7 @@ end Substitution
 #print axioms Sturmian.drop_rightSpecial
 #print axioms Sturmian.block_letter_eq
 #print axioms Sturmian.rightSpecial_of_blockWindow
+#print axioms Sturmian.cnt_block_window
 #print axioms Sturmian.return_time
 #print axioms Sturmian.ones_succ_eq
 #print axioms Sturmian.derived_eq

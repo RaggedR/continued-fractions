@@ -697,8 +697,8 @@ Three things it needs, in increasing cost:
 3. **A suffix of `τ_a(w')` beginning with `1` is `τ_a(v)` for a suffix `v` of
    `w'`**, and counting blocks forces `v = w'`.  This is the real content.
 
-**The positional route works.**  Worked through on paper 3 October 2026, not
-yet in Lean.  `τ_a` never has to exist as a word; everything runs on windows of
+**The positional route works, and is now mostly in Lean.**  `τ_a` never has to
+exist as a word; everything runs on windows of `ℓ` and on counting `1`s.  `τ_a` never has to exist as a word; everything runs on windows of
 `ℓ` and on counting `1`s.
 
 Write `s = |w|₁`, `T = m*a + s`, and `n = T + a`.
@@ -728,15 +728,29 @@ Write `s = |w|₁`, `T = m*a + s`, and `n = T + a`.
    `1`-count is an invariant of the *word*, so window equality transfers it for
    free.
 
-What this needs in Lean, none of it dependently typed:
+Status in Lean:
 
 | | |
 |---|---|
-| a transitive `rightSpecial_chain` | `window ℓ n k = window ℓ n (k' + (n' - n))`, by iterating `tail` |
-| `window ℓ n (onesPos ℓ i)` from the `ℓ'`-window | letters of `ℓ` in block `t` are fixed by offset and block length |
-| `onesPos ℓ (i+m) - onesPos ℓ i = m*a + s` | sum `onesPos_block_length` over `t < m` |
-| the `1`-count of a window | `∑ t, window ℓ n k t`, and `= m + 1` on a block-aligned window |
-| `w` recovered from the window | the `1`s are the block starts |
+| `drop`, `drop_rightSpecial`, `rightSpecial_unique` | **done** — `lem:rschain` in the form the bridge uses |
+| `onesPos_add_eq` | **done** — matching derived letters give matching block starts |
+| `block_letter_eq` | **done** — `ℓ` reads the same from both block starts |
+| `rightSpecial_of_blockWindow` | **done** — the bridge itself |
+| `cnt`, `cnt_congr`, `cnt_add`, `cnt_eq_zero`, `cnt_block_window` | **done** — the window carries `m+1` ones |
+| `w` recovered from the window | **left** — the `1`s are the block starts |
+| assembly of the uniqueness half | **left** |
+
+`cnt` is a hand-rolled recursion, not a `Finset.filter … |>.card`.  Two
+one-line inductions give `cnt_add` (`cnt k (A+B) = cnt k A + cnt (k+A) B`) and
+`cnt_congr` (the count depends only on the window), and the main invariant is
+then an induction on `m` that splits each new block as `d + 1 + (a-1)`.  A
+`Finset` formulation would have needed `range_eq_Ico`, `Ico_union_Ico_eq_Ico`
+and `filter_union` for the same content.
+
+What is left is mechanical: recover `w` from a block-aligned window (its `1`s
+are the block starts, so the gaps give the derived letters), then assemble —
+equal weights fall to `rightSpecial_unique` directly, unequal weights to
+`drop_rightSpecial` plus `cnt_congr` and `cnt_block_window`.
 
 ### Two gaps in `all-the-proofs.tex` §6, found by formalising
 
