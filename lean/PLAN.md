@@ -83,9 +83,10 @@ that other projects import.
 
 ## Remaining
 
-One target: the converse half of Morse–Hedlund.  `all-the-proofs.tex` §6 step 2
-was proved on 3 October 2026 (`prop:blocks`); steps 4a and 5 are still open
-mathematics, and none of §6 is formalised.  Planned as **Phase 9** below.
+One target: the converse half of Morse–Hedlund.  `all-the-proofs.tex` §6
+steps 2 and 4 were proved on 3 October 2026 (`prop:blocks`, `prop:derived`);
+**step 5 alone is still open mathematics**, and none of §6 is formalised.
+Planned as **Phase 9** below; `../HANDOVER.md` is the brief for step 5.
 
 ## Design
 
@@ -494,8 +495,8 @@ it was the step this plan called the real infrastructure, and it was not.
 | 1 | `F(1)=2`, `F(2)=3`, so exactly one of `00`/`11` is absent | proved | not started |
 | 2 | block lengths take two consecutive values `a-1`, `a` | **proved** — `prop:blocks` | not started |
 | 3 | `ℓ = 0^{k₀} τ_a(ℓ')` | proved | `block_length`, `block_zero`, but see below |
-| 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | *not proved* | — |
-| 4b | both letters of `ℓ'` occur | proved | not started |
+| 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | **proved** — `prop:derived` | not started |
+| 4b | both letters of `ℓ'` occur | absorbed into 4a (`m = 1`) | — |
 | 5 | the limit pins a single `α = [0;a₁,a₂,…]` and a single `x` | *not proved* | — |
 
 **Step 3 is less reusable than it looks.** `block_length` and `block_zero` are

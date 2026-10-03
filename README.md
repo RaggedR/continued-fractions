@@ -33,6 +33,9 @@ figures with the source kept.
 | `papers/` | Scans of Euler 1767, Lagrange 1770 and Legendre 1798, with an article-level index of where each theorem actually is. |
 | `original/` | The 14 September originals, for comparison: `period-histogram.pdf`, `period-distribution.pdf`, and the `period-histogram.txt` write-up. Kept unmodified. |
 
+`HANDOVER.md` is the brief for the one thing left: `all-the-proofs.tex` §6
+step 5, the Ostrowski argument. Everything else in that document is proved.
+
 ## The Lean formalisation
 
 Five files in `lean/`. `Palindrome`, `Lagrange` and `Sturmian` are mutually
