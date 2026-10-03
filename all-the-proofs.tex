@@ -401,7 +401,7 @@ for some irrational $\alpha \in (0,1)$ and some $x \in [0,1)$.
 
 The forward implication is Theorem~\ref{thm:complexity} and
 Corollary~\ref{cor:complexityup}. For the converse, run \S4 and \S5 backwards.
-Steps 1, 2, 3 and 4b below are proved; 4a and 5 are not.
+Steps 1 to 4 below are proved; step 5 is not.
 
 \begin{enumerate}
 \item $F_\ell(1) = 2$, so both letters occur. $F_\ell(2) = 3$, so exactly one
@@ -415,9 +415,8 @@ Steps 1, 2, 3 and 4b below are proved; 4a and 5 are not.
 \item Given step 2, Lemma~\ref{lem:blocks} applies verbatim: $\ell$ factors as
   $\seq{0}^{k_0}\tau_a(\ell')$ with $\ell'$ a sequence over
   $\{\seq{0},\seq{1}\}$. \emph{Proved.}
-\item $\ell'$ is again Sturmian, and both of its letters occur: a single block
-  length would make $\ell$ eventually periodic, which caps complexity.
-  \emph{The second half is proved; that $F_{\ell'}(m) = m+1$ is not.}
+\item $\ell'$ is again Sturmian. \emph{Proposition~\ref{prop:derived} below};
+  that both of its letters occur is the case $m = 1$.
 \item Iterating produces $a_1, a_2, a_3, \ldots \geq 1$ and hence an irrational
   $\alpha = [\,0;\,a_1,a_2,\ldots\,]$, and the nested prefixes
   $\tau_{a_1}\tau_{a_2}\cdots\tau_{a_j}$ together with the shifts $k_0, k_1,
@@ -502,6 +501,75 @@ Proposition~\ref{prop:blocks} is weaker than balancedness and is what steps 3
 to 5 use. The classical route proves balancedness in full, by a
 minimal-counterexample induction producing a palindrome $w$ with
 $\seq{0}w\seq{0}$ and $\seq{1}w\seq{1}$ both factors; that is not needed here.
+
+Step 4 needs three more facts, all about counting, and then one bridge.
+
+\begin{lemma}\label{lem:evper}
+An eventually periodic sequence has bounded factor complexity.
+\end{lemma}
+
+\begin{proof}
+With preperiod $q$ and period $p$, every factor is a factor at some position
+below $q+p$, so $F_\ell(n) \leq q+p$.
+\end{proof}
+
+\begin{lemma}\label{lem:aper}
+If $\ell$ has no right-special factor of length $m$, it is eventually periodic.
+\end{lemma}
+
+\begin{proof}
+Every factor of length $m$ has exactly one right extension, so the window
+$u_k = \ell_k\cdots\ell_{k+m-1}$ determines $u_{k+1}$. The windows lie in a
+finite set, so $u_0, u_1, \ldots$ is eventually periodic, and $\ell$ is read off
+its windows.
+\end{proof}
+
+\begin{lemma}\label{lem:rschain}
+If $\ell$ has exactly one right-special factor of each length, each is a suffix
+of the next.
+\end{lemma}
+
+\begin{proof}
+The suffix of length $m$ of a right-special factor of length $m+1$ is
+right-special.
+\end{proof}
+
+\begin{lemma}\label{lem:bridge}
+Let $\ell$, $a$ and $\ell'$ be as in step 3. Then $w$ is a right-special factor
+of $\ell'$ if and only if $\tau_a(w)\seq{1}\seq{0}^{a-1}$ is a right-special
+factor of $\ell$.
+\end{lemma}
+
+\begin{proof}
+The $\seq{1}$s of $\ell$ are exactly the block starts, and $\tau_a(w)$ begins
+with $\seq{1}$, so every occurrence of $\tau_a(w)$ in $\ell$ begins at a block
+start. So $w\seq{0}$ is a factor of $\ell'$ exactly when
+$\tau_a(w)\seq{1}\seq{0}^{a-1}\seq{1}$ is a factor of $\ell$, and $w\seq{1}$
+exactly when $\tau_a(w)\seq{1}\seq{0}^{a}$ is one, no block being longer
+than $a$.
+\end{proof}
+
+\begin{proposition}\label{prop:derived}
+Let $\ell$, $a$ and $\ell'$ be as in step 3. Then $\ell'$ is Sturmian.
+\end{proposition}
+
+\begin{proof}
+At most one right-special factor of each length. Let $w$ and $w'$ be
+right-special factors of $\ell'$ of length $m$. By Lemma~\ref{lem:bridge} both
+$\tau_a(w)\seq{1}\seq{0}^{a-1}$ and $\tau_a(w')\seq{1}\seq{0}^{a-1}$ are
+right-special factors of $\ell$, so by Lemma~\ref{lem:rschain} one is a suffix
+of the other, and after dropping the common $\seq{1}\seq{0}^{a-1}$ so is one of
+$\tau_a(w)$, $\tau_a(w')$. A suffix of $\tau_a(w')$ beginning with $\seq{1}$
+begins at a block start, so it is $\tau_a(v)$ for a suffix $v$ of $w'$; counting
+blocks, $v = w'$. So $\tau_a(w) = \tau_a(w')$ and $w = w'$.
+
+At least one right-special factor of each length. Were there none of length $m$,
+$\ell'$ would be eventually periodic by Lemma~\ref{lem:aper}, hence so would
+$\ell = \seq{0}^{k_0}\tau_a(\ell')$, and $F_\ell$ would be bounded by
+Lemma~\ref{lem:evper}.
+
+Corollary~\ref{cor:onesp} now gives $F_{\ell'}(m) = m+1$.
+\end{proof}
 
 \section{The substitution}
 
@@ -743,10 +811,10 @@ $Q < 0$ the value is $-\lfloor (P + a_0)/(-Q)\rfloor - 1$.
 \section{What is not proved here}
 
 \begin{enumerate}
-\item The converse half of Theorem~\ref{thm:mh}: steps 4a and 5 of the list in
-  \S6. Step 4a is that the derived sequence is again Sturmian; step 5 is an
-  Ostrowski convergence argument. Step 2 was on this list and is now
-  Proposition~\ref{prop:blocks}.
+\item The converse half of Theorem~\ref{thm:mh}: \textbf{step 5 only} of the
+  list in \S6. It is the Ostrowski convergence argument that pins the intercept
+  $x$. Steps 2 and 4 were on this list and are now
+  Propositions~\ref{prop:blocks} and \ref{prop:derived}.
 \item Nothing else. Both halves of Lagrange's theorem are now proved and
   formalised: Euler's (\S9, \texttt{lean/Lagrange.lean}) and Lagrange's own
   (Theorem~\ref{thm:lagrange1770}, \texttt{lean/Quadratic.lean}). Every other
