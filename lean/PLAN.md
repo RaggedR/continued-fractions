@@ -501,8 +501,8 @@ infrastructure, and it was not.
 | `cor:onesp` | `F(m) = m+1` ⟺ one right-special factor per length | proved | **`isSturmian_iff_ncard_rightSpecial`** |
 | 2 | block lengths take two consecutive values `a-1`, `a` | **proved** — `prop:blocks` | **`blocks`, `initial_block_le`** |
 | 3 | `ℓ = 0^{k₀} τ_a(ℓ')` | proved | **`onesPos_block_length`, `onesPos_zero_le`** |
-| 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | **proved** — `prop:derived` | half — easy half and `lem:aper`, `lem:rschain` |
-| 4b | both letters of `ℓ'` occur | absorbed into 4a (`m = 1`) | — |
+| 4a | `F_{ℓ'}(m) = m+1`: the derived sequence is again Sturmian | **proved** — `prop:derived` | **`isSturmian_deriveSeq`** |
+| 4b | both letters of `ℓ'` occur | absorbed into 4a (`m = 1`) | the `m = 0` case of `isSturmian_deriveSeq` |
 | 5 | the limit pins a single `α = [0;a₁,a₂,…]` and a single `x` | **proved** — §7 | not started |
 
 **Step 3 is less reusable than it looks.** `block_length` and `block_zero` are
@@ -737,8 +737,11 @@ Status in Lean:
 | `block_letter_eq` | **done** — `ℓ` reads the same from both block starts |
 | `rightSpecial_of_blockWindow` | **done** — the bridge itself |
 | `cnt`, `cnt_congr`, `cnt_add`, `cnt_eq_zero`, `cnt_block_window` | **done** — the window carries `m+1` ones |
-| `w` recovered from the window | **left** — the `1`s are the block starts |
-| assembly of the uniqueness half | **left** |
+| `onesPos_of_one`, `exists_occ_of_extBy` | **done** — every `1` is a block start; occurrences of `w·b` |
+| `onesPos_succ_le_of_window`, `onesPos_add_eq_of_window` | **done** — equal windows give equal block starts |
+| `deriveSeq_eq_of_window` | **done** — hence equal derived letters |
+| `blockWindow_len_le` | **done** — unequal window lengths are impossible |
+| `rightSpecial_deriveSeq_unique`, `isSturmian_deriveSeq` | **done** — `prop:derived` |
 
 `cnt` is a hand-rolled recursion, not a `Finset.filter … |>.card`.  Two
 one-line inductions give `cnt_add` (`cnt k (A+B) = cnt k A + cnt (k+A) B`) and
@@ -747,10 +750,20 @@ then an induction on `m` that splits each new block as `d + 1 + (a-1)`.  A
 `Finset` formulation would have needed `range_eq_Ico`, `Ico_union_Ico_eq_Ico`
 and `filter_union` for the same content.
 
-What is left is mechanical: recover `w` from a block-aligned window (its `1`s
-are the block starts, so the gaps give the derived letters), then assemble —
-equal weights fall to `rightSpecial_unique` directly, unequal weights to
-`drop_rightSpecial` plus `cnt_congr` and `cnt_block_window`.
+**Step 4 is complete.**  The assembly came out as predicted: equal window
+lengths fall to `rightSpecial_unique` and then `deriveSeq_eq_of_window`;
+unequal lengths die in `blockWindow_len_le`, where the shorter window is a
+`drop` of the longer and `cnt_congr` plus `cnt_block_window` give `m + 1 =
+(m - r) + 1` with `0 < r ≤ m`.
+
+Note the two directions never compare *weights* — only the window lengths
+`Ni`, `Nj` as numbers.  `blockWindow_len_le` applied both ways gives `Ni = Nj`
+by antisymmetry, and no `|w|₁` ever appears.  That is what kept the whole
+argument inside `omega`.
+
+`4b` (both letters of `ℓ'` occur) is the `m = 0` case: `Fin 0 → ℕ` is a
+subsingleton, so nonemptiness alone gives `ncard = 1`, and nonemptiness comes
+from `drop_rightSpecial` applied to a right-special factor of length `1`.
 
 ### Two gaps in `all-the-proofs.tex` §6, found by formalising
 
@@ -805,5 +818,5 @@ Done since:
 Next, and now the only thing left:
 
 ```
-9 (converse Morse–Hedlund)   1, 2, 3 done ──► 4 (half) ──► 5
+9 (converse Morse–Hedlund)   1, 2, 3, 4 done ──► 5
 ```

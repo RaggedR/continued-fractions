@@ -4,20 +4,22 @@
 3 October 2026 and is now §7 of `all-the-proofs.tex`. `lean/PLAN.md` Phase 9 is
 the remaining work and it is now pure formalisation.
 
-Phase 9 is underway in `Sturmian.lean` §6.1. Steps 1, 2 and 3 are formalised,
-along with `lem:rs`, `cor:onesp`, `lem:evper`, `lem:aper`, `lem:rschain` and
-the easy half of step 4. What remains is `lem:bridge` with the uniqueness half
-of `prop:derived`, then step 5.
+**Steps 1 to 4 of the converse are formalised**, in `Sturmian.lean` §6.1, on
+`lem:rs`, `cor:onesp`, `lem:evper`, `lem:aper`, `lem:rschain` and
+`lem:bridge`. `isSturmian_deriveSeq` is `prop:derived`.
 
-**`lem:bridge` is the wall, and `PLAN.md` says why**: `τ_a` is not
-length-preserving, so two right-special factors of `ℓ'` of equal length map to
-right-special factors of `ℓ` of different lengths. The occurrence
-representation that made steps 1 to 3 cheap does not help here. Read that
-section before starting — it recommends trying a positional reformulation
-before building `τ_a` as a dependently-typed word.
+What remains is **step 5 (§7), which has no Lean at all**, the letter-exchange
+normalisation threaded through the tower, and the assembly into
+`mechanical_of_isSturmian` and `thm:mh`. Step 5 is a different kind of work
+from everything above: `lem:slope` is a contraction argument over `ℝ` with an
+irrationality descent, and `prop:bound` is an induction on word length with
+`Δ_α(u) = |u|₁ − α|u|` real-valued. The positional-and-`omega` discipline that
+carried steps 1 to 4 will not carry it.
 
-`PLAN.md` also records where the Lean route beats the paper's, and the two
-proof slips formalising turned up in §6 — both now fixed in the `.tex`.
+`PLAN.md` records where the Lean route beats the paper's — `blockLens_le`
+collapses two paragraphs, `lem:bridge` goes positionally so `τ_a` is never a
+word, and the whole of step 4 avoids comparing weights — and the two proof
+slips formalising turned up in §6, both now fixed in the `.tex`.
 
 ## What step 5 turned out to be
 

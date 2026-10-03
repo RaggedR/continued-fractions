@@ -2889,6 +2889,205 @@ theorem cnt_block_window (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
         exact h
       rw [hz1, cnt_one_of _ hone, hz2]
 
+/-! ### Recovering the derived letters from a window -/
+
+/-- Every `1` is a block start. -/
+lemma onesPos_of_one (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ) {i r : ℕ}
+    (h : ℓ (onesPos ℓ i + r) = 1) : ∃ t, onesPos ℓ i + r = onesPos ℓ (i + t) := by
+  obtain ⟨t, ht1, ht2⟩ := exists_block_rel hbb hS i r
+  refine ⟨t, ?_⟩
+  by_contra hne
+  have hz := onesPos_block_zero (ℓ := ℓ) hbb (i := i + t)
+    (j := onesPos ℓ i + r - onesPos ℓ (i + t)) (by omega) (by omega)
+  rw [show onesPos ℓ (i + t) + (onesPos ℓ i + r - onesPos ℓ (i + t))
+      = onesPos ℓ i + r by omega] at hz
+  omega
+
+/-- An occurrence of `w` followed by the letter `b`. -/
+lemma exists_occ_of_extBy {m b : ℕ} {w : Fin m → ℕ} (h : w ∈ extBy ℓ m b) :
+    ∃ i, (∀ t (ht : t < m), ℓ (i + t) = w ⟨t, ht⟩) ∧ ℓ (i + m) = b := by
+  obtain ⟨k, hk⟩ := mem_factors_iff.1 h
+  refine ⟨k, fun t ht => ?_, ?_⟩
+  · have hc := hk (Fin.castSucc ⟨t, ht⟩)
+    rw [Fin.snoc_castSucc] at hc
+    simpa using hc
+  · have hl := hk (Fin.last m)
+    simpa using hl
+
+/-- One direction of the block-start comparison. -/
+lemma onesPos_succ_le_of_window (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    {i j n t : ℕ}
+    (hw : ∀ r, r < n → ℓ (onesPos ℓ i + r) = ℓ (onesPos ℓ j + r))
+    (hlt : onesPos ℓ (i + t + 1) < onesPos ℓ i + n)
+    (hIH : onesPos ℓ (i + t) + onesPos ℓ j = onesPos ℓ (j + t) + onesPos ℓ i) :
+    onesPos ℓ (j + t + 1) + onesPos ℓ i ≤ onesPos ℓ (i + t + 1) + onesPos ℓ j := by
+  have hmono := onesPos_strictMono hbb hS
+  have hle : onesPos ℓ i ≤ onesPos ℓ (i + t + 1) := hmono.monotone (by omega)
+  have hlt' : onesPos ℓ (i + t) < onesPos ℓ (i + t + 1) := hmono (by omega)
+  set r := onesPos ℓ (i + t + 1) - onesPos ℓ i with hr
+  have he : onesPos ℓ i + r = onesPos ℓ (i + t + 1) := by omega
+  have h1 : ℓ (onesPos ℓ j + r) = 1 := by
+    rw [← hw r (by omega), he]
+    exact one_onesPos hbb hS _
+  obtain ⟨u, hu⟩ := onesPos_of_one hbb hS h1
+  have hgt : onesPos ℓ (j + t) < onesPos ℓ (j + u) := by omega
+  have hut : t < u := by
+    by_contra hc
+    push Not at hc
+    have := hmono.monotone (show j + u ≤ j + t by omega)
+    omega
+  have := hmono.monotone (show j + t + 1 ≤ j + u by omega)
+  omega
+
+/-- Equal windows over `m` blocks give equal block starts. -/
+lemma onesPos_add_eq_of_window (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) {i j n m : ℕ}
+    (hw : ∀ r, r < n → ℓ (onesPos ℓ i + r) = ℓ (onesPos ℓ j + r))
+    (hni : onesPos ℓ (i + m) + blockMax ℓ = onesPos ℓ i + n)
+    (hnj : onesPos ℓ (j + m) + blockMax ℓ = onesPos ℓ j + n) :
+    ∀ t, t ≤ m →
+      onesPos ℓ (i + t) + onesPos ℓ j = onesPos ℓ (j + t) + onesPos ℓ i := by
+  have hmono := onesPos_strictMono hbb hS
+  have ha2 : 2 ≤ blockMax ℓ := (blocks hbb hS h11).1
+  intro t
+  induction t with
+  | zero => intro _; simp only [Nat.add_zero]; omega
+  | succ p ih =>
+      intro hp
+      have hIH := ih (by omega)
+      have hbi : onesPos ℓ (i + p + 1) ≤ onesPos ℓ (i + m) :=
+        hmono.monotone (by omega)
+      have hbj : onesPos ℓ (j + p + 1) ≤ onesPos ℓ (j + m) :=
+        hmono.monotone (by omega)
+      have h1 := onesPos_succ_le_of_window hbb hS hw (t := p) (by omega) hIH
+      have h2 := onesPos_succ_le_of_window hbb hS
+        (fun r hr => (hw r hr).symm) (t := p) (by omega) (by omega)
+      rw [show i + (p + 1) = i + p + 1 by omega, show j + (p + 1) = j + p + 1 by omega]
+      omega
+
+/-- Hence equal derived letters. -/
+lemma deriveSeq_eq_of_window (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) {i j n m : ℕ}
+    (hw : ∀ r, r < n → ℓ (onesPos ℓ i + r) = ℓ (onesPos ℓ j + r))
+    (hni : onesPos ℓ (i + m) + blockMax ℓ = onesPos ℓ i + n)
+    (hnj : onesPos ℓ (j + m) + blockMax ℓ = onesPos ℓ j + n)
+    {t : ℕ} (ht : t < m) :
+    deriveSeq ℓ (blockMax ℓ) (i + t) = deriveSeq ℓ (blockMax ℓ) (j + t) := by
+  have hall := onesPos_add_eq_of_window hbb hS h11 hw hni hnj
+  have e1 := hall t (by omega)
+  have e2 := hall (t + 1) (by omega)
+  have hb1 := onesPos_block_length hbb hS h11 (i + t)
+  have hb2 := onesPos_block_length hbb hS h11 (j + t)
+  rw [show i + (t + 1) = i + t + 1 by omega, show j + (t + 1) = j + t + 1 by omega]
+    at e2
+  omega
+
+/-! ### `prop:derived`: the derived sequence is Sturmian -/
+
+/-- Unequal window lengths are impossible: the shorter is a drop of the longer,
+and the two carry a different number of `1`s. -/
+lemma blockWindow_len_le (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) {i j m Ni Nj : ℕ}
+    (hNi : onesPos ℓ i + Ni = onesPos ℓ (i + m) + blockMax ℓ)
+    (hNj : onesPos ℓ j + Nj = onesPos ℓ (j + m) + blockMax ℓ)
+    (hRi : window ℓ Ni (onesPos ℓ i) ∈ rightSpecial ℓ Ni)
+    (hRj : window ℓ Nj (onesPos ℓ j) ∈ rightSpecial ℓ Nj) : Nj ≤ Ni := by
+  by_contra hcon
+  push Not at hcon
+  have hmono := onesPos_strictMono hbb hS
+  have ha2 : 2 ≤ blockMax ℓ := (blocks hbb hS h11).1
+  have hmi : onesPos ℓ i ≤ onesPos ℓ (i + m) := hmono.monotone (by omega)
+  obtain ⟨d, hdeq⟩ : ∃ d, Nj = d + Ni := ⟨Nj - Ni, by omega⟩
+  have hd0 : 0 < d := by omega
+  subst hdeq
+  have hdrop : drop d (window ℓ (d + Ni) (onesPos ℓ j)) ∈ rightSpecial ℓ Ni :=
+    drop_rightSpecial hRj
+  rw [drop_window] at hdrop
+  have heq : window ℓ Ni (onesPos ℓ i) = window ℓ Ni (onesPos ℓ j + d) :=
+    rightSpecial_unique hbb hS hRi hdrop
+  have hNipos : 0 < Ni := by omega
+  have hone : ℓ (onesPos ℓ j + d) = 1 := by
+    have h : ℓ (onesPos ℓ i) = ℓ (onesPos ℓ j + d) := by
+      simpa [window] using congrFun heq ⟨0, hNipos⟩
+    rw [← h]
+    exact one_onesPos hbb hS i
+  obtain ⟨r, hr⟩ := onesPos_of_one hbb hS hone
+  have hr0 : 0 < r := by
+    rcases Nat.eq_zero_or_pos r with rfl | h
+    · simp only [Nat.add_zero] at hr; omega
+    · exact h
+  have hrm : r ≤ m := by
+    by_contra hc2
+    push Not at hc2
+    have h1 : onesPos ℓ (j + m + 1) ≤ onesPos ℓ (j + r) := hmono.monotone (by omega)
+    have h2 := onesPos_block_length hbb hS h11 (j + m)
+    omega
+  have hci := cnt_block_window hbb hS h11 i m
+  have hcj := cnt_block_window hbb hS h11 (j + r) (m - r)
+  have hcong : cnt ℓ (onesPos ℓ i) Ni = cnt ℓ (onesPos ℓ (j + r)) Ni := by
+    refine cnt_congr Ni (fun t ht => ?_)
+    have h := congrFun heq ⟨t, ht⟩
+    simp only [window] at h
+    rw [hr] at h
+    exact h
+  rw [show onesPos ℓ (i + m) + blockMax ℓ - onesPos ℓ i = Ni by omega] at hci
+  rw [show j + r + (m - r) = j + m by omega] at hcj
+  rw [show onesPos ℓ (j + m) + blockMax ℓ - onesPos ℓ (j + r) = Ni by omega] at hcj
+  omega
+
+/-- **The uniqueness half of `prop:derived`.** -/
+theorem rightSpecial_deriveSeq_unique (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) {m : ℕ} {w w' : Fin m → ℕ}
+    (hw : w ∈ rightSpecial (deriveSeq ℓ (blockMax ℓ)) m)
+    (hw' : w' ∈ rightSpecial (deriveSeq ℓ (blockMax ℓ)) m) : w = w' := by
+  have hmono := onesPos_strictMono hbb hS
+  have ha2 : 2 ≤ blockMax ℓ := (blocks hbb hS h11).1
+  obtain ⟨i, hi, hi0⟩ := exists_occ_of_extBy hw.1
+  obtain ⟨i', hi', hi1⟩ := exists_occ_of_extBy hw.2
+  obtain ⟨j, hj, hj0⟩ := exists_occ_of_extBy hw'.1
+  obtain ⟨j', hj', hj1⟩ := exists_occ_of_extBy hw'.2
+  have hmi : onesPos ℓ i ≤ onesPos ℓ (i + m) := hmono.monotone (by omega)
+  have hmj : onesPos ℓ j ≤ onesPos ℓ (j + m) := hmono.monotone (by omega)
+  have hRi := rightSpecial_of_blockWindow hbb hS h11
+    (fun t ht => (hi t ht).trans (hi' t ht).symm) hi0 hi1
+  have hRj := rightSpecial_of_blockWindow hbb hS h11
+    (fun t ht => (hj t ht).trans (hj' t ht).symm) hj0 hj1
+  set Ni := onesPos ℓ (i + m) + blockMax ℓ - onesPos ℓ i with hNidef
+  set Nj := onesPos ℓ (j + m) + blockMax ℓ - onesPos ℓ j with hNjdef
+  have hNi : onesPos ℓ i + Ni = onesPos ℓ (i + m) + blockMax ℓ := by omega
+  have hNj : onesPos ℓ j + Nj = onesPos ℓ (j + m) + blockMax ℓ := by omega
+  have hle1 := blockWindow_len_le hbb hS h11 hNi hNj hRi hRj
+  have hle2 := blockWindow_len_le hbb hS h11 hNj hNi hRj hRi
+  have hNeq : Ni = Nj := by omega
+  rw [hNeq] at hRi
+  have heq : window ℓ Nj (onesPos ℓ i) = window ℓ Nj (onesPos ℓ j) :=
+    rightSpecial_unique hbb hS hRi hRj
+  funext t
+  have e1 := hi (t : ℕ) t.2
+  have e2 := hj (t : ℕ) t.2
+  rw [← e1, ← e2]
+  exact deriveSeq_eq_of_window hbb hS h11
+    (fun r hr => by simpa [window] using congrFun heq ⟨r, hr⟩)
+    (by omega) (by omega) t.2
+
+/-- **`prop:derived`.**  The derived sequence of a Sturmian sequence is
+Sturmian. -/
+theorem isSturmian_deriveSeq (hbb : ∀ k, ℓ k ≤ 1) (hS : IsSturmian ℓ)
+    (h11 : ∀ k, ℓ k = 1 → ℓ (k + 1) = 0) :
+    IsSturmian (deriveSeq ℓ (blockMax ℓ)) := by
+  rw [isSturmian_iff_ncard_rightSpecial (fun k => deriveSeq_le_one hbb hS h11 k)]
+  intro m
+  rw [Set.ncard_eq_one]
+  rcases Nat.eq_zero_or_pos m with rfl | hm
+  · obtain ⟨u, hu⟩ := rightSpecial_deriveSeq_nonempty hbb hS h11 (m := 1) le_rfl
+    refine ⟨drop 1 u, Set.eq_singleton_iff_unique_mem.2
+      ⟨drop_rightSpecial hu, fun v _ => ?_⟩⟩
+    funext s
+    exact s.elim0
+  · obtain ⟨u, hu⟩ := rightSpecial_deriveSeq_nonempty hbb hS h11 hm
+    exact ⟨u, Set.eq_singleton_iff_unique_mem.2
+      ⟨hu, fun v hv => rightSpecial_deriveSeq_unique hbb hS h11 hv hu⟩⟩
+
 end MorseHedlund
 
 /-! ## §8 The tower
@@ -3312,6 +3511,8 @@ end Substitution
 #print axioms Sturmian.block_letter_eq
 #print axioms Sturmian.rightSpecial_of_blockWindow
 #print axioms Sturmian.cnt_block_window
+#print axioms Sturmian.rightSpecial_deriveSeq_unique
+#print axioms Sturmian.isSturmian_deriveSeq
 #print axioms Sturmian.return_time
 #print axioms Sturmian.ones_succ_eq
 #print axioms Sturmian.derived_eq
